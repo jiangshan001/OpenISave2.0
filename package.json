@@ -1,0 +1,14 @@
+{
+  "name": "openisave2",
+  "private": true,
+  "version": "2.0.0",
+  "description": "OpenISave 2.0 — local-first personal finance desktop app",
+  "scripts": {
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}
