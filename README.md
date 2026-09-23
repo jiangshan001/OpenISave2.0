@@ -7,24 +7,19 @@ goals, budgeting and auditable financial history.
 Everything lives on your own machine. The only outbound network request is for
 exchange rates, and it sends nothing but currency codes.
 
-> The architectural rules for this project are defined in
-> [`docs/OPENISAVE2_PROJECT_ARCHITECTURE.md`](docs/OPENISAVE2_PROJECT_ARCHITECTURE.md).
-> See [`docs/V2_IMPLEMENTATION_STATUS.md`](docs/V2_IMPLEMENTATION_STATUS.md) for
-> what this version does and does not yet cover.
+## Download
 
----
+**Windows 10/11 (x64):** [Latest Release](https://github.com/jiangshan001/OpenISave2.0/releases/latest)
 
-## Install and use
+1. Download `OpenISave_2.0.0_x64-setup.exe` from the release page.
+2. Run the installer. It installs for the current user, adds a Start menu
+   shortcut, and offers a desktop shortcut.
+3. Launch OpenISave from the Start menu or desktop.
 
-OpenISave is a Windows 10/11 (x64) desktop application. There is no terminal, no
-server to start and nothing to configure.
-
-1. **Download the installer** — `OpenISave_2.0.0_x64-setup.exe` from the
-   repository's **Releases** page (verify it against `SHA256SUMS.txt` if you like).
-2. **Install** — run the installer. It installs for the current user only, needs
-   no administrator rights, adds a Start menu shortcut and offers a desktop
-   shortcut.
-3. **Launch OpenISave** — from the Start menu or the desktop shortcut.
+The installer includes everything needed to use the app. You do **not** need to
+install Python, Node.js, or Rust, and you do **not** need to run any PowerShell
+commands. Those tools are only for developing or building the source code.
+`SHA256SUMS.txt` on the release page lets you verify the installer download.
 
 The app starts its own local data service, and stops it again when you close the
 window. Upgrading or reinstalling never touches your data.
@@ -34,7 +29,7 @@ window. Upgrading or reinstalling never touches your data.
 > [Where your data lives](#where-your-data-lives)). Neither the source code, the
 > installer nor the source package contains any financial data.
 
-### First run
+## First run
 
 The database starts empty — no sample accounts, balances or transactions.
 
@@ -102,6 +97,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\reset_database.ps1
 
 ## Developer setup
 
+The architectural rules are in
+[`docs/OPENISAVE2_PROJECT_ARCHITECTURE.md`](docs/OPENISAVE2_PROJECT_ARCHITECTURE.md).
+See [`docs/V2_IMPLEMENTATION_STATUS.md`](docs/V2_IMPLEMENTATION_STATUS.md) for
+what this version does and does not yet cover.
+
 The repository contains source only. Dependencies, virtual environments and
 build output (`node_modules/`, `.venv/`, `desktop/target/`, `dist/` …) are not
 committed; the commands below recreate all of them.
@@ -109,7 +109,7 @@ committed; the commands below recreate all of them.
 ### Quick start from a fresh clone
 
 ```bash
-git clone <your-repository-url> OpenISave2
+git clone https://github.com/jiangshan001/OpenISave2.0.git OpenISave2
 ```
 
 Then, from inside the `OpenISave2` folder:
