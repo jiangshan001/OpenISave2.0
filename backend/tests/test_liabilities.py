@@ -126,7 +126,12 @@ def test_one_account_cannot_back_two_liabilities(liabilities, accounts):
 def test_financed_purchase_does_not_overstate_net_worth(
     accounts, assets, liabilities, networth
 ):
-    """Laptop 20,000 = 8,000 cash + 12,000 financed. Net worth must not move."""
+    """An asset opted into net worth: 20,000 = 8,000 cash + 12,000 financed.
+
+    Because the asset counts, net worth does not move. The default case -- a
+    laptop as a personal possession -- is covered in
+    test_networth_classification.py.
+    """
     cmb = make_account(accounts, "招商银行", "CNY", "50000.00")
     financing = _financing(liabilities, outstanding="0.00", original="12000.00")
     before = networth.calculate().net_worth_minor

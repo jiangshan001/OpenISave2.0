@@ -1,0 +1,51 @@
+/* Overview activity heatmap */
+.oi-heatmap {
+  position: relative;
+  max-width: 960px;
+}
+
+.oi-heatmap rect:hover {
+  stroke: var(--oi-text);
+  stroke-width: 1;
+}
+
+.oi-heatmap-label {
+  fill: var(--oi-muted);
+  font-size: 9px;
+}
+
+.oi-heatmap-summary {
+  margin-bottom: var(--oi-space-sm);
+  font-size: 13px;
+}
+
+.oi-heatmap-tooltip {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, calc(-100% - 6px));
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--oi-surface);
+  box-shadow: 0 6px 20px rgba(27, 34, 48, 0.16);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.oi-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--oi-space-sm);
+  font-size: 12px;
+}
+
+.oi-heatmap-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+.oi-heatmap-note {
+  margin-left: auto;
+}

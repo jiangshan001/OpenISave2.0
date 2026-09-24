@@ -1,15 +1,31 @@
 from __future__ import annotations
 
-from datetime import date
-from decimal import Decimal
+import os
+import tempfile
 
-import pytest
+# Isolation first, before anything imports app settings: tests get a throwaway
+# data directory, no legacy database to migrate, and an in-memory key store.
+# They can never reach the real vault or the real Credential Manager entry.
+# (Test modules also import this file as `tests.conftest`; reuse the root.)
+_TEST_ROOT = os.environ.get("OPENISAVE_TEST_ROOT") or tempfile.mkdtemp(prefix="openisave-tests-")
+os.environ["OPENISAVE_TEST_ROOT"] = _TEST_ROOT
+os.environ["OPENISAVE_DATA_ROOT"] = os.path.join(_TEST_ROOT, "data")
+os.environ["OPENISAVE_LEGACY_DATA_ROOT"] = os.path.join(_TEST_ROOT, "no-legacy")
+os.environ["OPENISAVE_KEY_STORE"] = "memory"
+os.environ["OPENISAVE_CREDENTIAL_SERVICE"] = "OpenISave2-Tests/DatabaseEncryptionKey"
+os.environ.pop("OPENISAVE_DEV_LOCAL_DATA", None)
+
+from datetime import date  # noqa: E402
+from decimal import Decimal  # noqa: E402
+
+import pytest  # noqa: E402
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.money import to_minor
-from app.db.base import Base
+from app.core.config import settings as _settings  # noqa: E402
+from app.core.money import to_minor  # noqa: E402
+from app.db.base import Base  # noqa: E402
 from app.db.seed import seed_all
 from app.models import *  # noqa: F401,F403
 from app.providers.fx.base import FxProvider, RateQuote
@@ -25,6 +41,8 @@ from app.services.ledger_service import LedgerService
 from app.services.liability_service import LiabilityService
 from app.services.networth_service import NetWorthService
 from app.services.report_service import ReportService
+
+assert str(_settings.data_root).startswith(_TEST_ROOT), "tests must never use real data"
 
 TODAY = date.today()
 

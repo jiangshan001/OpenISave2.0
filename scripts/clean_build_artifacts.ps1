@@ -7,8 +7,9 @@
 
     Only the explicit paths listed below are removed. Source code, migrations,
     tests, docs, scripts, icons, logo.png and lockfiles are never touched, and
-    nothing under %LOCALAPPDATA%\OpenISave2 (the real financial data, backups
-    and logs) is ever considered.
+    nothing under %LOCALAPPDATA%\OpenISave2Data (the encrypted vault, backups
+    and logs) or %LOCALAPPDATA%\OpenISave2 (2.0.x plaintext data) is ever
+    considered.
 
     Everything removed here is rebuilt by:
         backend   py -3.11 -m venv .venv; pip install -r requirements-dev.txt
@@ -50,8 +51,14 @@ $targets = @(
 # __pycache__ folders are only searched for inside these backend source roots.
 $pycacheRoots = @('backend', 'backend\app', 'backend\alembic', 'backend\tests')
 
-# Hard guard: the user's data directory must never be inside a target.
-$userData = if ($env:LOCALAPPDATA) { (Join-Path $env:LOCALAPPDATA 'OpenISave2').TrimEnd('\') } else { $null }
+# Hard guard: the user's data directories must never be inside a target.
+# (The 'OpenISave2' prefix also covers 'OpenISave2Data'; both are listed so
+# the protection does not depend on that coincidence.)
+$userDataDirs = @()
+if ($env:LOCALAPPDATA) {
+    $userDataDirs += (Join-Path $env:LOCALAPPDATA 'OpenISave2Data').TrimEnd('\')
+    $userDataDirs += (Join-Path $env:LOCALAPPDATA 'OpenISave2').TrimEnd('\')
+}
 
 function Get-FolderBytes([string]$path) {
     if (-not (Test-Path -LiteralPath $path)) { return [int64]0 }
@@ -74,9 +81,11 @@ function Assert-SafeTarget([string]$full) {
     if (-not $full.StartsWith($root + '\', [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing to delete outside the project: $full"
     }
-    if ($userData -and ($full.StartsWith($userData, [System.StringComparison]::OrdinalIgnoreCase) -or
-                        $userData.StartsWith($full, [System.StringComparison]::OrdinalIgnoreCase))) {
-        throw "Refusing to touch the OpenISave user data directory: $full"
+    foreach ($userData in $userDataDirs) {
+        if ($full.StartsWith($userData, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $userData.StartsWith($full, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Refusing to touch the OpenISave user data directory: $full"
+        }
     }
 }
 

@@ -27,7 +27,7 @@ def build_client(session, *, provider: StubFxProvider | None = None) -> TestClie
     The lifespan is deliberately not run: startup seeds and logs against the
     real application database, which tests must never touch.
     """
-    app = create_app()
+    app = create_app(storage="open")
     app.dependency_overrides[get_db] = lambda: session
     app.dependency_overrides[get_fx_service] = lambda: FxService(
         session, provider or StubFxProvider()

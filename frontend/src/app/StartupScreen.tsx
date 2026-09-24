@@ -31,11 +31,12 @@ export function StartupScreen({ failed = false, message }: StartupScreenProps) {
       <h1 className="oi-startup-title">OpenISave could not start</h1>
       <p className="oi-startup-body">
         {message ?? 'The local data service did not come up.'} Your accounts could not be
-        loaded, but nothing has been lost — your database is untouched on this computer.
+        loaded, but nothing has been lost — your encrypted database is untouched on this
+        computer.
       </p>
       <p className="oi-startup-body oi-muted">
         Close OpenISave and open it again. If it keeps happening, check the log at
-        <code> %LOCALAPPDATA%\OpenISave2\logs\openisave2.log</code>.
+        <code> %LOCALAPPDATA%\OpenISave2Data\logs\openisave2.log</code>.
       </p>
       <button type="button" onClick={() => window.location.reload()}>
         Try again

@@ -1,19 +1,36 @@
 # ---------------------------------------------------------------------------
 # Financial data must never be committed.
-# The real database lives in %LOCALAPPDATA%\OpenISave2\, never in this repo;
+# The real (encrypted) database lives in %LOCALAPPDATA%\OpenISave2Data\ and
+# 2.0.x plaintext data in %LOCALAPPDATA%\OpenISave2\, never in this repo;
 # these rules are a second line of defence against stray copies.
 # ---------------------------------------------------------------------------
 *.db
 *.db-shm
 *.db-wal
 *.db-journal
+*.db.migrating
+*.db.restoring
 *.sqlite
 *.sqlite3
+*.sqlcipher
 .localdata/
+.localdata-legacy/
 data/
+vault/
 backups/
+migration/
 logs/
 exports/
+security-exports/
+
+# Recovery keys and security exports (never commit, never keep in the repo).
+# Patterns target exported files only, so source such as RecoveryKeyModal.tsx
+# stays tracked.
+*recovery-key*.txt
+*recovery_key*.txt
+*recovery-key*.json
+*.recovery
+migration-report.json
 *.log
 *.csv
 *.ofx

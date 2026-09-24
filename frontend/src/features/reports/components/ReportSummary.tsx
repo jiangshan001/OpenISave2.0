@@ -40,7 +40,7 @@ export function ReportSummary({ report }: { report: MonthlyReport }) {
           amountMinor={summary.net_worth_minor}
           currency={base}
           hint="Current balances converted at the latest exchange rate, not the rate for this month."
-          footer={`Assets ${formatMoney(summary.total_assets_minor, base)}`}
+          footer={`Net worth assets ${formatMoney(summary.total_assets_minor, base)}`}
         />
       </Col>
     </Row>

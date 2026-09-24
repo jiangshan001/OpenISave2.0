@@ -355,9 +355,10 @@ class LedgerService:
         """Record buying an asset.
 
         Buying is a change of form, not spending: cash (and/or new debt) turns
-        into a thing you own. The postings therefore balance to zero and the
-        transaction type keeps it out of expense totals, so net worth does not
-        drop by the purchase price.
+        into a thing you own. The postings balance to zero against an asset leg
+        and the transaction type keeps it out of expense totals. Whether net
+        worth moves is decided by the asset's classification, not the ledger:
+        a store of wealth offsets the cash, a personal possession does not.
         """
         cash = int(cash_amount_minor or 0)
         financed = int(financed_amount_minor or 0)

@@ -96,6 +96,14 @@ export function useDashboard() {
   return useQuery({ queryKey: queryKeys.dashboard, queryFn: () => reportsApi.dashboard() });
 }
 
+/** Daily income/expense totals for the heatmap; invalidated with the dashboard. */
+export function useDashboardActivity(months = 12) {
+  return useQuery({
+    queryKey: queryKeys.dashboardActivity(months),
+    queryFn: () => reportsApi.activity(months),
+  });
+}
+
 export function useMonthlyReport(year: number, month: number) {
   return useQuery({
     queryKey: queryKeys.report(year, month),

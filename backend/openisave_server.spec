@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 project_root = Path(SPECPATH)
 
@@ -13,6 +13,7 @@ datas = [
     (str(project_root / "alembic"), "alembic"),
     (str(project_root / "alembic.ini"), "."),
 ]
+datas += copy_metadata("keyring")
 
 hiddenimports = [
     "uvicorn.logging",
@@ -29,6 +30,10 @@ hiddenimports = [
 ]
 hiddenimports += collect_submodules("app")
 hiddenimports += collect_submodules("alembic")
+# Encrypted storage: the SQLCipher DB-API module and the Credential Manager
+# backend (instantiated directly, so entry-point discovery is not relied on).
+hiddenimports += ["sqlcipher3", "sqlcipher3.dbapi2", "keyring.backends.Windows"]
+hiddenimports += collect_submodules("win32ctypes")
 
 a = Analysis(
     ["run_server.py"],

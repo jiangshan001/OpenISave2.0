@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Asset } from '@/types/asset';
 import { formatDate } from '@/utils/dates';
 import { formatMoney } from '@/utils/money';
+import { NetWorthBadge } from './NetWorthBadge';
 
 interface AssetTableProps {
   rows: Asset[];
@@ -27,6 +28,7 @@ export function AssetTable({ rows, loading, sold = false, onSell, onValue }: Ass
             {row.category_name ?? 'Uncategorised'}
             {row.liability_name ? ` · financed by ${row.liability_name}` : ''}
           </span>
+          {sold ? null : <NetWorthBadge asset={row} />}
         </Space>
       ),
     },

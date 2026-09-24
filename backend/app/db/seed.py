@@ -29,14 +29,16 @@ EXPENSE_TREE: dict[str, list[str]] = {
     "Other": [],
 }
 
-ASSET_CATEGORIES: list[str] = [
-    "Electronics",
-    "Vehicle",
-    "Furniture",
-    "Collectibles",
-    "Property",
-    "Other",
-]
+#: Asset category -> whether its assets count towards net worth by default.
+#: Only stores of wealth do; personal possessions are tracked but excluded.
+ASSET_CATEGORIES: dict[str, bool] = {
+    "Electronics": False,
+    "Vehicle": False,
+    "Furniture": False,
+    "Collectibles": False,
+    "Property": True,
+    "Other": False,
+}
 
 INCOME_CATEGORIES: list[str] = [
     "Salary",
@@ -115,12 +117,16 @@ def seed_categories(session: Session) -> int:
 
 
 def seed_asset_categories(session: Session) -> int:
+    """Add missing default categories. Existing rows are never changed, so a
+    user's choice of default survives every restart."""
     existing = {row.name for row in session.scalars(select(AssetCategory))}
     created = 0
-    for order, name in enumerate(ASSET_CATEGORIES):
+    for order, (name, counts) in enumerate(ASSET_CATEGORIES.items()):
         if name in existing:
             continue
-        session.add(AssetCategory(name=name, sort_order=order))
+        session.add(
+            AssetCategory(name=name, sort_order=order, include_in_net_worth_default=counts)
+        )
         created += 1
     return created
 

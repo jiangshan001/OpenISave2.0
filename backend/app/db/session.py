@@ -1,46 +1,60 @@
-"""Engine and session management."""
+"""Engine and session management for the encrypted vault.
+
+The engine is built lazily from the storage runtime, which owns the key; if
+the vault is locked, asking for a session raises VaultLockedError instead of
+ever opening the file without a key.
+"""
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import settings
+from app.db.engine import build_engine
 
+_lock = threading.RLock()
 _engine: Engine | None = None
 _SessionFactory: sessionmaker[Session] | None = None
 
 
-def _configure_sqlite(dbapi_connection, _record) -> None:
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.execute("PRAGMA journal_mode=WAL")
-    cursor.close()
-
-
 def get_engine() -> Engine:
     global _engine
-    if _engine is None:
-        settings.ensure_directories()
-        _engine = create_engine(
-            settings.sqlalchemy_url,
-            future=True,
-            echo=False,
-            connect_args={"check_same_thread": False},
-        )
-        event.listen(_engine, "connect", _configure_sqlite)
-    return _engine
+    with _lock:
+        if _engine is None:
+            from app.security.runtime import get_runtime
+
+            runtime = get_runtime()
+            runtime.require_key()  # fail fast while locked
+            _engine = build_engine(runtime.settings.db_path, runtime.require_key)
+        return _engine
 
 
 def get_session_factory() -> sessionmaker[Session]:
     global _SessionFactory
-    if _SessionFactory is None:
-        _SessionFactory = sessionmaker(bind=get_engine(), autoflush=False, expire_on_commit=False)
-    return _SessionFactory
+    with _lock:
+        if _SessionFactory is None:
+            _SessionFactory = sessionmaker(
+                bind=get_engine(), autoflush=False, expire_on_commit=False
+            )
+        return _SessionFactory
+
+
+def dispose_engine() -> None:
+    """Close every pooled connection and forget the engine.
+
+    Used before the database file is swapped (restore) or when the runtime is
+    rebound in tests. The next request builds a fresh engine.
+    """
+    global _engine, _SessionFactory
+    with _lock:
+        if _engine is not None:
+            _engine.dispose()
+        _engine = None
+        _SessionFactory = None
 
 
 def get_db() -> Iterator[Session]:

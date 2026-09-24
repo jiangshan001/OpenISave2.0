@@ -8,6 +8,7 @@ import { useFxRates, useRefreshFx, useSettings, useUpdateSettings } from '@/hook
 import type { FxRateStatus } from '@/types';
 import { formatDate } from '@/utils/dates';
 import { CURRENCY_META } from '@/utils/money';
+import { DataSecurityCard } from './components/DataSecurityCard';
 import { ManualRateModal } from './components/ManualRateModal';
 
 const FRESHNESS_TONE: Record<string, string> = {
@@ -32,8 +33,12 @@ export function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        subtitle="Base currency, exchange rates and where your data lives."
+        subtitle="Base currency, exchange rates, and how your data is stored and protected."
       />
+
+      <div style={{ marginBottom: 16 }}>
+        <DataSecurityCard />
+      </div>
 
       <StateBoundary
         isLoading={settings.isLoading}
@@ -92,11 +97,10 @@ export function SettingsPage() {
                 </Space>
               </Card>
 
-              <Card title="Data location" variant="borderless" className="oi-section-gap">
-                <p className="oi-muted" style={{ marginTop: 0 }}>
-                  Your database, backups and logs are stored on this computer under
-                  <code> %LOCALAPPDATA%\OpenISave2</code>. Nothing financial leaves the machine —
-                  the only outbound request is for exchange rates, which sends currency codes only.
+              <Card title="Privacy" variant="borderless" className="oi-section-gap">
+                <p className="oi-muted" style={{ marginTop: 0, marginBottom: 0 }}>
+                  Nothing financial leaves this computer — the only outbound request is for
+                  exchange rates, which sends currency codes only.
                 </p>
               </Card>
             </Col>

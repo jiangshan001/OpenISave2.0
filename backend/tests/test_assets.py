@@ -330,6 +330,7 @@ def test_asset_without_a_rate_is_reported_not_guessed(session, fx_empty):
             "purchase_date": date(2026, 1, 1),
             "purchase_price_minor": to_minor("1000.00", "GBP"),
             "purchase_currency": "GBP",
+            "include_in_net_worth": True,
         }
     )
     result = NetWorthService(

@@ -11,6 +11,7 @@ from app.api.v1 import (
     goals,
     liabilities,
     reports,
+    security,
     settings,
     transactions,
 )
@@ -26,3 +27,4 @@ api_router.include_router(budgets.router)
 api_router.include_router(fx.router)
 api_router.include_router(reports.router)
 api_router.include_router(settings.router)
+api_router.include_router(security.router)

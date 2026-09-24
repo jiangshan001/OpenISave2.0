@@ -16,10 +16,16 @@ class AssetCategoryRead(ApiModel):
     name: str
     sort_order: int
     is_active: bool
+    include_in_net_worth_default: bool
 
 
 class AssetCategoryCreate(ApiModel):
     name: str = Field(min_length=1, max_length=80)
+    include_in_net_worth_default: bool = False
+
+
+class AssetCategoryUpdate(ApiModel):
+    include_in_net_worth_default: bool
 
 
 # -------------------------------------------------------------------- assets
@@ -40,7 +46,8 @@ class AssetCreate(ApiModel, CurrencyMixin):
     purchase_date: date
     purchase_price_minor: int = Field(gt=0)
     purchase_currency: str = Field(default="CNY", min_length=3, max_length=3)
-    include_in_net_worth: bool = True
+    #: Omit (or null) to follow the category default; a bool is a manual choice.
+    include_in_net_worth: bool | None = None
     linked_liability_id: int | None = None
     note: str | None = None
     payment: AssetPayment | None = None
@@ -75,6 +82,7 @@ class AssetUpdate(ApiModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     asset_category_id: int | None = None
     description: str | None = None
+    #: Absent: unchanged. Null: follow the category default. Bool: manual choice.
     include_in_net_worth: bool | None = None
     linked_liability_id: int | None = None
     note: str | None = None
@@ -140,6 +148,8 @@ class AssetRead(ApiModel):
     sale_currency: str | None
     sale_base_minor: int | None
     include_in_net_worth: bool
+    #: "category" when the flag follows the category default, "manual" otherwise.
+    include_in_net_worth_source: str
     linked_liability_id: int | None
     liability_name: str | None
     note: str | None

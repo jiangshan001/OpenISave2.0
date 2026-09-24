@@ -31,7 +31,8 @@ export function AssetsPage() {
   const dashboard = useDashboard();
 
   const base = dashboard.data?.base_currency ?? 'CNY';
-  const physical = dashboard.data?.physical_assets_minor ?? 0;
+  const counted = dashboard.data?.physical_assets_minor ?? 0;
+  const possessions = dashboard.data?.personal_possessions_minor ?? 0;
   const debts = dashboard.data?.total_liabilities_minor ?? 0;
 
   const openCreateAsset = () => {
@@ -63,7 +64,21 @@ export function AssetsPage() {
 
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         <Col xs={24} sm={8}>
-          <StatCard label="Physical assets" amountMinor={physical} currency={base} />
+          <StatCard
+            label="Counted in net worth"
+            amountMinor={counted}
+            currency={base}
+            hint="Assets that store wealth, such as property."
+          />
+        </Col>
+        <Col xs={24} sm={8}>
+          <StatCard
+            label="Personal possessions"
+            amountMinor={possessions}
+            currency={base}
+            hint="Current value of things you use. Reference only — not part of net worth."
+            footer="Not in net worth"
+          />
         </Col>
         <Col xs={24} sm={8}>
           <StatCard
@@ -71,15 +86,6 @@ export function AssetsPage() {
             amountMinor={debts}
             currency={base}
             tone={debts > 0 ? 'negative' : 'neutral'}
-          />
-        </Col>
-        <Col xs={24} sm={8}>
-          <StatCard
-            label="Net asset value"
-            amountMinor={physical - debts}
-            currency={base}
-            hint="Physical assets minus everything you owe."
-            tone="auto"
           />
         </Col>
       </Row>

@@ -38,6 +38,10 @@ class AssetRepository:
         self.session.delete(asset)
         self.session.flush()
 
+    def in_category(self, category_id: int) -> list[Asset]:
+        stmt = select(Asset).where(Asset.asset_category_id == category_id)
+        return list(self.session.scalars(stmt))
+
     def linked_to_liability(self, liability_id: int) -> list[Asset]:
         stmt = select(Asset).where(Asset.linked_liability_id == liability_id)
         return list(self.session.scalars(stmt))

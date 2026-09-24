@@ -1,4 +1,4 @@
-import { Col, DatePicker, Form, Input, Modal, Row, Select, Switch } from 'antd';
+import { Col, DatePicker, Form, Input, Modal, Row, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -12,6 +12,7 @@ import { toApiDate } from '@/utils/dates';
 import { isLiabilityType } from '@/utils/labels';
 import { CURRENCY_CODES, toMajor, toMinor } from '@/utils/money';
 import { validateOrNull } from '@/utils/forms';
+import { AssetNetWorthField } from './AssetNetWorthField';
 import { AssetPaymentFields } from './AssetPaymentFields';
 
 interface FormValues {
@@ -41,6 +42,8 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
   const [trackPayment, setTrackPayment] = useState(false);
   const [financed, setFinanced] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [netWorthManual, setNetWorthManual] = useState(false);
 
   const { data: accounts } = useAccounts();
   const { data: categories } = useAssetCategories();
@@ -62,11 +65,21 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
     [liabilities, currency],
   );
 
+  const category = (categories ?? []).find((item) => item.id === categoryId) ?? null;
+  const categoryDefault = category?.include_in_net_worth_default ?? false;
+
+  // Until the user chooses, the toggle mirrors the category default.
+  useEffect(() => {
+    if (open && !netWorthManual) form.setFieldValue('include_in_net_worth', categoryDefault);
+  }, [open, netWorthManual, categoryDefault, form]);
+
   useEffect(() => {
     if (!open) return;
     if (asset) {
       setCurrency(asset.purchase_currency);
       setTrackPayment(false);
+      setCategoryId(asset.asset_category_id);
+      setNetWorthManual(asset.include_in_net_worth_source === 'manual');
       form.setFieldsValue({
         name: asset.name,
         asset_category_id: asset.asset_category_id ?? undefined,
@@ -83,11 +96,13 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
       setTrackPayment(false);
       setFinanced(0);
       setPrice(0);
+      setCategoryId(null);
+      setNetWorthManual(false);
       form.resetFields();
       form.setFieldsValue({
         purchase_currency: 'CNY',
         purchase_date: dayjs(),
-        include_in_net_worth: true,
+        include_in_net_worth: false,
         track_payment: false,
       });
     }
@@ -110,7 +125,8 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
       purchase_date: toApiDate(values.purchase_date),
       purchase_price_minor: priceMinor,
       purchase_currency: values.purchase_currency,
-      include_in_net_worth: values.include_in_net_worth,
+      // null = follow the category default (decided by the backend).
+      include_in_net_worth: netWorthManual ? values.include_in_net_worth : null,
       note: values.note?.trim() || null,
     };
 
@@ -157,6 +173,7 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
               <Select
                 allowClear
                 placeholder="Select a category"
+                onChange={(value?: number) => setCategoryId(value ?? null)}
                 options={(categories ?? []).map((item) => ({
                   value: item.id,
                   label: item.name,
@@ -202,9 +219,13 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
           </Col>
         </Row>
 
-        <Form.Item name="include_in_net_worth" label="Count in net worth" valuePropName="checked">
-          <Switch />
-        </Form.Item>
+        <AssetNetWorthField
+          categoryDefault={categoryDefault}
+          categoryName={category?.name ?? null}
+          manual={netWorthManual}
+          onManualChange={setNetWorthManual}
+          onReset={() => setNetWorthManual(false)}
+        />
 
         {!isEdit ? (
           <AssetPaymentFields

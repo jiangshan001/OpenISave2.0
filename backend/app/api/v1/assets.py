@@ -7,6 +7,7 @@ from app.core.enums import AssetStatus
 from app.schemas.asset import (
     AssetCategoryCreate,
     AssetCategoryRead,
+    AssetCategoryUpdate,
     AssetCreate,
     AssetDetailRead,
     AssetRead,
@@ -39,6 +40,7 @@ def _to_read(view: AssetView) -> AssetRead:
         sale_currency=asset.sale_currency,
         sale_base_minor=asset.sale_base_minor,
         include_in_net_worth=asset.include_in_net_worth,
+        include_in_net_worth_source="manual" if asset.include_in_net_worth_manual else "category",
         linked_liability_id=asset.linked_liability_id,
         liability_name=view.liability_name,
         note=asset.note,
@@ -69,7 +71,16 @@ def list_asset_categories(service: AssetDep) -> list[AssetCategoryRead]:
 
 @router.post("/categories", response_model=AssetCategoryRead, status_code=201)
 def create_asset_category(payload: AssetCategoryCreate, service: AssetDep) -> AssetCategoryRead:
-    return AssetCategoryRead.model_validate(service.create_category(payload.name))
+    category = service.create_category(payload.name, payload.include_in_net_worth_default)
+    return AssetCategoryRead.model_validate(category)
+
+
+@router.patch("/categories/{category_id}", response_model=AssetCategoryRead)
+def update_asset_category(
+    category_id: int, payload: AssetCategoryUpdate, service: AssetDep
+) -> AssetCategoryRead:
+    category = service.set_category_default(category_id, payload.include_in_net_worth_default)
+    return AssetCategoryRead.model_validate(category)
 
 
 @router.post("", response_model=AssetRead, status_code=201)
