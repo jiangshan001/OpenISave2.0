@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.repositories.settings import SettingsRepository
 from app.services.account_service import AccountService
+from app.services.activity_service import ActivityService
 from app.services.asset_service import AssetService
 from app.services.budget_service import BudgetService
 from app.services.category_service import CategoryService
@@ -106,6 +107,13 @@ def get_dashboard_service(
 
 
 DashboardDep = Annotated[DashboardService, Depends(get_dashboard_service)]
+
+
+def get_activity_service(session: DbSession) -> ActivityService:
+    return ActivityService(session)
+
+
+ActivityDep = Annotated[ActivityService, Depends(get_activity_service)]
 
 
 def get_report_service(

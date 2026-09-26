@@ -1,28 +1,26 @@
-"""Database preparation for the packaged desktop application.
+"""Schema migrations for the packaged desktop application.
 
 The desktop build has no shell for `alembic upgrade head`, so the app applies
-its own migrations at startup. A copy of the database is taken first, because
-the architecture requires a backup before any schema change.
+its own migrations at startup -- always over a keyed connection, and always
+after a mandatory encrypted backup when an existing database is about to
+change (architecture section 34).
 """
 
 from __future__ import annotations
 
-import shutil
 import sys
-from datetime import datetime, timezone
+from collections.abc import Callable
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+from sqlalchemy.engine import Engine
 
-from app.core.config import settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-
-BACKUP_KEEP = 10
 
 
 def _backend_root() -> Path:
@@ -41,53 +39,39 @@ def alembic_config() -> Config:
     root = _backend_root()
     config = Config(str(root / "alembic.ini"))
     config.set_main_option("script_location", str(root / "alembic"))
-    config.set_main_option("sqlalchemy.url", settings.sqlalchemy_url)
+    config.attributes["configure_logger"] = False
     return config
 
 
-def _pending_revisions(config: Config) -> bool:
-    from app.db.session import get_engine
-
-    script = ScriptDirectory.from_config(config)
-    head = script.get_current_head()
-    with get_engine().connect() as connection:
-        current = MigrationContext.configure(connection).get_current_revision()
-    return current != head
+def head_revision() -> str:
+    return ScriptDirectory.from_config(alembic_config()).get_current_head()
 
 
-def backup_database(reason: str = "migration") -> Path | None:
-    """Copy the live database aside. Returns the backup path, or None."""
-    source = settings.db_path
-    if not source.exists():
-        return None
-    settings.ensure_directories()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    target = settings.backup_dir / f"finance-{stamp}-{reason}.db"
-    shutil.copy2(source, target)
-    _prune_backups()
-    logger.info("backup_created reason=%s", reason)
-    return target
+def known_revisions() -> set[str]:
+    script = ScriptDirectory.from_config(alembic_config())
+    return {revision.revision for revision in script.walk_revisions()}
 
 
-def _prune_backups() -> None:
-    backups = sorted(
-        settings.backup_dir.glob("finance-*.db"), key=lambda path: path.stat().st_mtime
-    )
-    for stale in backups[:-BACKUP_KEEP]:
-        try:
-            stale.unlink()
-        except OSError:  # pragma: no cover - best effort housekeeping
-            logger.warning("backup_prune_failed")
+def current_revision(engine: Engine) -> str | None:
+    with engine.connect() as connection:
+        return MigrationContext.configure(connection).get_current_revision()
 
 
-def prepare_database() -> None:
-    """Ensure the database exists and is migrated to the current schema."""
-    settings.ensure_directories()
+def upgrade(engine: Engine, before_change: Callable[[], object] | None = None) -> bool:
+    """Bring the database at `engine` to head. Returns True if anything ran.
+
+    `before_change` runs only when an existing database is about to be
+    migrated; it takes the mandatory backup and must raise to abort.
+    """
+    current = current_revision(engine)
+    head = head_revision()
+    if current == head:
+        return False
+    if current is not None and before_change is not None:
+        before_change()
     config = alembic_config()
-
-    existed = settings.db_path.exists()
-    if existed and _pending_revisions(config):
-        backup_database("pre-migration")
-
-    command.upgrade(config, "head")
-    logger.info("database_ready new=%s", not existed)
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "head")
+    logger.info("schema_migrated from=%s to=%s", current or "empty", head)
+    return True

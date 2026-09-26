@@ -9,6 +9,8 @@ export interface AssetCategory {
   name: string;
   sort_order: number;
   is_active: boolean;
+  /** Whether assets in this category count towards net worth unless overridden. */
+  include_in_net_worth_default: boolean;
 }
 
 export interface CurrentValue {
@@ -46,7 +48,10 @@ export interface Asset {
   sale_price_minor: number | null;
   sale_currency: CurrencyCode | null;
   sale_base_minor: number | null;
+  /** Effective classification, decided by the backend. */
   include_in_net_worth: boolean;
+  /** 'category' when it follows the category default, 'manual' when chosen. */
+  include_in_net_worth_source: 'category' | 'manual';
   linked_liability_id: number | null;
   liability_name: string | null;
   note: string | null;

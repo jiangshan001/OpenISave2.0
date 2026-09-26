@@ -6,3 +6,8 @@ SQLAlchemy==2.0.36
 alembic==1.14.0
 httpx==0.28.1
 python-dateutil==2.9.0.post0
+# Encrypted storage: SQLCipher 4 (AES-256, OpenSSL, statically linked wheel)
+sqlcipher3-wheels==0.5.7
+# Database key in Windows Credential Manager (WinVault backend)
+keyring==25.7.0
+pywin32-ctypes==0.2.3 ; sys_platform == "win32"

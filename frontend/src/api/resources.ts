@@ -10,7 +10,7 @@ import type {
   Goal,
   GoalSelectionMode,
 } from '@/types';
-import type { Dashboard, MonthlyReport } from '@/types/dashboard';
+import type { DailyActivity, Dashboard, MonthlyReport } from '@/types/dashboard';
 
 export const categoriesApi = {
   list: (kind?: CategoryKind, includeInactive = false) =>
@@ -63,6 +63,7 @@ export const fxApi = {
 
 export const reportsApi = {
   dashboard: () => api.get<Dashboard>('/dashboard'),
+  activity: (months = 12) => api.get<DailyActivity>('/dashboard/activity', { months }),
   monthly: (year: number, month: number) =>
     api.get<MonthlyReport>(`/reports/monthly/${year}/${month}`),
 };

@@ -25,7 +25,7 @@ export const ACCOUNT_GROUP_LABELS: Record<AccountGroup, string> = {
   savings: 'Savings',
   investments: 'Investments',
   other_assets: 'Other Assets',
-  physical_assets: 'Physical Assets',
+  physical_assets: 'Physical Assets (counted)',
   liabilities: 'Liabilities',
 };
 

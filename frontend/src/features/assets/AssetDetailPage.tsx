@@ -11,6 +11,7 @@ import { formatDate } from '@/utils/dates';
 import { formatMoney } from '@/utils/money';
 import { AssetFormModal } from './components/AssetFormModal';
 import { AssetHoldingCost } from './components/AssetHoldingCost';
+import { NetWorthBadge } from './components/NetWorthBadge';
 import { AssetSellModal } from './components/AssetSellModal';
 import { AssetValuationModal } from './components/AssetValuationModal';
 
@@ -77,11 +78,7 @@ export function AssetDetailPage() {
                       {formatDate(asset.purchase_date)}
                     </Descriptions.Item>
                     <Descriptions.Item label="Net worth">
-                      {asset.include_in_net_worth ? (
-                        <Tag color="blue">Included</Tag>
-                      ) : (
-                        <Tag color="orange">Excluded</Tag>
-                      )}
+                      <NetWorthBadge asset={asset} />
                     </Descriptions.Item>
                     {asset.sale_date ? (
                       <Descriptions.Item label="Sold">

@@ -12,11 +12,22 @@ truth -- no page recomputes these):
 Net worth uses the latest valuation when one exists and falls back to the
 purchase price otherwise; the fallback is always reported so a user is never
 shown an estimate that looks more current than it is.
+
+Net worth classification (single source of truth -- the frontend only
+displays it):
+
+    include_in_net_worth  effective flag, stored on the asset
+    manual = false        flag follows the asset category's default
+    manual = true         the user chose it; category changes leave it alone
+
+Only stores of wealth (Property, investment assets) default to included.
+Personal possessions keep every tracking feature above but are summed
+separately as a reference figure that never enters net worth.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -56,6 +67,16 @@ class AssetValuationView:
     valuation_date: date
     source: str  # "valuation" | "purchase_price"
     fx_freshness: str
+
+
+@dataclass
+class PossessionTotals:
+    """Current base-currency value of held assets, split by classification."""
+
+    included_minor: int = 0
+    excluded_minor: int = 0
+    included_unconverted: list[str] = field(default_factory=list)
+    excluded_unconverted: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -101,6 +122,25 @@ class AssetService:
         return int(
             (Decimal(amount_minor) / Decimal(days)).quantize(Decimal(1), rounding=ROUND_HALF_UP)
         )
+
+    def category_default(self, category_id: int | None) -> bool:
+        """Whether an asset in this category counts towards net worth by default.
+
+        Uncategorised assets are treated as personal possessions.
+        """
+        if category_id is None:
+            return False
+        category = self.repo.get_category(int(category_id))
+        return bool(category.include_in_net_worth_default) if category else False
+
+    def _apply_net_worth_choice(self, asset: Asset, choice: bool | None) -> None:
+        """`None` means "follow the category"; a bool is an explicit choice."""
+        if choice is None:
+            asset.include_in_net_worth_manual = False
+            asset.include_in_net_worth = self.category_default(asset.asset_category_id)
+        else:
+            asset.include_in_net_worth_manual = True
+            asset.include_in_net_worth = bool(choice)
 
     def current_value(self, asset: Asset) -> AssetValuationView | None:
         """Latest valuation, or the purchase price clearly labelled as such."""
@@ -209,10 +249,10 @@ class AssetService:
             purchase_currency=currency,
             purchase_base_minor=base if base is not None else 0,
             status=AssetStatus.HOLDING.value,
-            include_in_net_worth=bool(data.get("include_in_net_worth", True)),
             linked_liability_id=data.get("linked_liability_id"),
             note=data.get("note"),
         )
+        self._apply_net_worth_choice(asset, data.get("include_in_net_worth"))
         self.repo.add(asset)
         self.session.flush()
         logger.info("asset_created id=%s", asset.id)
@@ -222,8 +262,9 @@ class AssetService:
         """Create an asset and, when a payment is supplied, record it atomically.
 
         Leaving the payment out is the right choice for something you already
-        owned before you started using OpenISave: the asset simply joins your
-        net worth without any cash movement.
+        owned before you started using OpenISave: the asset is simply tracked
+        (and, if classified as a store of wealth, joins net worth) without any
+        cash movement.
         """
         asset = self.create(data)
         payment = data.get("payment") or {}
@@ -271,14 +312,24 @@ class AssetService:
         return asset
 
     def update(self, asset_id: int, data: dict) -> Asset:
+        """Edit an asset. Only the asset row changes -- never the ledger.
+
+        `include_in_net_worth` present and null resets the asset to follow its
+        category; absent leaves the current choice alone.
+        """
         asset = self.get(asset_id)
         if data.get("name"):
             asset.name = data["name"].strip()
+        if data.get("asset_category_id") is not None:
+            if self.repo.get_category(int(data["asset_category_id"])) is None:
+                raise NotFoundError(f"Asset category {data['asset_category_id']} was not found.")
         for field_name in ("description", "note", "asset_category_id", "linked_liability_id"):
             if field_name in data:
                 setattr(asset, field_name, data[field_name])
-        if data.get("include_in_net_worth") is not None:
-            asset.include_in_net_worth = bool(data["include_in_net_worth"])
+        if "include_in_net_worth" in data:
+            self._apply_net_worth_choice(asset, data["include_in_net_worth"])
+        elif "asset_category_id" in data and not asset.include_in_net_worth_manual:
+            self._apply_net_worth_choice(asset, None)
         self.session.commit()
         logger.info("asset_updated id=%s", asset.id)
         return asset
@@ -354,28 +405,57 @@ class AssetService:
     def categories(self) -> list[AssetCategory]:
         return self.repo.categories()
 
-    def create_category(self, name: str) -> AssetCategory:
+    def create_category(
+        self, name: str, include_in_net_worth_default: bool = False
+    ) -> AssetCategory:
         clean = name.strip()
         if not clean:
             raise ValidationError("Category name is required.")
         if self.repo.category_by_name(clean) is not None:
             raise ConflictError(f"An asset category named '{clean}' already exists.")
-        category = self.repo.add_category(AssetCategory(name=clean, sort_order=999))
+        category = self.repo.add_category(
+            AssetCategory(
+                name=clean,
+                sort_order=999,
+                include_in_net_worth_default=bool(include_in_net_worth_default),
+            )
+        )
         self.session.commit()
+        return category
+
+    def set_category_default(self, category_id: int, include: bool) -> AssetCategory:
+        """Change a category's default; assets that follow it move with it."""
+        category = self.repo.get_category(category_id)
+        if category is None:
+            raise NotFoundError(f"Asset category {category_id} was not found.")
+        category.include_in_net_worth_default = bool(include)
+        for asset in self.repo.in_category(category_id):
+            if not asset.include_in_net_worth_manual:
+                asset.include_in_net_worth = bool(include)
+        self.session.commit()
+        logger.info("asset_category_default_changed id=%s", category_id)
         return category
 
     # --------------------------------------------------------- aggregation
 
-    def net_worth_contribution(self) -> tuple[int, list[str]]:
-        """Total base-currency value of held assets, plus any that lack a rate."""
-        total = 0
-        unconverted: list[str] = []
+    def possession_totals(self) -> PossessionTotals:
+        """Held assets valued in the base currency, split by classification."""
+        totals = PossessionTotals()
         for asset in self.repo.list_holding():
-            if not asset.include_in_net_worth:
-                continue
             value = self.current_value(asset)
-            if value is None or value.base_minor is None:
-                unconverted.append(asset.name)
-                continue
-            total += value.base_minor
-        return total, unconverted
+            converted = value is not None and value.base_minor is not None
+            if asset.include_in_net_worth:
+                if converted:
+                    totals.included_minor += value.base_minor
+                else:
+                    totals.included_unconverted.append(asset.name)
+            elif converted:
+                totals.excluded_minor += value.base_minor
+            else:
+                totals.excluded_unconverted.append(asset.name)
+        return totals
+
+    def net_worth_contribution(self) -> tuple[int, list[str]]:
+        """Value of held assets that count towards net worth, plus any lacking a rate."""
+        totals = self.possession_totals()
+        return totals.included_minor, list(totals.included_unconverted)

@@ -64,10 +64,15 @@ export interface Dashboard {
   base_currency: CurrencyCode;
   period: { year: number; month: number };
   net_worth_minor: number;
+  /** Net worth assets only: accounts plus physical assets that count. */
   total_assets_minor: number;
+  net_worth_assets_minor: number;
   total_liabilities_minor: number;
   groups: Record<AccountGroup, number>;
+  /** Physical assets included in net worth. */
   physical_assets_minor: number;
+  /** Held personal possessions: a reference value, never part of net worth. */
+  personal_possessions_minor: number;
   unconverted_accounts: string[];
   month_income_minor: number;
   month_expense_minor: number;
@@ -77,15 +82,44 @@ export interface Dashboard {
   expense_by_category: CategoryBreakdown[];
   income_by_category: CategoryBreakdown[];
   cash_flow_series: CashFlowPoint[];
+  /** Every active monthly budget line with its live ledger actual. */
   budget: {
     total_budget_minor: number;
     total_actual_minor: number;
     total_remaining_minor: number;
+    total_used_percent: number | null;
     lines: DashboardBudgetLine[];
   };
   goals: DashboardGoal[];
   recent_transactions: DashboardTransaction[];
   fx_status: FxRateStatus[];
+}
+
+export type ActivityKind = 'expense' | 'income';
+
+/** One day with income or expense activity; days without any are omitted. */
+export interface ActivityDay {
+  date: string;
+  amount_minor: number;
+  count: number;
+  /** Colour intensity 0-4: the backend's percentile-rank quartile of this day. */
+  level: number;
+}
+
+export interface ActivitySeries {
+  total_minor: number;
+  max_minor: number;
+  active_days: number;
+  days: ActivityDay[];
+}
+
+/** Daily cash-flow activity for the Overview heatmap (GET /dashboard/activity). */
+export interface DailyActivity {
+  base_currency: CurrencyCode;
+  start: string;
+  end: string;
+  months: number;
+  series: Record<ActivityKind, ActivitySeries>;
 }
 
 export interface AccountMovement {
@@ -112,6 +146,7 @@ export interface MonthlyReport {
     net_worth_minor: number;
     total_assets_minor: number;
     total_liabilities_minor: number;
+    personal_possessions_minor: number;
   };
   expense_by_category: CategoryBreakdown[];
   income_by_category: CategoryBreakdown[];

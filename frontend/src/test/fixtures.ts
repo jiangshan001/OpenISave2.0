@@ -1,5 +1,6 @@
 import type { AccountBalance, Category, Goal } from '@/types';
 import type { Asset, Liability } from '@/types/asset';
+import type { Dashboard } from '@/types/dashboard';
 
 export function makeAccount(overrides: Partial<AccountBalance> = {}): AccountBalance {
   return {
@@ -88,7 +89,9 @@ export function makeAsset(overrides: Partial<Asset> = {}): Asset {
     sale_price_minor: null,
     sale_currency: null,
     sale_base_minor: null,
-    include_in_net_worth: true,
+    // Electronics are personal possessions: tracked, but not in net worth.
+    include_in_net_worth: false,
+    include_in_net_worth_source: 'category',
     linked_liability_id: null,
     liability_name: null,
     note: null,
@@ -146,6 +149,47 @@ export function makeCategory(overrides: Partial<Category> = {}): Category {
     depth: 0,
     transaction_count: 0,
     subtree_transaction_count: 0,
+    ...overrides,
+  };
+}
+
+export function makeDashboard(overrides: Partial<Dashboard> = {}): Dashboard {
+  return {
+    base_currency: 'CNY',
+    period: { year: 2026, month: 9 },
+    net_worth_minor: 0,
+    total_assets_minor: 0,
+    net_worth_assets_minor: 0,
+    total_liabilities_minor: 0,
+    groups: {
+      cash: 0,
+      savings: 0,
+      investments: 0,
+      other_assets: 0,
+      physical_assets: 0,
+      liabilities: 0,
+    },
+    physical_assets_minor: 0,
+    personal_possessions_minor: 0,
+    unconverted_accounts: [],
+    month_income_minor: 0,
+    month_expense_minor: 0,
+    net_cash_flow_minor: 0,
+    savings_rate_percent: null,
+    accounts: [],
+    expense_by_category: [],
+    income_by_category: [],
+    cash_flow_series: [],
+    budget: {
+      total_budget_minor: 0,
+      total_actual_minor: 0,
+      total_remaining_minor: 0,
+      total_used_percent: null,
+      lines: [],
+    },
+    goals: [],
+    recent_transactions: [],
+    fx_status: [],
     ...overrides,
   };
 }

@@ -136,6 +136,31 @@ class TransactionRepository:
         )
         return int(self.session.scalar(stmt) or 0)
 
+    def daily_totals(self, start: date, end: date) -> list[tuple[date, str, int, int]]:
+        """Per-day income and expense sums in base minor units.
+
+        Returns (day, type, total, transaction count). Like every cash-flow
+        aggregate, only `income` and `expense` rows are summed, so transfers
+        and asset movements never appear.
+        """
+        stmt = (
+            select(
+                Transaction.transaction_date,
+                Transaction.type,
+                func.coalesce(func.sum(Transaction.base_amount_minor), 0),
+                func.count(Transaction.id),
+            )
+            .where(
+                Transaction.is_voided.is_(False),
+                Transaction.transaction_date >= start,
+                Transaction.transaction_date <= end,
+                Transaction.type.in_([TransactionType.INCOME.value, TransactionType.EXPENSE.value]),
+            )
+            .group_by(Transaction.transaction_date, Transaction.type)
+            .order_by(Transaction.transaction_date)
+        )
+        return [(row[0], row[1], int(row[2]), int(row[3])) for row in self.session.execute(stmt)]
+
     def monthly_series(self, start: date, end: date) -> list[tuple[str, str, int]]:
         month = func.strftime("%Y-%m", Transaction.transaction_date)
         stmt = (

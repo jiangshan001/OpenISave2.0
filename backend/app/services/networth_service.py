@@ -4,9 +4,13 @@ Invariant 8: no other module recomputes net worth. The dashboard, reports,
 the accounts page and the assets page all call into here.
 
 Net worth = every included account balance (liabilities carry negative
-balances) + the current value of every physical asset still held. Because an
-asset purchase debits an account and credits the asset in the same transaction,
-buying something does not change net worth -- only its composition.
+balances) + the current value of every held physical asset classified as a
+store of wealth (include_in_net_worth).
+
+Personal possessions -- electronics, vehicles, furniture and the like -- are
+tracked at their current value in `personal_possessions_minor` for reference
+only. They never enter Total Assets or Net Worth, so buying an 18,000 laptop
+lowers net worth by 18,000 while buying a flat converts cash into property.
 """
 
 from __future__ import annotations
@@ -28,7 +32,10 @@ class NetWorth:
     total_assets_minor: int = 0
     total_liabilities_minor: int = 0
     net_worth_minor: int = 0
+    #: Physical assets that count towards net worth (included in total_assets).
     physical_assets_minor: int = 0
+    #: Held possessions excluded from net worth -- a reference figure only.
+    personal_possessions_minor: int = 0
     groups: dict[str, int] = field(default_factory=dict)
     unconverted_accounts: list[str] = field(default_factory=list)
     balances: list[AccountBalance] = field(default_factory=list)
@@ -64,11 +71,12 @@ class NetWorthService:
                 result.total_assets_minor += base
 
         if self.assets is not None:
-            asset_total, unconverted_assets = self.assets.net_worth_contribution()
-            result.physical_assets_minor = asset_total
-            result.groups["physical_assets"] = asset_total
-            result.total_assets_minor += asset_total
-            result.unconverted_accounts.extend(unconverted_assets)
+            possessions = self.assets.possession_totals()
+            result.physical_assets_minor = possessions.included_minor
+            result.groups["physical_assets"] = possessions.included_minor
+            result.total_assets_minor += possessions.included_minor
+            result.unconverted_accounts.extend(possessions.included_unconverted)
+            result.personal_possessions_minor = possessions.excluded_minor
 
         result.net_worth_minor = result.total_assets_minor - result.total_liabilities_minor
         return result

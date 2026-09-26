@@ -49,10 +49,10 @@ def main() -> int:
     import uvicorn
 
     from app.core.logging import configure_logging
-    from app.db.bootstrap import prepare_database
 
+    # The vault is opened (and a 2.0.x plaintext database migrated) by the
+    # application lifespan, before uvicorn starts listening.
     configure_logging()
-    prepare_database()
 
     uvicorn.run(
         "app.main:app",

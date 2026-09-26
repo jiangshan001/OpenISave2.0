@@ -41,7 +41,7 @@ export function Sidebar() {
         <BrandMark className="oi-brand-mark" />
         <div>
           <div className="oi-brand-name">OpenISave</div>
-          <div className="oi-brand-version">2.0 · Local</div>
+          <div className="oi-brand-version">v{__APP_VERSION__} · Local</div>
         </div>
       </div>
       <Menu

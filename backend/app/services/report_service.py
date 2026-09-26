@@ -89,6 +89,7 @@ class ReportService:
                 "net_worth_minor": net_worth.net_worth_minor,
                 "total_assets_minor": net_worth.total_assets_minor,
                 "total_liabilities_minor": net_worth.total_liabilities_minor,
+                "personal_possessions_minor": net_worth.personal_possessions_minor,
             },
             "expense_by_category": self.dashboard.category_breakdown(
                 start, end, CategoryKind.EXPENSE

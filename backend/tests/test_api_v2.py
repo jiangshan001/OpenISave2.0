@@ -113,8 +113,14 @@ def test_asset_lifecycle_over_http(client):
     balance = client.get(f"/api/v1/accounts/{cmb['id']}").json()
     assert balance["balance_minor"] == to_minor("32000.00", "CNY")
 
+    # Electronics is a personal possession: tracked, but outside net worth.
+    assert asset["include_in_net_worth"] is False
+    assert asset["include_in_net_worth_source"] == "category"
     dashboard = client.get("/api/v1/dashboard").json()
-    assert dashboard["physical_assets_minor"] == to_minor("18000.00", "CNY")
+    assert dashboard["physical_assets_minor"] == 0
+    assert dashboard["personal_possessions_minor"] == to_minor("18000.00", "CNY")
+    assert dashboard["net_worth_minor"] == to_minor("32000.00", "CNY")
+    assert dashboard["net_worth_assets_minor"] == to_minor("32000.00", "CNY")
     assert dashboard["month_expense_minor"] == 0
 
     # Valuation

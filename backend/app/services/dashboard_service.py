@@ -15,7 +15,7 @@ from app.core.money import BASE_CURRENCY
 from app.repositories.categories import CategoryRepository
 from app.repositories.transactions import TransactionRepository
 from app.services.account_service import AccountService
-from app.services.budget_service import BudgetService, month_bounds
+from app.services.budget_service import BudgetPeriod, BudgetService, month_bounds
 from app.services.fx_service import FxService
 from app.services.goal_service import GoalService
 from app.services.networth_service import NetWorthService
@@ -95,6 +95,24 @@ class DashboardService:
             for key, value in sorted(buckets.items())
         ]
 
+    @staticmethod
+    def budget_usage(period: BudgetPeriod) -> dict:
+        """Every active budget line for the month with its live ledger actual.
+
+        Actuals come from BudgetService (expense transactions in the category
+        subtree, base currency); nothing here is entered by hand.
+        """
+        total = period.total_budget_minor
+        return {
+            "total_budget_minor": total,
+            "total_actual_minor": period.total_actual_minor,
+            "total_remaining_minor": period.total_remaining_minor,
+            "total_used_percent": (
+                round(period.total_actual_minor / total * 100, 1) if total else None
+            ),
+            "lines": [line.__dict__ for line in period.lines],
+        }
+
     def build(self, today: date | None = None) -> dict:
         today = today or date.today()
         start, end = month_bounds(today.year, today.month)
@@ -128,10 +146,13 @@ class DashboardService:
             "base_currency": BASE_CURRENCY,
             "period": {"year": today.year, "month": today.month},
             "net_worth_minor": net_worth.net_worth_minor,
+            # Total assets means net worth assets only; possessions are separate.
             "total_assets_minor": net_worth.total_assets_minor,
+            "net_worth_assets_minor": net_worth.total_assets_minor,
             "total_liabilities_minor": net_worth.total_liabilities_minor,
             "groups": net_worth.groups,
             "physical_assets_minor": net_worth.physical_assets_minor,
+            "personal_possessions_minor": net_worth.personal_possessions_minor,
             "unconverted_accounts": net_worth.unconverted_accounts,
             "month_income_minor": income,
             "month_expense_minor": expense,
@@ -141,12 +162,7 @@ class DashboardService:
             "expense_by_category": self.category_breakdown(start, end, CategoryKind.EXPENSE),
             "income_by_category": self.category_breakdown(start, end, CategoryKind.INCOME),
             "cash_flow_series": self.cash_flow_series(today.year, today.month),
-            "budget": {
-                "total_budget_minor": budget_period.total_budget_minor,
-                "total_actual_minor": budget_period.total_actual_minor,
-                "total_remaining_minor": budget_period.total_remaining_minor,
-                "lines": [line.__dict__ for line in budget_period.lines[:5]],
-            },
+            "budget": self.budget_usage(budget_period),
             "goals": [
                 {
                     "id": item.goal.id,

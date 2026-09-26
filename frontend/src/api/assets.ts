@@ -25,7 +25,8 @@ export interface AssetPayload {
   purchase_date: string;
   purchase_price_minor: number;
   purchase_currency: CurrencyCode;
-  include_in_net_worth: boolean;
+  /** Omit or null to follow the category default; a boolean is a manual choice. */
+  include_in_net_worth?: boolean | null;
   linked_liability_id?: number | null;
   note?: string | null;
   payment?: AssetPaymentPayload | null;

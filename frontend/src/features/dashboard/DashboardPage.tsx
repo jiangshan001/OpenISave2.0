@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { CashFlowChart } from '@/components/charts/CashFlowChart';
-import { CategoryPieChart } from '@/components/charts/CategoryPieChart';
 import { PageHeader } from '@/components/common/PageHeader';
 import { StateBoundary } from '@/components/common/StateBoundary';
 import { useAccounts } from '@/hooks/useLedger';
@@ -12,8 +11,11 @@ import { useDashboard } from '@/hooks/useResources';
 import { monthLabel } from '@/utils/dates';
 import { TransactionFormModal } from '../transactions/components/TransactionFormModal';
 import { AccountsSummary } from './components/AccountsSummary';
+import { ActivityHeatmapCard } from './components/ActivityHeatmap';
 import { AssetBreakdown } from './components/AssetBreakdown';
-import { BudgetSummaryCard, GoalsSummaryCard } from './components/BudgetAndGoals';
+import { BudgetUsageCard } from './components/BudgetUsageCard';
+import { CategorySplitCard } from './components/CategorySplitCard';
+import { GoalsSummaryCard } from './components/GoalsSummaryCard';
 import { RecentTransactions } from './components/RecentTransactions';
 import { SummaryCards } from './components/SummaryCards';
 
@@ -58,7 +60,7 @@ export function DashboardPage() {
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   description={
                     <Space direction="vertical" size={4}>
-                      <strong>Welcome to OpenISave 2.0</strong>
+                      <strong>Welcome to OpenISave</strong>
                       <span className="oi-muted">
                         Start by adding the bank accounts you use. Everything else builds on them.
                       </span>
@@ -98,6 +100,8 @@ export function DashboardPage() {
             <SummaryCards data={data} />
             <AssetBreakdown data={data} />
 
+            <ActivityHeatmapCard />
+
             <Row gutter={[16, 16]} className="oi-section-gap">
               <Col xs={24} xl={14}>
                 <Card title="Income vs expenses" variant="borderless">
@@ -105,21 +109,26 @@ export function DashboardPage() {
                 </Card>
               </Col>
               <Col xs={24} xl={10}>
-                <Card title="Expenses by category" variant="borderless">
-                  {data.expense_by_category.length > 0 ? (
-                    <CategoryPieChart
-                      data={data.expense_by_category}
-                      currency={data.base_currency}
-                    />
-                  ) : (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description={
-                        <span className="oi-muted">No expenses recorded this month</span>
-                      }
-                    />
-                  )}
-                </Card>
+                <BudgetUsageCard data={data} />
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 16]} className="oi-section-gap">
+              <Col xs={24} lg={12}>
+                <CategorySplitCard
+                  title="Expenses by category"
+                  rows={data.expense_by_category}
+                  currency={data.base_currency}
+                  emptyText="No expenses recorded this month"
+                />
+              </Col>
+              <Col xs={24} lg={12}>
+                <CategorySplitCard
+                  title="Income by category"
+                  rows={data.income_by_category}
+                  currency={data.base_currency}
+                  emptyText="No income recorded this month"
+                />
               </Col>
             </Row>
 
@@ -128,10 +137,7 @@ export function DashboardPage() {
                 <AccountsSummary data={data} />
               </Col>
               <Col xs={24} xl={10}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <BudgetSummaryCard data={data} />
-                  <GoalsSummaryCard data={data} />
-                </Space>
+                <GoalsSummaryCard data={data} />
               </Col>
             </Row>
 

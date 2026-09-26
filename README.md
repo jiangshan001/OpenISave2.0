@@ -4,14 +4,15 @@ A local-first, multi-currency personal finance manager with CNY-based consolidat
 reporting, purpose-based bank account management, physical asset tracking, savings
 goals, budgeting and auditable financial history.
 
-Everything lives on your own machine. The only outbound network request is for
-exchange rates, and it sends nothing but currency codes.
+Everything lives on your own machine, in a **SQLCipher-encrypted database** whose
+key is kept in Windows Credential Manager. The only outbound network request is
+for exchange rates, and it sends nothing but currency codes.
 
 ## Download
 
 **Windows 10/11 (x64):** [Latest Release](https://github.com/jiangshan001/OpenISave2.0/releases/latest)
 
-1. Download `OpenISave_2.0.0_x64-setup.exe` from the release page.
+1. Download `OpenISave_<version>_x64-setup.exe` from the release page.
 2. Run the installer. It installs for the current user, adds a Start menu
    shortcut, and offers a desktop shortcut.
 3. Launch OpenISave from the Start menu or desktop.
@@ -24,10 +25,10 @@ commands. Those tools are only for developing or building the source code.
 The app starts its own local data service, and stops it again when you close the
 window. Upgrading or reinstalling never touches your data.
 
-> **Financial data is NOT stored in the Git repository.** Your database, backups
-> and logs live only in `%LOCALAPPDATA%\OpenISave2\` on your own computer (see
-> [Where your data lives](#where-your-data-lives)). Neither the source code, the
-> installer nor the source package contains any financial data.
+> **Financial data is NOT stored in the Git repository.** Your encrypted database,
+> encrypted backups and logs live only in `%LOCALAPPDATA%\OpenISave2Data\` on your
+> own computer (see [Where your data lives](#where-your-data-lives)). Neither the
+> source code, the installer nor the source package contains any financial data.
 
 ## First run
 
@@ -39,6 +40,13 @@ The database starts empty — no sample accounts, balances or transactions.
 3. Record income and expenses under **Transactions**; use **Transfer** to move
    money between your own accounts.
 4. Optionally add **Assets** you own, a savings **Goal**, and a monthly **Budget**.
+5. Open **Settings → Data & Security** and **Export Recovery Key**. Keep it
+   somewhere safe and offline: it is the only way to open your data if Windows
+   Credential Manager is ever lost (new PC, reinstalled Windows).
+
+Upgrading from 2.0.x: on first launch, 2.1 encrypts your existing data
+automatically, verifies every record, and leaves the old unencrypted files in
+place as a rollback until you remove them from **Data & Security**.
 
 ---
 
@@ -49,7 +57,10 @@ The database starts empty — no sample accounts, balances or transactions.
 - **Transactions** — income, expenses and account-to-account transfers, with
   hierarchical categories, filtering and a full history.
 - **Assets** — the things you own, with purchase price, valuation history, days
-  held, cost per day, and effective cost per day once sold.
+  held, cost per day, and effective cost per day once sold. Only stores of
+  wealth (property, investment assets) count towards net worth; personal
+  possessions such as electronics, vehicles and furniture stay fully tracked but
+  are shown separately as a reference value.
 - **Liabilities** — loans and instalment financing, optionally linked to the
   asset they paid for, with a single authoritative outstanding balance.
 - **Goals** — savings targets that aggregate several accounts across currencies.
@@ -66,32 +77,32 @@ The database starts empty — no sample accounts, balances or transactions.
 ## Where your data lives
 
 ```text
-%LOCALAPPDATA%\OpenISave2\
-├── data\finance.db      the database
-├── backups\             copies taken before every schema migration
-└── logs\openisave2.log  event log (never contains amounts)
+%LOCALAPPDATA%\OpenISave2Data\
+├── vault\finance.db      SQLCipher-encrypted database (AES-256)
+├── backups\              encrypted backups: 7 daily, 4 weekly, 12 monthly,
+│                         manual, and a safety copy before migrations/restores
+├── config\storage.json   non-secret metadata (never a key)
+├── logs\openisave2.log   event log (never amounts or keys)
+└── migration\            2.0 → 2.1 migration report
 ```
 
-Nothing is written inside the repository or the installation folder, so
-reinstalling or upgrading OpenISave never touches your database. The
-repository's `.gitignore` additionally blocks `*.db`, `*.sqlite*`, `backups/`,
-`logs/`, CSV exports and `.env` files, so a stray copy can't be committed by
-accident. The app applies
-its own schema migrations on startup, taking a backup first.
+- The database key is a random 256-bit key stored in **Windows Credential
+  Manager** (`OpenISave2/DatabaseEncryptionKey`). It is never written to disk,
+  config files, `.env` or logs, and the web UI never sees it.
+- Ordinary SQLite tools cannot open the database or any backup.
+- **Settings → Data & Security** shows the encryption status, key storage,
+  data location and last backup, and offers Back Up Now, Open Data Folder,
+  Restore Backup and Export Recovery Key.
+- Nothing is written inside the repository or the installation folder, so
+  reinstalling or upgrading OpenISave never touches your data. The app applies
+  its own schema migrations on startup, taking an encrypted backup first.
 
-To move an existing database to this computer (or into a fresh install), close
-OpenISave and copy the file into place; it is migrated automatically on the next
-launch:
+The full description — encryption, key storage, backups, recovery, restore,
+migration from 2.0, reinstalling and moving to a new PC — is in
+[docs/SECURITY_AND_DATA_STORAGE.md](docs/SECURITY_AND_DATA_STORAGE.md).
 
-```bash
-Copy-Item "C:\path\to\finance.db" "$env:LOCALAPPDATA\OpenISave2\data\finance.db"
-```
-
-To erase everything and start over (a timestamped backup is taken first):
-
-```bash
-powershell -ExecutionPolicy Bypass -File .\scripts\reset_database.ps1
-```
+To move your data to a new PC, copy `%LOCALAPPDATA%\OpenISave2Data\` across
+before first starting OpenISave there, then unlock it with your recovery key.
 
 ---
 
@@ -156,6 +167,12 @@ winget install Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait
 
 Two terminals. This is the fastest loop for UI work.
 
+> The backend opens the **real** encrypted vault in `%LOCALAPPDATA%\OpenISave2Data`
+> (and migrates 2.0.x data on first start). For development, use a throwaway
+> repo-local vault instead: set `$env:OPENISAVE_DEV_LOCAL_DATA = '1'` in the
+> backend terminal first. Dev mode uses `backend\.localdata\` and its own
+> Credential Manager entry, and never looks at real data.
+
 ```bash
 powershell -ExecutionPolicy Bypass -File .\scripts\start_backend.ps1
 ```
@@ -178,7 +195,7 @@ The API binds to `127.0.0.1` only and is never exposed to your network.
 Manual setup, if you prefer it:
 
 ```bash
-cd backend && py -3.11 -m venv .venv && .venv\Scripts\Activate.ps1 && pip install -r requirements-dev.txt && alembic upgrade head && python -m uvicorn app.main:app --host 127.0.0.1 --port 8756
+cd backend && py -3.11 -m venv .venv && .venv\Scripts\Activate.ps1 && pip install -r requirements-dev.txt && python -m uvicorn app.main:app --host 127.0.0.1 --port 8756
 ```
 
 ```bash
@@ -261,7 +278,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\clean_build_artifacts.ps1
 It removes only an explicit list of regenerable folders (`desktop/target`,
 `node_modules`, `.venv`, PyInstaller `build`/`dist`, `__pycache__` …) and prints
 the size before and after. It never touches source, migrations, docs, lockfiles,
-icons or anything in `%LOCALAPPDATA%\OpenISave2`. See
+icons or anything in `%LOCALAPPDATA%\OpenISave2Data` or `%LOCALAPPDATA%\OpenISave2`. See
 [`docs/PROJECT_SIZE_AUDIT.md`](docs/PROJECT_SIZE_AUDIT.md).
 
 ---
@@ -351,7 +368,12 @@ frontend → REST API → service layer → repository → SQLAlchemy → SQLite
 - Money is stored as integer minor units (fen, pence) plus a currency code.
   Binary floats are never used for money; Python calculations use `Decimal`.
 - Transfers are never counted as income or expense and never change net worth.
-- Buying an asset moves value rather than spending it, so net worth is unchanged.
+- Buying an asset is never counted as an expense. Whether net worth moves depends
+  on the asset's classification: buying property converts cash into an asset
+  that counts, so net worth is unchanged; buying an ¥18,000 laptop (a personal
+  possession) lowers net worth by ¥18,000. The classification comes from the
+  asset category's default and can be overridden per asset; changing it never
+  alters ledger history.
 - Outstanding debt has exactly one home: the liability account's balance.
 - Net worth is calculated in exactly one place (`NetWorthService`).
 - Deleting a transaction voids it: the record stays for auditability.

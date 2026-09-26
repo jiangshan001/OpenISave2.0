@@ -15,6 +15,7 @@ export const queryKeys = {
   goals: ['goals'] as const,
   budget: (year: number, month: number) => ['budget', year, month] as const,
   dashboard: ['dashboard'] as const,
+  dashboardActivity: (months: number) => ['dashboard', 'activity', months] as const,
   report: (year: number, month: number) => ['report', year, month] as const,
   fxRates: ['fx', 'rates'] as const,
   settings: ['settings'] as const,

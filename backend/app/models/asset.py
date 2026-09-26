@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sqlalchemy import BigInteger, Boolean, Date, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, Boolean, Date, ForeignKey, Integer, String, Text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import AssetStatus
@@ -14,6 +14,11 @@ class AssetCategory(Base, TimestampMixin):
 
     Deliberately separate from spending categories: an asset category describes
     a thing you own, a transaction category describes where money went.
+
+    `include_in_net_worth_default` decides whether assets in this category
+    count towards net worth unless the user says otherwise. Only stores of
+    wealth (property, investment assets) default to true; personal possessions
+    such as electronics or vehicles are tracked but excluded.
     """
 
     __tablename__ = "asset_categories"
@@ -23,6 +28,9 @@ class AssetCategory(Base, TimestampMixin):
     icon: Mapped[str | None] = mapped_column(String(32), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    include_in_net_worth_default: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
 
 
 class Asset(Base, TimestampMixin):
@@ -54,7 +62,13 @@ class Asset(Base, TimestampMixin):
     sale_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     sale_base_minor: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
-    include_in_net_worth: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    #: Effective flag, always stored so net worth never has to resolve defaults.
+    include_in_net_worth: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    #: True once the user chose the flag explicitly; otherwise it follows the
+    #: category default and moves with it.
+    include_in_net_worth_manual: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
     linked_liability_id: Mapped[int | None] = mapped_column(
         ForeignKey("liabilities.id", ondelete="SET NULL"), nullable=True
     )

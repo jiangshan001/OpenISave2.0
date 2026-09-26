@@ -1455,14 +1455,55 @@ ownership_days   = elapsed whole days from purchase to sale, floored at 1
 effective/day    = net_cost / ownership_days
 ```
 
-## 27A.4 Assets and Net Worth
+## 27A.4 Assets and Net Worth (revised in 2.1)
+
+Net worth counts **stores of wealth only**. Personal possessions are tracked
+with every feature above (valuations, days held, holding cost, sale, net
+ownership cost) but never enter Total Assets or Net Worth.
+
+```text
+asset_categories.include_in_net_worth_default
+    Property            true
+    Investment Asset    true   (when created)
+    Electronics         false
+    Vehicle             false
+    Furniture           false
+    Collectibles        false
+    Other / none        false
+
+assets.include_in_net_worth          effective flag (always stored)
+assets.include_in_net_worth_manual   false → follows the category default
+                                     true  → explicit user choice, kept when
+                                             the category changes
+```
+
+The rule lives in the asset service; the frontend only displays it. An
+untouched "Include in net worth" toggle is sent as `null` ("follow the
+category"). Changing the flag or a category default changes the asset row
+only — never the ledger.
 
 ```text
 status = holding AND include_in_net_worth = true
-→ counted in Total Assets at its current value
+→ counted in Total Assets (= "Net Worth Assets") at its current value
+
+status = holding AND include_in_net_worth = false
+→ summed separately as personal_possessions_minor: a reference figure,
+  excluded from every total
 
 status = sold or disposed
 → removed from current assets, history retained
+```
+
+Examples:
+
+```text
+MacBook 18,000 paid from the bank            bank -18,000   net worth -18,000
+Laptop 20,000 = 8,000 cash + 12,000 financed cash -8,000, debt +12,000
+                                             net worth -20,000
+Property 500,000 = 200,000 cash + 300,000 mortgage
+                                             asset +500,000, debt +300,000
+                                             net contribution +200,000
+                                             (net worth unchanged: cash → equity)
 ```
 
 An asset with no usable exchange rate is excluded from consolidated totals and
@@ -1486,8 +1527,9 @@ liability account   -financed portion   (optional)
 asset leg           +purchase price
 ```
 
-These sum to zero, so net worth does not fall by the purchase price. Because
-the type is not `income` or `expense`, cash-flow totals are unaffected.
+These sum to zero and the type is not `income` or `expense`, so cash-flow
+totals are unaffected. Whether net worth moves depends on 27A.4: an included
+asset offsets the cash, a personal possession does not.
 
 Postings for an asset sale:
 
@@ -1500,7 +1542,8 @@ Net worth then moves only by the difference between the asset's carrying value
 and what it actually fetched.
 
 Recording an asset **without** a payment is legitimate and means "I already
-owned this": the asset simply joins net worth with no cash movement.
+owned this": the asset is tracked (and joins net worth if included) with no
+cash movement.
 
 ---
 
@@ -1768,22 +1811,22 @@ debug = false
 
 Database files must not live inside the Git repository.
 
-Recommended Windows location:
+Windows location (2.1+), resolved with SHGetKnownFolderPath(LocalAppData):
 
 ```text
-%LOCALAPPDATA%/OpenISave2/
-```
-
-Suggested structure:
-
-```text
-OpenISave2/
-├── data/
-│   └── finance.db
+%LOCALAPPDATA%/OpenISave2Data/
+├── vault/
+│   └── finance.db        SQLCipher-encrypted
 ├── backups/
+│   ├── daily/  weekly/  monthly/  manual/  safety/
+├── config/
+│   └── storage.json      non-secret metadata
 ├── logs/
-└── config/
+└── migration/
 ```
+
+2.0.x kept a plaintext database in `%LOCALAPPDATA%/OpenISave2/data/`; 2.1
+migrates it once (see docs/SECURITY_AND_DATA_STORAGE.md).
 
 ---
 
@@ -1806,29 +1849,39 @@ personal reports
 
 ## 33.5 Encryption
 
-Preferred production database:
+Production database (implemented in 2.1):
 
 ```text
-SQLCipher
+SQLCipher 4 via the sqlcipher3 DB-API module
+AES-256 page encryption + HMAC-SHA512 page authentication
+random 256-bit raw key (no passphrase KDF)
 ```
 
-Sensitive database files should be encrypted at rest.
+SQLAlchemy stays the data-access layer: the `sqlite+pysqlite` dialect runs on
+`sqlcipher3`, and every pooled connection is opened by a creator that applies
+the key first (`app/db/engine.py`). Alembic runs over the same keyed
+connections. Until the vault is unlocked, the API answers only health, status
+and recovery endpoints (HTTP 423 otherwise).
 
-Encryption secrets must not be stored directly in source code.
+Encryption secrets must not be stored in source code, config files, `.env`,
+the data folder or logs.
 
 ---
 
 ## 33.6 Secret Storage
 
-Preferred:
+Implemented:
 
 ```text
-Windows Credential Manager
-macOS Keychain
-Linux Secret Service
+Windows Credential Manager — generic credential
+target  OpenISave2/DatabaseEncryptionKey
+access  keyring's WinVault backend, instantiated directly
 ```
 
-Python may access OS secrets through a suitable keyring library.
+Development (`OPENISAVE_DEV_LOCAL_DATA=1`) uses a separate target so it can
+never replace the production key. A recovery key (the database key in
+checksummed Base32) can be exported on explicit request from Settings → Data &
+Security; it is never written to the data folder.
 
 Do not place database encryption passwords in committed `.env` files.
 
@@ -1838,17 +1891,22 @@ Do not place database encryption passwords in committed `.env` files.
 
 Backup is mandatory.
 
-Suggested policy:
+Implemented policy (app/security/backups.py):
 
 ```text
-7 daily backups
-4 weekly backups
-12 monthly backups
+7 daily backups      taken at the first startup of each day
+4 weekly backups     promoted from that day's daily
+12 monthly backups   promoted from that day's daily
+20 manual backups    Settings → Back Up Now
+10 safety backups    before every schema migration and every restore
 ```
 
-Backups should be encrypted.
+Backups are encrypted SQLCipher files under the vault key, made with
+`VACUUM INTO` over a keyed connection and verified before they are kept.
+A plaintext backup is never produced.
 
-Backup must occur before database schema migration.
+Backup must occur before database schema migration (enforced by
+`bootstrap.upgrade(before_change=...)`).
 
 ---
 
@@ -1866,11 +1924,15 @@ Restore Backup
 
 Restore must verify:
 
-- Backup integrity
-- Database schema compatibility
-- Encryption access
+- Backup integrity (`cipher_integrity_check`, `integrity_check`, foreign keys)
+- Database schema compatibility (revision known to this version)
+- Encryption access (the current key opens it)
 
-before replacing the active database.
+before replacing the active database. Implemented flow: verify → safety
+backup of the current database → pause the API → close connections and
+checkpoint the WAL → copy, re-verify and atomically rename into place →
+reopen, migrate if older, resume. A failure after the swap puts the safety
+backup back.
 
 ---
 

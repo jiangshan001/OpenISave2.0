@@ -14,10 +14,10 @@ export function SummaryCards({ data }: { data: Dashboard }) {
           label="Net worth"
           amountMinor={data.net_worth_minor}
           currency={base}
-          footer={`Assets ${formatMoney(data.total_assets_minor, base)} · Liabilities ${formatMoney(
-            data.total_liabilities_minor,
+          footer={`Net worth assets ${formatMoney(
+            data.net_worth_assets_minor,
             base,
-          )}`}
+          )} · Liabilities ${formatMoney(data.total_liabilities_minor, base)}`}
         />
       </Col>
       <Col xs={24} sm={12} xl={6}>
