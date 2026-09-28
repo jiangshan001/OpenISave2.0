@@ -146,6 +146,9 @@ before first starting OpenISave there, then unlock it with your recovery key.
 
 ## Developer setup
 
+For future development and agent handoff, see
+[`docs/DEVELOPMENT_HANDOFF.md`](docs/DEVELOPMENT_HANDOFF.md).
+
 The architectural rules are in
 [`docs/OPENISAVE2_PROJECT_ARCHITECTURE.md`](docs/OPENISAVE2_PROJECT_ARCHITECTURE.md).
 See [`docs/V2_IMPLEMENTATION_STATUS.md`](docs/V2_IMPLEMENTATION_STATUS.md) for
