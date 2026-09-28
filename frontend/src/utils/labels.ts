@@ -56,16 +56,16 @@ export const FX_FRESHNESS_LABELS: Record<string, string> = {
 
 /** Chart palette; index-stable so a category keeps its colour across renders. */
 export const CHART_COLORS = [
-  '#2f6feb',
-  '#22a06b',
-  '#e8912d',
-  '#c9457c',
-  '#7a5af5',
-  '#12a5b8',
-  '#d4543a',
-  '#5f7d95',
-  '#8a9a1f',
-  '#b2569b',
+  '#2f5bd3',
+  '#3a9b72',
+  '#e0a13a',
+  '#d8674f',
+  '#7a6fd0',
+  '#3b9db5',
+  '#c0689a',
+  '#8a9540',
+  '#8d98aa',
+  '#b5835a',
 ];
 
 export function colorForIndex(index: number): string {

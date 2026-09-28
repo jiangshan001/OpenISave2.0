@@ -1,8 +1,11 @@
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Card, Tooltip } from 'antd';
 import type { ReactNode } from 'react';
 
 import type { CurrencyCode } from '@/types';
 import { formatMoney } from '@/utils/money';
+
+export type StatTone = 'neutral' | 'positive' | 'negative' | 'primary';
 
 interface StatCardProps {
   label: string;
@@ -13,6 +16,9 @@ interface StatCardProps {
   tone?: 'neutral' | 'positive' | 'negative' | 'auto';
   footer?: ReactNode;
   accent?: boolean;
+  /** Optional glyph shown top-right in a tinted square. */
+  icon?: ReactNode;
+  iconTone?: StatTone;
 }
 
 function resolveTone(tone: StatCardProps['tone'], amountMinor?: number | null): string {
@@ -34,21 +40,28 @@ export function StatCard({
   tone = 'neutral',
   footer,
   accent = false,
+  icon,
+  iconTone = 'neutral',
 }: StatCardProps) {
   const body =
     value ?? formatMoney(amountMinor ?? 0, currency, { signed: tone === 'auto' });
 
   return (
     <Card className={`oi-stat-card${accent ? ' oi-stat-card--accent' : ''}`} variant="borderless">
-      <div className="oi-stat-label">
-        {label}
-        {hint ? (
-          <Tooltip title={hint}>
-            <span className="oi-stat-hint">?</span>
-          </Tooltip>
-        ) : null}
+      <div className="oi-stat-head">
+        <div className="oi-stat-label">
+          {label}
+          {hint ? (
+            <Tooltip title={hint}>
+              <span className="oi-stat-hint" aria-label="More information">
+                <QuestionCircleOutlined />
+              </span>
+            </Tooltip>
+          ) : null}
+        </div>
+        {icon ? <span className={`oi-stat-icon oi-stat-icon--${iconTone}`}>{icon}</span> : null}
       </div>
-      <div className={`oi-stat-value ${resolveTone(tone, amountMinor)}`}>{body}</div>
+      <div className={`oi-stat-value ${accent ? '' : resolveTone(tone, amountMinor)}`}>{body}</div>
       {footer ? <div className="oi-stat-footer">{footer}</div> : null}
     </Card>
   );

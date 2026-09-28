@@ -7,7 +7,15 @@ from app.models.fx_rate import FxRate
 from app.models.goal import Goal, GoalAccount
 from app.models.liability import Liability
 from app.models.posting import Posting
+from app.models.recurring import RecurringOccurrence, RecurringRule
 from app.models.setting import AppSetting
+from app.models.statement_import import (
+    CategorisationRule,
+    ExternalTransactionRef,
+    ImportAccountMapping,
+    ImportBatch,
+    ImportIgnoredItem,
+)
 from app.models.transaction import Transaction
 
 __all__ = [
@@ -17,7 +25,14 @@ __all__ = [
     "AssetCategory",
     "AssetValuation",
     "Budget",
+    "CategorisationRule",
     "Category",
+    "ExternalTransactionRef",
+    "ImportAccountMapping",
+    "ImportBatch",
+    "ImportIgnoredItem",
+    "RecurringOccurrence",
+    "RecurringRule",
     "Currency",
     "FxRate",
     "Goal",

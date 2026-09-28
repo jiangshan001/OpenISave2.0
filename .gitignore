@@ -32,6 +32,20 @@ security-exports/
 *.recovery
 migration-report.json
 *.log
+# Bank and wallet statements (e.g. 微信支付账单流水文件*.xlsx) are sensitive.
+# Tests build synthetic statements in memory (backend/tests/wechat_fixture.py);
+# a redacted fixture file may be committed only under backend/tests/fixtures/.
+*.xlsx
+*.xls
+*微信支付账单*
+*支付宝*账单*
+!backend/tests/fixtures/*.xlsx
+import-temp/
+imports-temp/
+test-output/
+# UI review screenshots are taken against a live vault and may show real
+# balances; keep them local.
+docs/ui-review/
 *.csv
 *.ofx
 *.qif

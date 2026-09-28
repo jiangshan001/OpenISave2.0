@@ -86,6 +86,11 @@ class TransactionRead(ApiModel):
     fx_rate_date: date | None
     fx_source: str
     parent_transaction_id: int | None
+    recurring_rule_id: int | None = None
+    import_batch_id: int | None = None
+    external_source: str | None = None
+    external_transaction_id: str | None = None
+    classification_rule_id: int | None = None
     is_voided: bool
     voided_at: datetime | None
     created_at: datetime

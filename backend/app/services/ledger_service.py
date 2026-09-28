@@ -35,6 +35,16 @@ logger = get_logger(__name__)
 
 FEE_CATEGORY_NAME = "Fees & Charges"
 
+#: Where a transaction came from. Callers (recurring rules, statement imports)
+#: pass these through the ledger rather than writing transactions themselves.
+PROVENANCE_FIELDS = (
+    "recurring_rule_id",
+    "import_batch_id",
+    "external_source",
+    "external_transaction_id",
+    "classification_rule_id",
+)
+
 
 class LedgerService:
     def __init__(self, session: Session, accounts: AccountService, fx: FxService) -> None:
@@ -105,9 +115,27 @@ class LedgerService:
             )
         )
 
+    @staticmethod
+    def _apply_provenance(transaction: Transaction, data: dict) -> None:
+        for field in PROVENANCE_FIELDS:
+            if data.get(field) is not None:
+                setattr(transaction, field, data[field])
+
+    def _finish(self, commit: bool) -> None:
+        """Commit, unless the caller is composing a larger atomic unit.
+
+        With commit=False the rows are flushed (ids assigned, constraints
+        checked) but the caller owns the database transaction and must commit
+        or roll back -- this is how a batch import stays all-or-nothing.
+        """
+        if commit:
+            self.session.commit()
+        else:
+            self.session.flush()
+
     # ------------------------------------------------------- income/expense
 
-    def create_transaction(self, data: dict) -> Transaction:
+    def create_transaction(self, data: dict, *, commit: bool = True) -> Transaction:
         tx_type = TransactionType(data["type"])
         if tx_type is TransactionType.TRANSFER:
             raise ValidationError("Use the transfer endpoint to move money between accounts.")
@@ -161,8 +189,9 @@ class LedgerService:
                 currency=currency,
                 rate=rate,
             )
+        self._apply_provenance(transaction, data)
         self.repo.add(transaction)
-        self.session.commit()
+        self._finish(commit)
         logger.info("transaction_created id=%s type=%s", transaction.id, transaction.type)
         return transaction
 
@@ -184,14 +213,29 @@ class LedgerService:
             "category_id": data.get("category_id", existing.category_id),
             "fx_rate": data.get("fx_rate"),
         }
+        for field in PROVENANCE_FIELDS:
+            payload[field] = getattr(existing, field)
+        if payload["category_id"] != existing.category_id:
+            # The user re-filed it by hand; the rule no longer explains it.
+            payload["classification_rule_id"] = None
         self._void(existing)
         replacement = self.create_transaction(payload)
+        self._repoint_external_refs(existing.id, replacement.id)
         logger.info("transaction_replaced old=%s new=%s", existing.id, replacement.id)
         return replacement
 
     # ------------------------------------------------------------ transfers
 
-    def create_transfer(self, data: dict) -> Transaction:
+    def _repoint_external_refs(self, old_id: int, new_id: int) -> None:
+        from app.models.statement_import import ExternalTransactionRef
+
+        refs = self.session.query(ExternalTransactionRef).filter_by(transaction_id=old_id).all()
+        for ref in refs:
+            ref.transaction_id = new_id
+        if refs:
+            self.session.commit()
+
+    def create_transfer(self, data: dict, *, commit: bool = True) -> Transaction:
         source = self.accounts.get_active(int(data["from_account_id"]))
         destination = self.accounts.get_active(int(data["to_account_id"]))
         if source.id == destination.id:
@@ -266,12 +310,13 @@ class LedgerService:
             currency=destination.currency,
             rate=dest_rate,
         )
+        self._apply_provenance(transaction, data)
         self.repo.add(transaction)
 
         if fee > 0:
             self._create_fee_transaction(transaction, source, fee, tx_date)
 
-        self.session.commit()
+        self._finish(commit)
         logger.info("transfer_created id=%s", transaction.id)
         return transaction
 

@@ -8,6 +8,6 @@ describe('Sidebar', () => {
   it('shows the released app version from package.json', () => {
     renderWithProviders(<Sidebar />);
     expect(screen.getByText(`v${packageJson.version} · Local`)).toBeInTheDocument();
-    expect(packageJson.version).toBe('2.1.1');
+    expect(packageJson.version).toBe('2.2.0');
   });
 });

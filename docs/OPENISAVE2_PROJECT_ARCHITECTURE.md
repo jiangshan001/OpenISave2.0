@@ -446,6 +446,10 @@ backend/
 │   │   ├── budgets.py
 │   │   └── assets.py
 │   │
+│   ├── importers/            statement parsers (2.2)
+│   │   ├── base.py
+│   │   └── wechat.py
+│   │
 │   ├── services/
 │   │   ├── ledger_service.py
 │   │   ├── account_service.py
@@ -1085,6 +1089,154 @@ User confirms
 →
 Create transaction
 ```
+
+## 21.1 Implementation (2.2)
+
+```text
+recurring_rules         the template: type, account(s), category, amount,
+                        frequency (weekly|monthly|yearly), interval, start_date,
+                        optional end_date, day_of_month, next_run_date cursor,
+                        mode (review|automatic), status (active|paused|archived)
+recurring_occurrences   one row per handled scheduled date:
+                        UNIQUE(rule_id, occurrence_date), status generated|skipped,
+                        transaction_id
+transactions.recurring_rule_id   provenance of a generated transaction
+```
+
+Rules never pre-create future transactions. Schedule maths lives in
+`services/recurrence.py` and is pure: the k-th occurrence is computed from the
+start date (never by stepping from the previous one), so the 31st becomes
+28/29 Feb and 30 Apr but returns to the 31st in May, and 29 Feb yearly rules
+fall on 28 Feb in common years. `day_of_month = 31` means "last day".
+
+Modes:
+
+```text
+review (default)   due items appear on the Overview/Recurring page; the user
+                   presses Create (or Skip) for each one
+automatic          POST /recurring/process-due, called once per app launch,
+                   creates every due occurrence; a failure (e.g. no FX rate)
+                   stops that rule at the failing date, never skipping ahead
+```
+
+Generation calls `LedgerService.create_transaction/create_transfer` with
+`commit=False`, inserts the occurrence row, and commits once. A retry, a
+second trigger, a crash-and-restart or two processes can therefore create at
+most one transaction per (rule, date): the second attempt finds the row or
+hits the UNIQUE constraint and rolls back. Voiding a generated transaction
+does not free its date. Pausing stops generation; resuming continues from the
+resume date (occurrences that fell in the pause are not created). Archiving
+stops a rule for good and keeps its history.
+
+---
+
+# 21A. Statement Import and Deterministic Categorisation (2.2)
+
+Statement files are imported locally; this is **not** a WeChat Pay API
+integration (section 54 still applies).
+
+```text
+importers/base.py      StatementImporter protocol, StatementRow, Movement
+importers/wechat.py    WeChatStatementImporter (.xlsx)
+services/import_staging.py            parsed rows held in memory under a token
+services/import_preview.py            per-row plan (pure)
+services/statement_import_service.py  parse / preview / confirm / history
+services/categorisation_service.py    rules and the Classifier
+```
+
+## 21A.1 Parsing
+
+- The header row is found by scanning for the required columns
+  (交易时间 交易类型 交易对方 收/支 金额(元) 支付方式 当前状态 交易单号); the preamble
+  length is never assumed. A workbook without them is rejected as unsupported.
+- 金额 → Decimal → integer fen (at most two decimals, no float arithmetic).
+- 交易单号 must be a text cell; a numeric cell (already rounded by Excel) is
+  rejected rather than silently corrupted.
+- 交易时间 is Asia/Shanghai (UTC+08:00) regardless of the computer's timezone.
+  Two values are kept, deliberately distinct:
+
+  ```text
+  occurred_at   timezone-aware instant, e.g. 2026-09-12T01:30:00+08:00
+  source_date   the statement's own calendar date in its source zone
+                (importers/base.py source_calendar_date), e.g. 2026-09-12
+  ```
+
+  `source_date` becomes the ledger `transaction_date`, so budgets, reports and
+  the heatmap file the row under the day printed on the statement — never the
+  computer's local date (the same instant is 11 Sep 18:30 in London). The
+  import reference stores `occurred_at`, `source_date` and `source_timezone`.
+  A naive time is refused rather than read in the local zone.
+- The file is parsed from memory. It is never written to disk, never kept after
+  parsing and never logged; parsed rows live in memory only until confirm
+  (30-minute expiry).
+
+## 21A.2 Movement rules (WeChat vocabulary)
+
+```text
+商户消费 / 转账 / 红包 with 收入 or 支出   income or expense (category by rules)
+零钱充值, 零钱提现, 零钱通转入/转出,
+信用卡还款, 理财通, other 收/支 "/"      transfer between two mapped accounts
+refunds (…-退款, 已退款)                 needs review
+failed / closed / returned              ignored
+anything not provable from the row      needs review — never income/expense
+```
+
+## 21A.3 Account mapping
+
+Each funding label (零钱, 中国银行储蓄卡(8080), 零钱通…) maps to an account through
+`import_account_mappings (source, label) UNIQUE`. Mappings are data chosen by
+the user and remembered on confirm; no card number is hard-coded. Only accounts
+in the statement currency (CNY) can receive its rows.
+
+## 21A.4 Duplicate protection
+
+`external_transaction_refs UNIQUE(source, external_id)` records every imported
+row (plus raw merchant, product, payment method, status, note and the
+classification reason). The preview marks known ids as *Already imported*; the
+constraint is the real guard at confirm time. References survive edits (which
+void and replace a transaction) and voids, so a row deliberately deleted is not
+re-imported either.
+
+A row the user does not want is handled in one of two ways:
+
+```text
+Skip this import     nothing is recorded; the row needs review again next time
+Ignore permanently   import_ignored_items UNIQUE(source, external_id) is written
+                     in the same atomic confirm; every later statement shows the
+                     row as Ignored. Restoring deletes the record.
+```
+
+Precedence in the preview: already imported → permanently ignored → ignore
+requested now → not a completed payment → skip requested now → planning.
+
+## 21A.5 Categorisation (no AI)
+
+Rules match a statement field (merchant, product, note, any text, statement
+type) exactly or by keyword, optionally with a second keyword condition, and
+file income or expense under one category. Order:
+
+```text
+1 user rules (user-defined priority)
+2 built-in exact merchant rules
+3 built-in merchant keyword rules
+4 built-in product keyword rules
+5 built-in note / text keyword rules
+6 built-in statement-type fallbacks (微信红包 received → Gift)
+7 otherwise → needs review
+```
+
+A rule whose category is archived or of the wrong kind is skipped. Every
+imported transaction stores `classification_rule_id`; the preview shows the
+rule's explanation. Corrections can be remembered as user rules; a remembered
+correction immediately classifies similar rows in the same preview and is
+saved only if an imported row uses it.
+
+## 21A.6 Atomic import
+
+Confirm re-plans the statement, refuses while rows need review (unless the
+user explicitly skips them), then writes the batch, rules, mappings, every
+ledger transaction (through LedgerService with `commit=False`) and every
+reference in ONE database transaction. Any failure rolls all of it back.
 
 ---
 
@@ -2714,6 +2866,19 @@ historical transactions keep rendering with the category they were filed under.
 ### Invariant 16
 The desktop application starts and stops its own backend. It binds to
 127.0.0.1 only, and must never leave an orphaned server process behind.
+
+### Invariant 17
+Every transaction — hand-entered, recurring or imported — is written by the
+LedgerService. No feature implements its own ledger.
+
+### Invariant 18
+One recurring rule and scheduled date produce at most one transaction; one
+external statement row is imported at most once. Both are database
+constraints.
+
+### Invariant 19
+Statement parsing and categorisation are deterministic and local. No AI or
+network service is involved, and statement contents never reach the logs.
 
 ---
 

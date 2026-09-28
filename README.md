@@ -8,6 +8,17 @@ Everything lives on your own machine, in a **SQLCipher-encrypted database** whos
 key is kept in Windows Credential Manager. The only outbound network request is
 for exchange rates, and it sends nothing but currency codes.
 
+## What's new in 2.2.0
+
+- **Recurring Transactions** — review-first or automatic schedules for salary,
+  rent, bills and subscriptions, with an Upcoming card on the Overview.
+- **WeChat Pay statement import** — local, all-or-nothing import of the `.xlsx`
+  export with account mapping, duplicate protection and review.
+- **Deterministic categorisation rules** — explainable, editable rules; no AI.
+
+2.2.0 adds database tables; on first launch the app takes its usual encrypted
+safety backup and upgrades the vault automatically.
+
 ## Download
 
 **Windows 10/11 (x64):** [Latest Release](https://github.com/jiangshan001/OpenISave2.0/releases/latest)
@@ -56,6 +67,33 @@ place as a rollback until you remove them from **Data & Security**.
   accounts, each in its own currency with an opening balance and a purpose.
 - **Transactions** — income, expenses and account-to-account transfers, with
   hierarchical categories, filtering and a full history.
+- **Recurring Transactions** — salary, rent, council tax, broadband and
+  subscriptions on a weekly, monthly or yearly schedule (every *n* periods,
+  optional end date, correct month-end/February/leap-year handling). Each rule
+  is either **Review first** (the default: it shows up as due on the Overview
+  and you press *Create*) or **Automatic**. Rules can be paused, resumed and
+  archived, and one scheduled date can never produce two transactions.
+- **WeChat Pay statement import** — Transactions → Import → *WeChat Pay
+  Statement*. Choose the `.xlsx` exported from WeChat; it is parsed on this
+  computer only (never uploaded, never stored), then you map each payment
+  method (零钱, a bank card…) to an account, review the proposed categories and
+  confirm. Nothing is written until you confirm, and the import is all-or-nothing.
+  Rows already imported are recognised by their WeChat transaction number and
+  never imported twice, even from overlapping statements. Each row keeps the
+  **date printed on the statement** (China time, Asia/Shanghai): a 01:30
+  purchase on 12 Sep stays on 12 Sep in budgets, reports and the heatmap even
+  if this computer is on UK time. A row you don't want can be **skipped for
+  this import** (it comes back next time) or **ignored permanently** (it is
+  marked Ignored in every later statement; restore it under *Ignored items* on
+  the import page).
+- **Deterministic categorisation rules** — imports are classified by explainable
+  rules (your own first, then built-ins such as *merchant is “ROOFOODS LTD” →
+  Food › Delivery*). Every result says which rule filed it. When you correct a
+  row you can tick *Remember this rule*; manage rules under Categories →
+  *Auto-categorisation rules*. Anything ambiguous — a transfer to a person, a
+  refund, 充值/提现/零钱通 moves that cannot be matched to two of your accounts —
+  goes to **Needs review** instead of being guessed.
+  **No AI is required** (or used) for statement parsing or classification.
 - **Assets** — the things you own, with purchase price, valuation history, days
   held, cost per day, and effective cost per day once sold. Only stores of
   wealth (property, investment assets) count towards net worth; personal
@@ -292,6 +330,16 @@ cd backend
 .venv\Scripts\python.exe -m pytest
 ```
 
+Statement-import tests use synthetic workbooks built in memory
+(`backend/tests/wechat_fixture.py`); no real statement is ever committed. To
+validate the parser against a real export without copying it into the repo,
+point the opt-in test at it:
+
+```bash
+set OPENISAVE_WECHAT_SAMPLE=C:\path	o\微信支付账单流水文件(...).xlsx
+.venv\Scripts\python.exe -m pytest tests/test_wechat_parser.py -k real_statement
+```
+
 ### Frontend
 
 ```bash
@@ -339,6 +387,7 @@ OpenISave2/
 │   │   ├── repositories/  database queries
 │   │   ├── schemas/       Pydantic request/response models
 │   │   ├── services/      financial rules and workflows
+│   │   ├── importers/     statement parsers (StatementImporter; WeChat Pay)
 │   │   └── providers/fx/  exchange rate providers
 │   ├── alembic/           migrations
 │   ├── openisave_server.spec  PyInstaller bundle definition
@@ -378,5 +427,9 @@ frontend → REST API → service layer → repository → SQLAlchemy → SQLite
 - Net worth is calculated in exactly one place (`NetWorthService`).
 - Deleting a transaction voids it: the record stays for auditability.
 - A category in use is archived, never deleted, so history keeps rendering.
+- Recurring and imported transactions are written by the same LedgerService as
+  hand-entered ones, so balances, frozen FX, budgets and reports treat them
+  identically. `UNIQUE(rule, scheduled date)` and `UNIQUE(source, external
+  transaction id)` are enforced by the database, not just the UI.
 - Savings goals label money that already exists; they never duplicate it, even
   when one account funds several goals.

@@ -20,8 +20,8 @@ const WEEKDAY_LABELS: [number, string][] = [
 
 /** Index = backend intensity level 0-4. Level 0 is an empty day. */
 export const LEVEL_COLORS: Record<ActivityKind, string[]> = {
-  expense: ['#eef1f5', '#f9d3c8', '#f0a086', '#e06a4b', '#b23c22'],
-  income: ['#eef1f5', '#c8ecd9', '#86d0a8', '#3fae74', '#17794a'],
+  expense: ['#eef0f3', '#f7dcd2', '#eeb09a', '#df7d62', '#b0503a'],
+  income: ['#eef0f3', '#d3ebdf', '#98cfb3', '#4ea57f', '#22724f'],
 };
 
 const KIND_OPTIONS = [
@@ -49,6 +49,10 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
   const width = LEFT + grid.weeks.length * STEP;
   const height = TOP + 7 * STEP;
   const noun = kind === 'expense' ? 'Spent' : 'Received';
+  const busiest =
+    series.max_minor > 0
+      ? series.days.find((day) => day.amount_minor === series.max_minor)?.date
+      : undefined;
 
   const onEnter = (cell: HeatmapCell) => (event: MouseEvent<SVGRectElement>) => {
     const box = event.currentTarget.closest('.oi-heatmap')?.getBoundingClientRect();
@@ -77,11 +81,28 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
         />
       }
     >
-      <div className="oi-heatmap-summary oi-muted">
-        {noun} <span className="oi-strong">{formatMoney(series.total_minor, base)}</span> over the
-        last {data.months} months · {series.active_days} active day
-        {series.active_days === 1 ? '' : 's'}
-        {series.max_minor > 0 ? ` · Busiest day ${formatMoney(series.max_minor, base)}` : ''}
+      <div className="oi-heatmap-stats">
+        <div>
+          <div className="oi-stat-label">
+            {noun} in the last {data.months} months
+          </div>
+          <div className="oi-heatmap-stat">
+            <span className="oi-strong">{formatMoney(series.total_minor, base)}</span>
+          </div>
+        </div>
+        <div>
+          <div className="oi-stat-label">Active days</div>
+          <div className="oi-heatmap-stat">{series.active_days}</div>
+        </div>
+        {series.max_minor > 0 && series.active_days > 1 ? (
+          <div>
+            <div className="oi-stat-label">Busiest day</div>
+            <div className="oi-heatmap-stat">
+              {formatMoney(series.max_minor, base)}{' '}
+              {busiest ? <span className="oi-muted">on {formatDate(busiest)}</span> : null}
+            </div>
+          </div>
+        ) : null}
       </div>
       <div className="oi-heatmap" onMouseLeave={() => setHover(null)}>
         <svg
@@ -112,7 +133,7 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
                   y={TOP + cell.weekday * STEP}
                   width={CELL}
                   height={CELL}
-                  rx={2}
+                  rx={2.5}
                   fill={colors[cell.level] ?? colors[0]}
                   onMouseEnter={onEnter(cell)}
                 />
@@ -141,7 +162,7 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
           <span key={color} className="oi-heatmap-swatch" style={{ background: color }} />
         ))}
         <span>More</span>
-        <span className="oi-heatmap-note">In {base} · transfers excluded</span>
+        <span className="oi-heatmap-note">In {base}, transfers excluded</span>
       </div>
     </Card>
   );

@@ -1,6 +1,7 @@
-import { PlusOutlined, SwapOutlined } from '@ant-design/icons';
-import { Button, Card, Space } from 'antd';
+import { DownOutlined, ImportOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import { Button, Card, Dropdown, Space } from 'antd';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { PageHeader } from '@/components/common/PageHeader';
 import { StateBoundary } from '@/components/common/StateBoundary';
@@ -15,6 +16,7 @@ import { TransferFormModal } from './components/TransferFormModal';
 const PAGE_SIZE = 25;
 
 export function TransactionsPage() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterState>({});
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -49,6 +51,17 @@ export function TransactionsPage() {
         subtitle="Income, expenses and transfers across every account."
         actions={
           <Space>
+            <Dropdown
+              disabled={!hasAccounts}
+              menu={{
+                items: [{ key: 'wechat', label: 'WeChat Pay Statement (.xlsx)' }],
+                onClick: ({ key }) => navigate(`/transactions/import/${key}`),
+              }}
+            >
+              <Button icon={<ImportOutlined />}>
+                Import <DownOutlined />
+              </Button>
+            </Dropdown>
             <Button
               icon={<SwapOutlined />}
               disabled={!hasAccounts}

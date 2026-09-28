@@ -8,6 +8,7 @@ asset in. The classification lives in the asset service, not the frontend.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy import select
 
@@ -42,7 +43,9 @@ def _ledger_snapshot(session) -> list[tuple]:
     postings = session.scalars(select(Posting).order_by(Posting.id)).all()
     return [
         *(
-            (t.id, t.type, t.amount_minor, t.base_amount_minor, str(t.fx_rate_to_base))
+            # Compare the rate as a Decimal: an object reloaded from SQLite (e.g.
+            # after garbage collection) reads back as 1.0000000000, not 1.
+            (t.id, t.type, t.amount_minor, t.base_amount_minor, Decimal(t.fx_rate_to_base))
             for t in transactions
         ),
         *(

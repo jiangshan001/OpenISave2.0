@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Card, Space, Switch, Tabs } from 'antd';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { PageHeader } from '@/components/common/PageHeader';
 import { StateBoundary } from '@/components/common/StateBoundary';
@@ -11,6 +12,7 @@ import { CategoryFormModal } from './components/CategoryFormModal';
 import { CategoryTree } from './components/CategoryTree';
 
 export function CategoriesPage() {
+  const navigate = useNavigate();
   const [kind, setKind] = useState<CategoryKind>('expense');
   const [showArchived, setShowArchived] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -60,6 +62,7 @@ export function CategoriesPage() {
                 Show archived
               </label>
             </Space>
+            <Button onClick={() => navigate('/categories/rules')}>Auto-categorisation rules</Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => openCreate(null)}>
               New category
             </Button>

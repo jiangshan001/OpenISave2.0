@@ -1,0 +1,330 @@
+/* One card language for every panel: hairline edge, 14px radius, a quiet
+   tinted shadow, and a header that is part of the card, not a title bar. */
+
+.ant-card:not(.ant-card-bordered) {
+  border: 1px solid var(--oi-border);
+  box-shadow: var(--oi-shadow-card);
+}
+
+.ant-card .ant-card-head {
+  border-bottom: none;
+  min-height: 54px;
+  padding-top: 4px;
+}
+
+.ant-card .ant-card-head-title {
+  font-family: var(--oi-font-display);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.ant-card .ant-card-head + .ant-card-body {
+  padding-top: 4px;
+}
+
+.oi-card-fill {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.oi-card-fill > .ant-card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.oi-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--oi-space-sm);
+}
+
+/* --- KPI / stat cards -------------------------------------------------- */
+
+.oi-stat-card {
+  height: 100%;
+  transition: box-shadow 0.2s var(--oi-ease), border-color 0.2s var(--oi-ease);
+}
+
+.oi-stat-card:hover {
+  box-shadow: var(--oi-shadow-hover);
+}
+
+.oi-stat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.oi-stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--oi-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oi-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--oi-radius-control);
+  background: var(--oi-surface-2);
+  color: var(--oi-text-2);
+  font-size: 14px;
+}
+
+.oi-stat-icon--positive {
+  background: var(--oi-positive-soft);
+  color: var(--oi-positive);
+}
+
+.oi-stat-icon--negative {
+  background: var(--oi-negative-soft);
+  color: var(--oi-negative);
+}
+
+.oi-stat-icon--primary {
+  background: var(--oi-primary-soft);
+  color: var(--oi-primary);
+}
+
+/* Cards that place the label directly (no icon row). */
+.oi-stat-card .ant-card-body > .oi-stat-label {
+  margin-bottom: 12px;
+}
+
+.oi-stat-hint {
+  display: inline-flex;
+  color: var(--oi-subtle);
+  font-size: 12px;
+  cursor: help;
+}
+
+.oi-stat-value {
+  font-family: var(--oi-font-display);
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.022em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: var(--oi-text);
+}
+
+.oi-stat-value.oi-positive { color: var(--oi-positive); }
+.oi-stat-value.oi-negative { color: var(--oi-negative); }
+
+.oi-stat-footer {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--oi-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one elevated surface on the page: net worth, on solid ink. */
+.oi-stat-card--accent {
+  background: var(--oi-ink);
+  border-color: var(--oi-ink) !important;
+  box-shadow: 0 14px 34px -18px rgba(22, 28, 44, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+.oi-stat-card--accent .oi-stat-label,
+.oi-stat-card--accent .oi-stat-footer {
+  color: rgba(236, 240, 247, 0.62);
+}
+
+.oi-stat-card--accent .oi-stat-value {
+  color: #f5f7fb;
+  font-size: 30px;
+}
+
+.oi-stat-card--accent .oi-stat-icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #dfe6f7;
+}
+
+.oi-stat-split {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.oi-stat-split span {
+  display: block;
+}
+
+.oi-stat-split strong {
+  display: block;
+  margin-top: 1px;
+  font-weight: 600;
+  color: rgba(245, 247, 251, 0.92);
+}
+
+/* --- tone chips -------------------------------------------------------- */
+
+.oi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--oi-radius-chip);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  background: var(--oi-surface-2);
+  color: var(--oi-text-2);
+  white-space: nowrap;
+}
+
+.oi-chip--positive { background: var(--oi-positive-soft); color: var(--oi-positive); }
+.oi-chip--negative { background: var(--oi-negative-soft); color: var(--oi-negative); }
+.oi-chip--warning { background: var(--oi-warning-soft); color: var(--oi-warning); }
+.oi-chip--primary { background: var(--oi-primary-soft); color: var(--oi-primary); }
+
+/* --- account cards ----------------------------------------------------- */
+
+.oi-account-card {
+  height: 100%;
+  transition: box-shadow 0.2s var(--oi-ease), transform 0.2s var(--oi-ease);
+}
+
+.oi-account-card:hover {
+  box-shadow: var(--oi-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.oi-account-actions {
+  display: flex !important;
+  width: calc(100% + 16px);
+  margin: 14px -8px -6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--oi-border-soft);
+}
+
+.oi-account-actions .ant-btn {
+  color: var(--oi-muted);
+}
+
+.oi-account-actions .ant-btn:hover {
+  color: var(--oi-text) !important;
+}
+
+/* --- list rows (recent transactions, goals) ---------------------------- */
+
+.oi-row-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.oi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: var(--oi-radius-control);
+  transition: background-color 0.16s var(--oi-ease);
+}
+
+.oi-row:hover {
+  background: var(--oi-surface-2);
+}
+
+.oi-row .oi-row-icon.oi-stat-icon--positive { background: var(--oi-positive-soft); color: var(--oi-positive); }
+.oi-row .oi-row-icon.oi-stat-icon--primary { background: var(--oi-primary-soft); color: var(--oi-primary); }
+
+.oi-row-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 13px;
+  background: var(--oi-surface-2);
+  color: var(--oi-text-2);
+}
+
+.oi-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.oi-row-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oi-row-meta {
+  font-size: 12px;
+  color: var(--oi-muted);
+}
+
+/* --- empty states ------------------------------------------------------ */
+
+.oi-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 28px 16px;
+}
+
+.oi-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--oi-surface-2);
+  border: 1px solid var(--oi-border);
+  color: var(--oi-muted);
+  font-size: 18px;
+}
+
+.oi-empty-title {
+  font-weight: 600;
+  color: var(--oi-text);
+}
+
+.oi-empty-text {
+  font-size: 13px;
+  color: var(--oi-muted);
+  max-width: 42ch;
+}
+
+.oi-empty .ant-btn {
+  margin-top: 10px;
+}
+
+/* --- tables ------------------------------------------------------------ */
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.ant-table-wrapper .ant-table-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header links (Edit, Manage, View all) align with the card's content edge. */
+.ant-card .ant-card-extra .ant-btn-link {
+  padding-inline: 0;
+  font-weight: 500;
+}

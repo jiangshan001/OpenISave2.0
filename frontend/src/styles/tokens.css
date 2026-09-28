@@ -1,0 +1,65 @@
+/*
+ * Design tokens. One cool-neutral family, one accent (the brand blue,
+ * deepened and desaturated), and calibrated semantic tones.
+ *
+ * Shape rule: cards/panels 14px, controls 8px, chips 6px, bars fully round.
+ */
+:root {
+  /* surfaces */
+  --oi-bg: #f4f5f7;
+  --oi-surface: #ffffff;
+  --oi-surface-2: #f8f9fb;
+  --oi-sidebar: #fafbfc;
+  --oi-border: #e6e8ec;
+  --oi-border-soft: #eef0f3;
+  --oi-border-strong: #d6dae1;
+
+  /* text */
+  --oi-text: #151a23;
+  --oi-text-2: #3c4350;
+  --oi-muted: #6a7282;
+  --oi-subtle: #98a0ad;
+
+  /* accent */
+  --oi-primary: #2f5bd3;
+  --oi-primary-strong: #2449b3;
+  --oi-primary-soft: #edf1fc;
+  --oi-ink: #161c2c;
+
+  /* semantic */
+  --oi-positive: #1a7f55;
+  --oi-positive-soft: #e7f4ee;
+  --oi-negative: #c2412d;
+  --oi-negative-soft: #fbece8;
+  --oi-warning: #b7791f;
+  --oi-warning-soft: #fcf3e2;
+
+  /* spacing */
+  --oi-space-xs: 6px;
+  --oi-space-sm: 12px;
+  --oi-space-md: 16px;
+  --oi-space-lg: 24px;
+  --oi-space-xl: 32px;
+  --oi-gap: 20px;
+
+  /* shape */
+  --oi-radius: 14px;
+  --oi-radius-control: 8px;
+  --oi-radius-chip: 6px;
+
+  /* elevation: shadows tinted to the ink hue, never pure black */
+  --oi-shadow-card: 0 1px 2px rgba(22, 28, 44, 0.04), 0 0 0 1px rgba(22, 28, 44, 0.02);
+  --oi-shadow-hover: 0 10px 28px -14px rgba(22, 28, 44, 0.22), 0 1px 2px rgba(22, 28, 44, 0.05);
+  --oi-shadow-pop: 0 12px 32px -8px rgba(22, 28, 44, 0.22), 0 2px 6px rgba(22, 28, 44, 0.06);
+
+  /* type */
+  --oi-font:
+    'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', Roboto, Helvetica, Arial, sans-serif;
+  --oi-font-display:
+    'Segoe UI Variable Display', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', Roboto, Helvetica, Arial, sans-serif;
+
+  /* motion */
+  --oi-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}

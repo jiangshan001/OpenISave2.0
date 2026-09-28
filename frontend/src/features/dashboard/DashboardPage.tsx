@@ -1,12 +1,15 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Empty, Row, Space } from 'antd';
+import { WalletOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Col, Row } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { CashFlowChart } from '@/components/charts/CashFlowChart';
+import { EmptyState } from '@/components/common/EmptyState';
 import { PageHeader } from '@/components/common/PageHeader';
 import { StateBoundary } from '@/components/common/StateBoundary';
 import { useAccounts } from '@/hooks/useLedger';
+import { useUpcoming } from '@/hooks/useRecurring';
 import { useDashboard } from '@/hooks/useResources';
 import { monthLabel } from '@/utils/dates';
 import { TransactionFormModal } from '../transactions/components/TransactionFormModal';
@@ -18,12 +21,15 @@ import { CategorySplitCard } from './components/CategorySplitCard';
 import { GoalsSummaryCard } from './components/GoalsSummaryCard';
 import { RecentTransactions } from './components/RecentTransactions';
 import { SummaryCards } from './components/SummaryCards';
+import { UpcomingCard } from './components/UpcomingCard';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const { data, isLoading, error, refetch } = useDashboard();
   const { data: accounts } = useAccounts();
+  const { data: upcoming } = useUpcoming(14);
+  const hasUpcoming = (upcoming ?? []).length > 0;
 
   const hasAccounts = (accounts ?? []).length > 0;
 
@@ -56,21 +62,16 @@ export function DashboardPage() {
           <>
             {!hasAccounts ? (
               <Card variant="borderless" style={{ marginBottom: 20 }}>
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={
-                    <Space direction="vertical" size={4}>
-                      <strong>Welcome to OpenISave</strong>
-                      <span className="oi-muted">
-                        Start by adding the bank accounts you use. Everything else builds on them.
-                      </span>
-                    </Space>
+                <EmptyState
+                  icon={<WalletOutlined />}
+                  title="Welcome to OpenISave"
+                  text="Start by adding the bank accounts you use. Everything else builds on them."
+                  action={
+                    <Button type="primary" onClick={() => navigate('/accounts')}>
+                      Add your first account
+                    </Button>
                   }
-                >
-                  <Button type="primary" onClick={() => navigate('/accounts')}>
-                    Add your first account
-                  </Button>
-                </Empty>
+                />
               </Card>
             ) : null}
 
@@ -97,15 +98,25 @@ export function DashboardPage() {
               />
             ) : null}
 
-            <SummaryCards data={data} />
-            <AssetBreakdown data={data} />
+            <div className="oi-reveal">
+              <SummaryCards data={data} />
+            </div>
+            <div className="oi-reveal">
+              <AssetBreakdown data={data} />
+            </div>
+            <div className="oi-reveal">
+              <ActivityHeatmapCard />
+            </div>
 
-            <ActivityHeatmapCard />
-
-            <Row gutter={[16, 16]} className="oi-section-gap">
+            <Row gutter={[20, 20]} className="oi-section-gap oi-reveal">
               <Col xs={24} xl={14}>
-                <Card title="Income vs expenses" variant="borderless">
-                  <CashFlowChart data={data.cash_flow_series} currency={data.base_currency} />
+                <Card title="Income vs expenses" variant="borderless" className="oi-card-fill">
+                  <CashFlowChart
+                    data={data.cash_flow_series}
+                    currency={data.base_currency}
+                    height={300}
+                    grow
+                  />
                 </Card>
               </Col>
               <Col xs={24} xl={10}>
@@ -113,7 +124,7 @@ export function DashboardPage() {
               </Col>
             </Row>
 
-            <Row gutter={[16, 16]} className="oi-section-gap">
+            <Row gutter={[20, 20]} className="oi-section-gap oi-reveal">
               <Col xs={24} lg={12}>
                 <CategorySplitCard
                   title="Expenses by category"
@@ -132,7 +143,7 @@ export function DashboardPage() {
               </Col>
             </Row>
 
-            <Row gutter={[16, 16]} className="oi-section-gap">
+            <Row gutter={[20, 20]} className="oi-section-gap oi-reveal">
               <Col xs={24} xl={14}>
                 <AccountsSummary data={data} />
               </Col>
@@ -141,9 +152,16 @@ export function DashboardPage() {
               </Col>
             </Row>
 
-            <div className="oi-section-gap">
-              <RecentTransactions data={data} />
-            </div>
+            <Row gutter={[20, 20]} className="oi-section-gap oi-reveal">
+              <Col xs={24} xl={hasUpcoming ? 14 : 24}>
+                <RecentTransactions data={data} />
+              </Col>
+              {hasUpcoming ? (
+                <Col xs={24} xl={10}>
+                  <UpcomingCard />
+                </Col>
+              ) : null}
+            </Row>
           </>
         ) : null}
       </StateBoundary>

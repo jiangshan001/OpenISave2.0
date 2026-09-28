@@ -19,6 +19,12 @@ export const queryKeys = {
   report: (year: number, month: number) => ['report', year, month] as const,
   fxRates: ['fx', 'rates'] as const,
   settings: ['settings'] as const,
+  recurring: (includeArchived: boolean) => ['recurring', 'rules', includeArchived] as const,
+  upcoming: (days: number) => ['recurring', 'upcoming', days] as const,
+  importMappings: ['imports', 'mappings'] as const,
+  importHistory: ['imports', 'history'] as const,
+  importIgnored: ['imports', 'ignored'] as const,
+  categorisationRules: ['imports', 'rules'] as const,
 };
 
 /** Financial views that must be refetched after any ledger mutation. */
@@ -31,4 +37,5 @@ export const LEDGER_DEPENDENT_KEYS = [
   "goals",
   "assets",
   "liabilities",
+  "recurring",
 ];

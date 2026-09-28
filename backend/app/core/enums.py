@@ -110,3 +110,47 @@ class FxFreshness(str, Enum):
     STALE = "stale"
     MISSING = "missing"
     IDENTITY = "identity"
+
+
+class RecurringFrequency(str, Enum):
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+
+
+class RecurringMode(str, Enum):
+    """What happens when an occurrence falls due."""
+
+    REVIEW = "review"  # shown as due; the user confirms each one (default)
+    AUTOMATIC = "automatic"  # created without asking
+
+
+class RecurringStatus(str, Enum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    ARCHIVED = "archived"
+
+
+class OccurrenceStatus(str, Enum):
+    GENERATED = "generated"
+    SKIPPED = "skipped"
+
+
+class RuleMatchField(str, Enum):
+    """Statement field a categorisation rule inspects."""
+
+    MERCHANT = "merchant"
+    PRODUCT = "product"
+    NOTE = "note"
+    ANY_TEXT = "any_text"  # merchant, product and note together
+    SOURCE_TYPE = "source_type"  # the statement's own transaction type
+
+
+class RuleMatchType(str, Enum):
+    EXACT = "exact"
+    CONTAINS = "contains"
+
+
+class RuleOrigin(str, Enum):
+    USER = "user"
+    SYSTEM = "system"

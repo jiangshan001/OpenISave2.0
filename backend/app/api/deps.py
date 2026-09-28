@@ -17,6 +17,7 @@ from app.services.account_service import AccountService
 from app.services.activity_service import ActivityService
 from app.services.asset_service import AssetService
 from app.services.budget_service import BudgetService
+from app.services.categorisation_service import CategorisationService
 from app.services.category_service import CategoryService
 from app.services.dashboard_service import DashboardService
 from app.services.fx_service import FxService
@@ -24,7 +25,9 @@ from app.services.goal_service import GoalService
 from app.services.ledger_service import LedgerService
 from app.services.liability_service import LiabilityService
 from app.services.networth_service import NetWorthService
+from app.services.recurring_service import RecurringService
 from app.services.report_service import ReportService
+from app.services.statement_import_service import StatementImportService
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -49,6 +52,29 @@ def get_ledger_service(session: DbSession, accounts: AccountDep, fx: FxDep) -> L
 
 
 LedgerDep = Annotated[LedgerService, Depends(get_ledger_service)]
+
+
+def get_recurring_service(session: DbSession, ledger: LedgerDep) -> RecurringService:
+    return RecurringService(session, ledger)
+
+
+RecurringDep = Annotated[RecurringService, Depends(get_recurring_service)]
+
+
+def get_rules_service(session: DbSession) -> CategorisationService:
+    return CategorisationService(session)
+
+
+RulesDep = Annotated[CategorisationService, Depends(get_rules_service)]
+
+
+def get_import_service(
+    session: DbSession, ledger: LedgerDep, rules: RulesDep
+) -> StatementImportService:
+    return StatementImportService(session, ledger, rules)
+
+
+ImportDep = Annotated[StatementImportService, Depends(get_import_service)]
 
 
 def get_asset_service(session: DbSession, fx: FxDep, ledger: LedgerDep) -> AssetService:

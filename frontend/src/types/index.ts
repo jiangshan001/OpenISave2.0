@@ -86,6 +86,11 @@ export interface Transaction {
   fx_rate_date: string | null;
   fx_source: string;
   parent_transaction_id: number | null;
+  recurring_rule_id?: number | null;
+  import_batch_id?: number | null;
+  external_source?: string | null;
+  external_transaction_id?: string | null;
+  classification_rule_id?: number | null;
   is_voided: boolean;
   voided_at: string | null;
   created_at: string;

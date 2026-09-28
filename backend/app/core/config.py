@@ -30,7 +30,7 @@ APP_DATA_DIR_NAME = "OpenISave2Data"
 LEGACY_DIR_NAME = "OpenISave2"
 #: Windows Credential Manager target holding the database key.
 CREDENTIAL_SERVICE = "OpenISave2/DatabaseEncryptionKey"
-APP_VERSION = "2.1.1"
+APP_VERSION = "2.2.0"
 
 
 def local_app_data() -> Path:

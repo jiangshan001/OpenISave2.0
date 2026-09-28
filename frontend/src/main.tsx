@@ -4,7 +4,11 @@ import ReactDOM from 'react-dom/client';
 import { resolveApiOrigin } from './api/runtime';
 import { App } from './app/App';
 import { StartupScreen } from './app/StartupScreen';
+import './styles/tokens.css';
 import './styles/global.css';
+import './styles/cards.css';
+import './styles/charts.css';
+import './styles/imports.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 

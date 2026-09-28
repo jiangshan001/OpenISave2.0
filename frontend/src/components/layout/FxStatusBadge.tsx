@@ -1,5 +1,5 @@
-import { ReloadOutlined } from '@ant-design/icons';
-import { Button, Popover, Space, Table, Tag } from 'antd';
+import { GlobalOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Popover, Table, Tag } from 'antd';
 
 import { useFxRates, useRefreshFx } from '@/hooks/useResources';
 import type { FxRateStatus } from '@/types';
@@ -66,10 +66,13 @@ export function FxStatusBadge() {
   );
 
   return (
-    <Popover content={content} title="Exchange rates (to CNY)" trigger="click" placement="bottomRight">
-      <Space className="oi-fx-badge">
-        <Tag color={status.tone}>{status.label}</Tag>
-      </Space>
+    <Popover content={content} title="Exchange rates (to CNY)" trigger="click" placement="rightBottom">
+      <button type="button" className="oi-fx-badge" aria-label="Exchange rate status">
+        <GlobalOutlined />
+        <Tag color={status.tone} bordered={false}>
+          {status.label}
+        </Tag>
+      </button>
     </Popover>
   );
 }

@@ -5,8 +5,9 @@
         powershell -ExecutionPolicy Bypass -File .\scripts\clean_build_artifacts.ps1
         powershell -ExecutionPolicy Bypass -File .\scripts\clean_build_artifacts.ps1 -DryRun
 
-    Only the explicit paths listed below are removed. Source code, migrations,
-    tests, docs, scripts, icons, logo.png and lockfiles are never touched, and
+    Only the explicit paths listed below (plus __pycache__ folders) are removed.
+    Safe to re-run at any time. Source code, migrations, tests, docs, scripts,
+    icons, logo.png, lockfiles, .git and release\ are never touched, and
     nothing under %LOCALAPPDATA%\OpenISave2Data (the encrypted vault, backups
     and logs) or %LOCALAPPDATA%\OpenISave2 (2.0.x plaintext data) is ever
     considered.
@@ -44,12 +45,22 @@ $targets = @(
     'frontend\dist',                # Vite production build
     'frontend\coverage',
     'frontend\tsconfig.tsbuildinfo',
+    'frontend\tsconfig.node.tsbuildinfo',
+    'frontend\.vite',               # Vite dep cache when cacheDir is outside node_modules
+    'frontend\.eslintcache',
     'node_modules',                 # root Tauri CLI
-    '.pytest_cache'
+    '.pytest_cache',
+    '.ruff_cache',
+    '.mypy_cache'
 )
 
-# __pycache__ folders are only searched for inside these backend source roots.
-$pycacheRoots = @('backend', 'backend\app', 'backend\alembic', 'backend\tests')
+# __pycache__ folders are searched for across the whole project, skipping
+# these directories (either protected or already removed as a whole).
+$pycacheSkipDirs = @('.git', 'release', 'node_modules', '.venv', 'target', 'binaries', 'build', 'dist')
+
+# Never deleted, even if a target above ever came to point at or into them.
+$protectedRelative = @('.git', 'release', 'backend\app', 'backend\alembic', 'backend\tests',
+                       'frontend\src', 'desktop\src', 'docs', 'scripts')
 
 # Hard guard: the user's data directories must never be inside a target.
 # (The 'OpenISave2' prefix also covers 'OpenISave2Data'; both are listed so
@@ -80,6 +91,17 @@ function Assert-SafeTarget([string]$full) {
     $full = $full.TrimEnd('\')
     if (-not $full.StartsWith($root + '\', [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing to delete outside the project: $full"
+    }
+    $leaf = Split-Path -Leaf $full
+    foreach ($relative in $protectedRelative) {
+        $protected = Join-Path $root $relative
+        # Refuse the protected folder itself, anything containing it, and anything
+        # inside it other than a __pycache__ folder.
+        if ($protected.StartsWith($full + '\', [System.StringComparison]::OrdinalIgnoreCase) -or
+            $protected.Equals($full, [System.StringComparison]::OrdinalIgnoreCase) -or
+            ($full.StartsWith($protected + '\', [System.StringComparison]::OrdinalIgnoreCase) -and $leaf -ne '__pycache__')) {
+            throw "Refusing to touch protected project path: $full"
+        }
     }
     foreach ($userData in $userDataDirs) {
         if ($full.StartsWith($userData, [System.StringComparison]::OrdinalIgnoreCase) -or
@@ -114,14 +136,20 @@ foreach ($relative in $targets) {
     $full = Join-Path $root $relative
     if (Test-Path -LiteralPath $full) { $found.Add($full) }
 }
-foreach ($relative in $pycacheRoots) {
-    $base = Join-Path $root $relative
-    if (-not (Test-Path -LiteralPath $base)) { continue }
-    # Direct children only for 'backend' so the (already listed) .venv is not scanned.
-    $recurse = $relative -ne 'backend'
-    Get-ChildItem -LiteralPath $base -Directory -Force -Filter '__pycache__' -Recurse:$recurse -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -notmatch '\\\.venv\\' } |
-        ForEach-Object { if (-not $found.Contains($_.FullName)) { $found.Add($_.FullName) } }
+# Manual walk so skipped trees (node_modules, .venv, target, ...) are never entered.
+$pending = New-Object System.Collections.Generic.Stack[string]
+$pending.Push($root)
+while ($pending.Count -gt 0) {
+    foreach ($dir in [System.IO.Directory]::GetDirectories($pending.Pop())) {
+        $name = Split-Path -Leaf $dir
+        if ($pycacheSkipDirs -contains $name) { continue }
+        if ((Get-Item -LiteralPath $dir -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+        if ($name -eq '__pycache__') {
+            if (-not $found.Contains($dir)) { $found.Add($dir) }
+        } else {
+            $pending.Push($dir)
+        }
+    }
 }
 
 Write-Host ''
