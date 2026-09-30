@@ -73,7 +73,7 @@ export function AccountsPage() {
         }
       >
         <AccountGroupSummary accounts={data ?? []} />
-        <Row gutter={[16, 16]}>
+        <Row gutter={[20, 20]}>
           {(data ?? []).map((account) => (
             <Col key={account.id} xs={24} sm={12} lg={8} xxl={6}>
               <AccountCard

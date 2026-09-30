@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, GoldOutlined, PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Row, Space, Tabs } from 'antd';
 import { useState } from 'react';
 
@@ -62,10 +62,12 @@ export function AssetsPage() {
         }
       />
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+      <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
         <Col xs={24} sm={8}>
           <StatCard
             label="Counted in net worth"
+            icon={<GoldOutlined />}
+            iconTone="primary"
             amountMinor={counted}
             currency={base}
             hint="Assets that store wealth, such as property."
@@ -74,6 +76,7 @@ export function AssetsPage() {
         <Col xs={24} sm={8}>
           <StatCard
             label="Personal possessions"
+            icon={<ShoppingOutlined />}
             amountMinor={possessions}
             currency={base}
             hint="Current value of things you use. Reference only — not part of net worth."
@@ -83,6 +86,8 @@ export function AssetsPage() {
         <Col xs={24} sm={8}>
           <StatCard
             label="Outstanding debt"
+            icon={<CreditCardOutlined />}
+            iconTone="negative"
             amountMinor={debts}
             currency={base}
             tone={debts > 0 ? 'negative' : 'neutral'}

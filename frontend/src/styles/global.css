@@ -1,19 +1,5 @@
-:root {
-  --oi-bg: #f4f6fa;
-  --oi-surface: #ffffff;
-  --oi-border: #e7eaf0;
-  --oi-text: #1b2230;
-  --oi-muted: #6b7686;
-  --oi-primary: #2f6feb;
-  --oi-positive: #1f9d63;
-  --oi-negative: #d4543a;
-  --oi-warning: #e8912d;
-  --oi-space-xs: 6px;
-  --oi-space-sm: 12px;
-  --oi-space-md: 16px;
-  --oi-space-lg: 24px;
-  --oi-radius: 10px;
-}
+/* Base, application shell, navigation and shared utilities.
+   Tokens live in tokens.css; cards and data display in cards.css. */
 
 * {
   box-sizing: border-box;
@@ -23,11 +9,45 @@ body {
   margin: 0;
   background: var(--oi-bg);
   color: var(--oi-text);
+  font-family: var(--oi-font);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(47, 91, 211, 0.16);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(47, 91, 211, 0.55);
+  outline-offset: 2px;
+}
+
+/* Quiet scrollbars for the scrolling content column and side panel. */
+.oi-content::-webkit-scrollbar,
+.oi-sider::-webkit-scrollbar {
+  width: 10px;
+}
+
+.oi-content::-webkit-scrollbar-thumb,
+.oi-sider::-webkit-scrollbar-thumb {
+  background: rgba(22, 28, 44, 0.14);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.oi-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(22, 28, 44, 0.26);
+}
+
+.oi-content::-webkit-scrollbar-track,
+.oi-sider::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* Fixed application shell: the page itself never scrolls, only the content
-   column does. Keeps the sidebar and header permanently in view. */
+   column does. Keeps the navigation permanently in view. */
 .oi-shell {
   height: 100vh;
   overflow: hidden;
@@ -46,6 +66,8 @@ body {
   min-width: 0;
 }
 
+/* --- sidebar ----------------------------------------------------------- */
+
 .oi-sidebar {
   display: flex;
   flex-direction: column;
@@ -55,78 +77,153 @@ body {
 .oi-brand {
   display: flex;
   align-items: center;
-  gap: var(--oi-space-sm);
-  padding: 18px 20px 14px;
+  gap: 10px;
+  padding: 20px 20px 18px;
 }
 
 .oi-brand-mark {
   display: block;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   user-select: none;
 }
 
 .oi-brand-name {
+  font-family: var(--oi-font-display);
   font-weight: 650;
-  font-size: 15px;
+  font-size: 15.5px;
+  letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
 .oi-brand-version {
-  font-size: 11px;
-  color: var(--oi-muted);
+  font-size: 11.5px;
+  color: var(--oi-subtle);
+  font-variant-numeric: tabular-nums;
 }
 
 .oi-menu {
   border-inline-end: none !important;
-  font-size: 14px;
+  font-size: 13.5px;
+  background: transparent !important;
 }
 
-.oi-header {
+.oi-menu .ant-menu-item-group-title {
+  padding: 16px 20px 6px !important;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+.oi-menu .ant-menu-item {
+  transition: background-color 0.18s var(--oi-ease), color 0.18s var(--oi-ease);
+}
+
+.oi-menu .ant-menu-item-selected {
+  font-weight: 600;
+}
+
+.oi-sidebar-spacer {
+  flex: 1 1 auto;
+  min-height: 16px;
+}
+
+.oi-sidebar-footer {
+  margin: 0 12px 14px;
+  padding: 12px;
+  border: 1px solid var(--oi-border);
+  border-radius: var(--oi-radius-control);
+  background: var(--oi-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--oi-muted);
+}
+
+.oi-sidebar-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--oi-space-md);
-  padding: 0 var(--oi-space-lg);
-  border-bottom: 1px solid var(--oi-border);
-  flex: 0 0 auto;
-  z-index: 10;
+  gap: 8px;
+  line-height: 1.35;
 }
 
-.oi-header-note {
-  color: var(--oi-muted);
-  font-size: 12.5px;
+.oi-sidebar-status .anticon {
+  color: var(--oi-positive);
+  font-size: 13px;
 }
+
+/* --- content column ---------------------------------------------------- */
 
 .oi-content {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: var(--oi-space-lg);
+  padding: 28px 32px 40px;
 }
 
 .oi-content-inner {
-  max-width: 1440px;
+  max-width: 1360px;
   width: 100%;
   margin: 0 auto;
 }
 
 .oi-page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--oi-space-md);
-  margin-bottom: var(--oi-space-lg);
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
+
+.oi-page-title {
+  margin: 0;
+  font-family: var(--oi-font-display);
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  color: var(--oi-text);
+}
+
+.oi-page-subtitle {
+  margin-top: 6px;
+  color: var(--oi-muted);
+  font-size: 13.5px;
+  max-width: 80ch;
+}
+
+/* Content arriving after the skeleton fades up once. Motion is a state
+   transition only, and is skipped entirely under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .oi-reveal {
+    animation: oi-reveal 0.42s var(--oi-ease) both;
+  }
+  .oi-reveal:nth-child(2) { animation-delay: 40ms; }
+  .oi-reveal:nth-child(3) { animation-delay: 80ms; }
+  .oi-reveal:nth-child(4) { animation-delay: 120ms; }
+  .oi-reveal:nth-child(n + 5) { animation-delay: 160ms; }
+}
+
+@keyframes oi-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Tactile press on buttons. */
+.ant-btn:not(:disabled):active {
+  transform: translateY(0.5px);
+}
+
+/* --- utilities --------------------------------------------------------- */
 
 .oi-muted {
   color: var(--oi-muted);
 }
 
 .oi-strong {
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .oi-positive {
@@ -139,6 +236,47 @@ body {
 
 .oi-warning {
   color: var(--oi-warning);
+}
+
+.oi-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.oi-section-gap {
+  margin-top: var(--oi-gap);
+}
+
+.oi-nowrap {
+  white-space: nowrap;
+}
+
+.oi-clickable {
+  cursor: pointer;
+}
+
+.oi-fx-badge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0 0;
+  border: none;
+  border-top: 1px solid var(--oi-border-soft);
+  background: none;
+  color: var(--oi-muted);
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.16s var(--oi-ease);
+}
+
+.oi-fx-badge:hover {
+  color: var(--oi-text);
+}
+
+.oi-fx-badge .ant-tag {
+  margin: 0;
+  border-radius: var(--oi-radius-chip);
 }
 
 /* --- money ------------------------------------------------------------- */
@@ -162,112 +300,19 @@ body {
   font-size: 14px;
 }
 .oi-money-lg {
-  font-size: 18px;
+  font-family: var(--oi-font-display);
+  font-size: 19px;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .oi-money-xl {
+  font-family: var(--oi-font-display);
   font-size: 26px;
   font-weight: 650;
+  letter-spacing: -0.02em;
 }
-
-/* --- stat cards -------------------------------------------------------- */
-
-.oi-stat-card {
-  height: 100%;
-  border: 1px solid var(--oi-border);
-  border-radius: var(--oi-radius);
-}
-
-.oi-stat-card--accent {
-  background: linear-gradient(135deg, #2f6feb 0%, #4a86f7 100%);
-  border: none;
-}
-
-.oi-stat-card--accent .oi-stat-label,
-.oi-stat-card--accent .oi-stat-value,
-.oi-stat-card--accent .oi-stat-footer {
-  color: #fff;
-}
-
-.oi-stat-card--accent .oi-stat-label,
-.oi-stat-card--accent .oi-stat-footer {
-  opacity: 0.85;
-}
-
-.oi-stat-label {
-  font-size: 12.5px;
-  color: var(--oi-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.oi-stat-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 1px solid currentColor;
-  font-size: 10px;
-  cursor: help;
-}
-
-.oi-stat-value {
-  font-size: 24px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.oi-stat-footer {
-  margin-top: 8px;
-  font-size: 12.5px;
-  color: var(--oi-muted);
-}
-
-/* --- misc -------------------------------------------------------------- */
 
 .oi-legend-label {
   font-size: 12.5px;
-  color: var(--oi-text);
-}
-
-.oi-fx-badge {
-  cursor: pointer;
-}
-
-.oi-account-card {
-  border: 1px solid var(--oi-border);
-  border-radius: var(--oi-radius);
-  height: 100%;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
-}
-
-.oi-account-card:hover {
-  box-shadow: 0 6px 20px rgba(27, 34, 48, 0.08);
-  transform: translateY(-1px);
-}
-
-.oi-card-title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--oi-space-sm);
-}
-
-.oi-section-gap {
-  margin-top: var(--oi-space-lg);
-}
-
-.oi-nowrap {
-  white-space: nowrap;
-}
-
-.oi-clickable {
-  cursor: pointer;
+  color: var(--oi-text-2);
 }

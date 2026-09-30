@@ -34,6 +34,8 @@ hiddenimports += collect_submodules("alembic")
 # backend (instantiated directly, so entry-point discovery is not relied on).
 hiddenimports += ["sqlcipher3", "sqlcipher3.dbapi2", "keyring.backends.Windows"]
 hiddenimports += collect_submodules("win32ctypes")
+# Statement import parses .xlsx lazily inside a function; name it explicitly.
+hiddenimports += collect_submodules("openpyxl")
 
 a = Analysis(
     ["run_server.py"],

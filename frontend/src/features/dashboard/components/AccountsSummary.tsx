@@ -18,7 +18,8 @@ export function AccountsSummary({ data }: { data: Dashboard }) {
           Manage
         </Button>
       }
-      styles={{ body: { padding: 0 } }}
+      className="oi-card-fill"
+      styles={{ body: { padding: '0 10px 10px' } }}
     >
       <Table<DashboardAccount>
         rowKey="id"

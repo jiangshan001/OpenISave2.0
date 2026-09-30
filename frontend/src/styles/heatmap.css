@@ -1,49 +1,82 @@
 /* Overview activity heatmap */
 .oi-heatmap {
   position: relative;
-  max-width: 960px;
+  width: 100%;
+}
+
+.oi-heatmap svg {
+  display: block;
+  overflow: visible;
+}
+
+.oi-heatmap rect {
+  transition: opacity 0.16s var(--oi-ease);
 }
 
 .oi-heatmap rect:hover {
-  stroke: var(--oi-text);
+  stroke: var(--oi-ink);
   stroke-width: 1;
 }
 
 .oi-heatmap-label {
-  fill: var(--oi-muted);
-  font-size: 9px;
+  fill: var(--oi-subtle);
+  font-size: 8.5px;
 }
 
-.oi-heatmap-summary {
-  margin-bottom: var(--oi-space-sm);
-  font-size: 13px;
+.oi-heatmap-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+  margin-bottom: 18px;
+}
+
+.oi-heatmap-stats .oi-stat-label {
+  margin-bottom: 4px;
+}
+
+.oi-heatmap-stat {
+  font-family: var(--oi-font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.oi-heatmap-stat .oi-muted {
+  font-family: var(--oi-font);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .oi-heatmap-tooltip {
   position: absolute;
   z-index: 2;
-  transform: translate(-50%, calc(-100% - 6px));
-  padding: 6px 10px;
-  border-radius: 6px;
+  transform: translate(-50%, calc(-100% - 8px));
+  padding: 8px 12px;
+  border-radius: 10px;
   background: var(--oi-surface);
-  box-shadow: 0 6px 20px rgba(27, 34, 48, 0.16);
+  border: 1px solid var(--oi-border);
+  box-shadow: var(--oi-shadow-pop);
   font-size: 12px;
+  line-height: 1.5;
   white-space: nowrap;
   pointer-events: none;
+  font-variant-numeric: tabular-nums;
 }
 
 .oi-heatmap-legend {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: var(--oi-space-sm);
+  margin-top: 14px;
   font-size: 12px;
 }
 
 .oi-heatmap-swatch {
   width: 11px;
   height: 11px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .oi-heatmap-note {

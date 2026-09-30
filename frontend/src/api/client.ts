@@ -82,6 +82,16 @@ export const api = {
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  /** Send a file as the raw request body. It never touches the network beyond 127.0.0.1. */
+  upload: <T>(path: string, file: Blob, fileName: string) =>
+    request<T>(path, {
+      method: 'POST',
+      body: file,
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-File-Name': encodeURIComponent(fileName),
+      },
+    }),
 };
 
 export function errorMessage(error: unknown): string {

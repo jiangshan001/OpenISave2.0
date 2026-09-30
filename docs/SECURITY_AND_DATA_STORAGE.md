@@ -1,4 +1,4 @@
-# OpenISave 2.1 — Security and Data Storage
+# OpenISave 2.2 — Security and Data Storage
 
 This document describes where OpenISave keeps your financial data, how it is
 encrypted, how the key is stored, how backups, recovery and restore work, and
@@ -290,6 +290,23 @@ logs are disabled.
 
 2.0.x lost its application log after the first startup migration (Alembic's
 `fileConfig` disabled all loggers); 2.1 fixes that.
+
+### 9.1 Statement imports (2.2)
+
+A WeChat Pay statement is sent from the window to the local backend on
+127.0.0.1 as the request body and parsed **in memory**. It is never written to
+disk, never kept after parsing and never uploaded anywhere; the parsed rows are
+held in process memory only until the import is confirmed, cancelled or 30
+minutes pass. Import log lines carry counts and ids only
+(`statement_parsed source=wechat rows=18`), never merchants, amounts, card
+numbers or transaction numbers. What the encrypted database keeps per imported
+row is the minimum needed for duplicate protection and audit (WeChat
+transaction number, raw merchant/product/payment method/status/note). A row
+ignored permanently keeps its transaction number plus date, amount and
+merchant so it can be recognised and restored. No AI or
+network service is involved in parsing or categorisation. `.gitignore` excludes
+`*.xlsx`, `*.xls` and `*微信支付账单*`; tests use synthetic workbooks built in
+memory.
 
 ---
 

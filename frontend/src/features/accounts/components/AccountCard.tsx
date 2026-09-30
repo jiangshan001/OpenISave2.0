@@ -34,30 +34,30 @@ export function AccountCard({ account, purposeLabel, onEdit }: AccountCardProps)
             {account.institution ?? ACCOUNT_TYPE_LABELS[account.account_type]}
           </div>
         </div>
-        <Tag color={account.is_liability ? 'volcano' : 'blue'}>{account.currency}</Tag>
+        <span className={`oi-chip${account.is_liability ? ' oi-chip--negative' : ''}`}>{account.currency}</span>
       </div>
 
-      <div style={{ margin: '16px 0 12px' }}>
+      <div style={{ margin: '18px 0 12px' }}>
         <MoneyText
           amountMinor={account.balance_minor}
           currency={account.currency}
           baseAmountMinor={account.base_balance_minor}
           baseCurrency={account.base_currency}
-          size="lg"
+          size="xl"
           tone={account.is_liability ? 'negative' : 'neutral'}
         />
       </div>
 
-      <Space size={6} wrap style={{ marginBottom: 14 }}>
+      <Space size={6} wrap>
         <Tag bordered={false}>{ACCOUNT_TYPE_LABELS[account.account_type]}</Tag>
         {purposeLabel ? (
-          <Tag bordered={false} color="geekblue">
+          <Tag bordered={false} color="blue">
             {purposeLabel}
           </Tag>
         ) : null}
       </Space>
 
-      <Space size={4} wrap>
+      <Space size={2} wrap className="oi-account-actions">
         <Button
           size="small"
           type="text"

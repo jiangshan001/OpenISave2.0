@@ -34,7 +34,7 @@ export function AccountGroupSummary({ accounts }: { accounts: AccountBalance[] }
   if (visible.length === 0) return null;
 
   return (
-    <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+    <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
       {visible.map((group) => {
         const amount = data.groups[group] ?? 0;
         const count = counts.get(group) ?? 0;

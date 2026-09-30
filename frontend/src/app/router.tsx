@@ -9,7 +9,10 @@ import { BudgetPage } from '@/features/budgets/BudgetPage';
 import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { GoalsPage } from '@/features/goals/GoalsPage';
+import { WeChatImportPage } from '@/features/imports/WeChatImportPage';
+import { RecurringPage } from '@/features/recurring/RecurringPage';
 import { ReportsPage } from '@/features/reports/ReportsPage';
+import { RulesPage } from '@/features/rules/RulesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { TransactionsPage } from '@/features/transactions/TransactionsPage';
 
@@ -20,12 +23,15 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'transactions', element: <TransactionsPage /> },
+      { path: 'transactions/import/wechat', element: <WeChatImportPage /> },
+      { path: 'recurring', element: <RecurringPage /> },
       { path: 'accounts', element: <AccountsPage /> },
       { path: 'accounts/:accountId', element: <AccountDetailPage /> },
       { path: 'assets', element: <AssetsPage /> },
       { path: 'assets/:assetId', element: <AssetDetailPage /> },
       { path: 'goals', element: <GoalsPage /> },
       { path: 'categories', element: <CategoriesPage /> },
+      { path: 'categories/rules', element: <RulesPage /> },
       { path: 'budget', element: <BudgetPage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'settings', element: <SettingsPage /> },

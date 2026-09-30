@@ -59,6 +59,16 @@ class Transaction(Base, TimestampMixin):
         ForeignKey("assets.id", ondelete="CASCADE"), nullable=True, index=True
     )
 
+    # Provenance (2.2). Plain indexed integers rather than foreign keys: SQLite
+    # can only add constrained columns by rebuilding the table, and rebuilding
+    # `transactions` would cascade-delete postings. The referenced rows are
+    # archived or disabled, never hard-deleted, in normal use.
+    recurring_rule_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    import_batch_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    external_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    external_transaction_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    classification_rule_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     is_voided: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

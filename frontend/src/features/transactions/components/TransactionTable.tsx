@@ -53,6 +53,12 @@ export function TransactionTable({
             </span>
           ) : null}
           {row.is_voided ? <Tag color="default">Voided</Tag> : null}
+          {row.external_source || row.recurring_rule_id ? (
+            <span className="oi-row-meta">
+              {row.external_source === 'wechat' ? 'Imported · WeChat Pay' : null}
+              {row.recurring_rule_id ? 'Recurring' : null}
+            </span>
+          ) : null}
         </Space>
       ),
     },
