@@ -1,48 +1,90 @@
-/* Startup splash shown while the desktop shell brings the backend up. */
+/* Startup, lock and recovery screens. They render before (or instead of) the
+   app shell, so they rely on tokens alone and follow the theme applied in
+   index.html from the very first frame. */
+
+.oi-startup-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16vh var(--oi-space-lg) var(--oi-space-xl);
+  background: var(--oi-bg);
+  color: var(--oi-text);
+}
 
 .oi-startup {
+  width: 100%;
   max-width: 520px;
-  margin: 18vh auto 0;
-  padding: 0 var(--oi-space-lg);
+  text-align: center;
+}
+
+.oi-startup--wide {
+  max-width: 600px;
+  text-align: left;
+}
+
+.oi-startup-head {
   text-align: center;
 }
 
 .oi-startup-mark {
   display: inline-block;
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   user-select: none;
   margin-bottom: var(--oi-space-md);
 }
 
 .oi-startup-title {
+  font-family: var(--oi-font-display);
   font-size: 19px;
   font-weight: 650;
+  letter-spacing: -0.012em;
   margin: 0 0 var(--oi-space-xs);
+  color: var(--oi-text);
 }
 
 .oi-startup-note {
   color: var(--oi-muted);
   font-size: 13.5px;
-  margin-bottom: var(--oi-space-md);
+  margin-bottom: var(--oi-space-lg);
 }
 
 .oi-startup-body {
   line-height: 1.6;
-  margin-bottom: var(--oi-space-sm);
+  margin: 0 0 var(--oi-space-sm);
+  color: var(--oi-text-2);
 }
 
 .oi-startup-body code {
-  background: #eceff5;
+  background: var(--oi-code-bg);
   border-radius: 4px;
   padding: 1px 5px;
   font-size: 12.5px;
 }
 
+.oi-startup-panel {
+  margin-top: var(--oi-space-lg);
+  padding: 20px;
+  border-radius: var(--oi-radius);
+  background: var(--oi-surface);
+  border: 1px solid var(--oi-border-soft);
+}
+
+.oi-startup-key {
+  font-family: var(--oi-font-mono);
+  letter-spacing: 0.02em;
+}
+
+.oi-startup-error {
+  margin-top: var(--oi-space-md);
+}
+
+/* Quiet indeterminate progress: a short sweep on a hairline track. */
 .oi-startup-bar {
-  width: 190px;
-  height: 3px;
+  width: 168px;
+  height: 2px;
   margin: 0 auto;
   border-radius: 2px;
   background: var(--oi-border);
@@ -51,25 +93,44 @@
 
 .oi-startup-bar span {
   display: block;
-  width: 40%;
+  width: 36%;
   height: 100%;
   border-radius: 2px;
   background: var(--oi-primary);
-  animation: oi-indeterminate 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .oi-startup-bar span {
+    animation: oi-indeterminate 1.4s var(--oi-ease) infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oi-startup-bar span {
+    width: 100%;
+    opacity: 0.5;
+  }
 }
 
 @keyframes oi-indeterminate {
   0% { transform: translateX(-100%); }
-  100% { transform: translateX(250%); }
+  100% { transform: translateX(280%); }
 }
 
-.oi-startup button {
+.oi-startup-retry {
   margin-top: var(--oi-space-md);
   padding: 8px 20px;
   border: none;
-  border-radius: var(--oi-radius);
+  border-radius: var(--oi-radius-control);
   background: var(--oi-primary);
-  color: #fff;
-  font-size: 14px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 500;
   cursor: pointer;
+  box-shadow: var(--oi-btn-highlight), var(--oi-btn-depth);
+  transition: background-color var(--oi-dur-hover) var(--oi-ease);
+}
+
+.oi-startup-retry:hover {
+  background: var(--oi-primary-hover);
 }

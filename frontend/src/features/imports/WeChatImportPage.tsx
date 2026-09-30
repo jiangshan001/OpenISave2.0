@@ -37,7 +37,7 @@ export function WeChatImportPage() {
         }
       />
 
-      <Card variant="borderless" style={{ marginBottom: 20 }}>
+      <Card variant="borderless" className="oi-stack-gap">
         <Steps
           size="small"
           current={step}
@@ -58,7 +58,7 @@ export function WeChatImportPage() {
 
       {preview && !result ? (
         <>
-          <Card variant="borderless" style={{ marginBottom: 20 }}>
+          <Card variant="borderless" className="oi-stack-gap">
             <ImportSummaryBar preview={preview} />
           </Card>
 
@@ -66,7 +66,7 @@ export function WeChatImportPage() {
             <Alert
               type="error"
               showIcon
-              style={{ marginBottom: 20 }}
+              className="oi-stack-gap"
               message={`${preview.errors.length} row(s) could not be read and will not be imported`}
               description={preview.errors
                 .slice(0, 5)
@@ -76,7 +76,7 @@ export function WeChatImportPage() {
           ) : null}
 
           {preview.labels.length ? (
-            <div style={{ marginBottom: 20 }}>
+            <div className="oi-stack-gap">
               <AccountMapping
                 labels={preview.labels}
                 accounts={accounts ?? []}

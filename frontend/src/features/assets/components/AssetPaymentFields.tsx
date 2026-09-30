@@ -42,7 +42,7 @@ export function AssetPaymentFields({
           <Alert
             type="info"
             showIcon
-            style={{ marginBottom: 16 }}
+            className="oi-form-alert"
             message="Buying an asset moves value, it does not spend it. Your net worth stays the same — cash simply becomes a possession."
           />
           <Row gutter={16}>

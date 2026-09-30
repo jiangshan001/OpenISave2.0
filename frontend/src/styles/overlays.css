@@ -1,0 +1,117 @@
+/* Floating surfaces (modal, popover, dropdown, tooltip) and transient
+   feedback (messages, notifications). Colours come from tokens. */
+
+/* --- overlays: modal, popover, dropdown, tooltip ---------------------- */
+
+.ant-modal .ant-modal-content {
+  padding: 22px 24px 20px;
+  border: 1px solid var(--oi-border);
+  box-shadow: var(--oi-shadow-pop);
+}
+
+.ant-modal .ant-modal-header {
+  margin-bottom: 18px;
+}
+
+.ant-modal .ant-modal-title {
+  font-family: var(--oi-font-display);
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.ant-modal .ant-modal-footer {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--oi-border-soft);
+}
+
+.ant-popover .ant-popover-inner,
+.ant-dropdown .ant-dropdown-menu,
+.ant-select-dropdown,
+.ant-picker-dropdown .ant-picker-panel-container {
+  border: 1px solid var(--oi-border);
+  box-shadow: var(--oi-shadow-pop) !important;
+}
+
+.ant-popover .ant-popover-inner {
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.ant-popover .ant-popover-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.ant-dropdown .ant-dropdown-menu {
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.ant-dropdown .ant-dropdown-menu-item {
+  border-radius: 6px;
+}
+
+.ant-tooltip .ant-tooltip-inner {
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  box-shadow: 0 10px 24px -10px rgba(10, 14, 24, 0.5);
+}
+
+[data-theme='dark'] .ant-tooltip .ant-tooltip-inner {
+  border: 1px solid var(--oi-border-strong);
+}
+
+/* --- feedback: messages and notifications ----------------------------- */
+/* Layout after Galaxy's notification cards (tinted icon well, clear title
+   weight, soft entrance), rebuilt on the OpenISave surface language. */
+
+.ant-message .ant-message-notice-content {
+  border: 1px solid var(--oi-border);
+  border-radius: 12px !important;
+  box-shadow: var(--oi-shadow-pop) !important;
+  font-size: 13.5px;
+  color: var(--oi-text);
+}
+
+.ant-message .ant-message-custom-content {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ant-message .ant-message-custom-content > .anticon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
+.ant-message .ant-message-success > .anticon { background: var(--oi-positive-soft); }
+.ant-message .ant-message-error > .anticon { background: var(--oi-negative-soft); }
+.ant-message .ant-message-warning > .anticon { background: var(--oi-warning-soft); }
+.ant-message .ant-message-info > .anticon,
+.ant-message .ant-message-loading > .anticon { background: var(--oi-primary-soft); }
+
+.ant-notification .ant-notification-notice {
+  border: 1px solid var(--oi-border);
+  border-radius: 14px;
+  box-shadow: var(--oi-shadow-pop);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ant-message .ant-message-notice-content,
+  .ant-notification .ant-notification-notice {
+    animation: oi-toast-in var(--oi-dur-panel) var(--oi-ease) both;
+  }
+}
+
+@keyframes oi-toast-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+

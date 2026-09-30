@@ -29,7 +29,7 @@ export function RecurringTable({ rules, accounts, categories, loading, onEdit }:
       render: (name: string, rule) => (
         <Space direction="vertical" size={0}>
           <span className="oi-strong">{name}</span>
-          <span className="oi-muted" style={{ fontSize: 12 }}>
+          <span className="oi-meta">
             {describeSchedule(rule)}
             {rule.end_date ? ` · until ${formatDate(rule.end_date)}` : ''}
           </span>

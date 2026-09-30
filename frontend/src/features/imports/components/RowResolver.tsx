@@ -73,10 +73,10 @@ export function RowResolver({ row, current, categories, accounts, onApply }: Row
         ]}
       />
       {choice === 'category' ? (
-        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+        <Space direction="vertical" size={8} className="oi-full">
           <Select
             showSearch
-            style={{ width: '100%' }}
+            className="oi-full"
             optionFilterProp="label"
             placeholder={`Choose an ${row.direction} category`}
             value={categoryId}
@@ -87,7 +87,7 @@ export function RowResolver({ row, current, categories, accounts, onApply }: Row
             Remember this rule for future imports
           </Checkbox>
           {remember ? (
-            <Space.Compact style={{ width: '100%' }}>
+            <Space.Compact className="oi-full">
               <Select
                 value={shape}
                 onChange={setShape}

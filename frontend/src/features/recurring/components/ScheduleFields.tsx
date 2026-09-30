@@ -27,7 +27,7 @@ export function ScheduleFields({ frequency }: { frequency: RecurringFrequency })
         </Col>
         <Col span={8}>
           <Form.Item name="interval" label="Every" rules={[{ required: true }]}>
-            <InputNumber min={1} max={366} style={{ width: '100%' }} addonAfter={UNIT_LABEL[frequency]} />
+            <InputNumber min={1} max={366} className="oi-full" addonAfter={UNIT_LABEL[frequency]} />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -51,12 +51,12 @@ export function ScheduleFields({ frequency }: { frequency: RecurringFrequency })
             rules={[{ required: true, message: 'Pick a start date' }]}
             extra="Occurrences since this date that are already due will be listed for review."
           >
-            <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+            <DatePicker className="oi-full" format="DD MMM YYYY" />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item name="end_date" label="Ends" extra="Leave empty to repeat indefinitely.">
-            <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" allowClear />
+            <DatePicker className="oi-full" format="DD MMM YYYY" allowClear />
           </Form.Item>
         </Col>
       </Row>

@@ -1,5 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { WalletOutlined } from '@ant-design/icons';
+import { PlusOutlined, WalletOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Col, Row } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,10 +14,11 @@ import { monthLabel } from '@/utils/dates';
 import { TransactionFormModal } from '../transactions/components/TransactionFormModal';
 import { AccountsSummary } from './components/AccountsSummary';
 import { ActivityHeatmapCard } from './components/ActivityHeatmap';
-import { AssetBreakdown } from './components/AssetBreakdown';
+
 import { BudgetUsageCard } from './components/BudgetUsageCard';
 import { CategorySplitCard } from './components/CategorySplitCard';
 import { GoalsSummaryCard } from './components/GoalsSummaryCard';
+import { NetWorthHero } from './components/NetWorthHero';
 import { RecentTransactions } from './components/RecentTransactions';
 import { SummaryCards } from './components/SummaryCards';
 import { UpcomingCard } from './components/UpcomingCard';
@@ -61,7 +61,7 @@ export function DashboardPage() {
         {data ? (
           <>
             {!hasAccounts ? (
-              <Card variant="borderless" style={{ marginBottom: 20 }}>
+              <Card variant="borderless" className="oi-stack-gap">
                 <EmptyState
                   icon={<WalletOutlined />}
                   title="Welcome to OpenISave"
@@ -79,7 +79,7 @@ export function DashboardPage() {
               <Alert
                 type="warning"
                 showIcon
-                style={{ marginBottom: 20 }}
+                className="oi-stack-gap"
                 message={
                   data.unconverted_accounts.length === 1
                     ? 'One account is missing an exchange rate'
@@ -99,10 +99,10 @@ export function DashboardPage() {
             ) : null}
 
             <div className="oi-reveal">
-              <SummaryCards data={data} />
-            </div>
-            <div className="oi-reveal">
-              <AssetBreakdown data={data} />
+              <NetWorthHero data={data} />
+              <div className="oi-overview-strip">
+                <SummaryCards data={data} />
+              </div>
             </div>
             <div className="oi-reveal">
               <ActivityHeatmapCard />

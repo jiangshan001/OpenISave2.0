@@ -1,0 +1,204 @@
+/* Ant Design control refinements. Colours come from tokens (and the AntD
+   theme in src/theme); this file only shapes depth, states and rhythm so
+   every control speaks the same restrained language in both themes.
+
+   Button depth (inner top highlight + short tinted shadow + half-pixel press)
+   takes its cue from the tactile buttons in the MIT-licensed Uiverse Galaxy
+   collection (github.com/uiverse-io/galaxy), re-drawn with OpenISave tokens;
+   no snippet is copied. */
+
+/* --- buttons ----------------------------------------------------------- */
+
+.ant-btn {
+  transition:
+    background-color var(--oi-dur-hover) var(--oi-ease),
+    border-color var(--oi-dur-hover) var(--oi-ease),
+    color var(--oi-dur-hover) var(--oi-ease),
+    box-shadow var(--oi-dur-hover) var(--oi-ease),
+    transform 90ms var(--oi-ease);
+}
+
+.ant-btn-variant-solid.ant-btn-color-primary:not(:disabled) {
+  box-shadow: var(--oi-btn-highlight), var(--oi-btn-depth);
+}
+
+.ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):hover {
+  box-shadow: var(--oi-btn-highlight), 0 3px 8px -3px rgba(47, 91, 211, 0.45);
+}
+
+.ant-btn:not(:disabled):active {
+  transform: translateY(0.5px);
+}
+
+.ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):active {
+  box-shadow: inset 0 1px 2px rgba(10, 20, 60, 0.28);
+}
+
+/* Danger stays legible without shouting: outline and text, not a red slab. */
+.ant-btn-dangerous.ant-btn-variant-outlined:not(:disabled):hover {
+  background: var(--oi-negative-soft);
+}
+
+.ant-btn-variant-text:not(:disabled),
+.ant-btn-variant-link:not(:disabled) {
+  box-shadow: none;
+}
+
+.ant-btn:focus-visible {
+  outline: 2px solid var(--oi-focus) !important;
+  outline-offset: 2px !important;
+}
+
+.ant-btn:disabled,
+.ant-btn.ant-btn-disabled {
+  box-shadow: none;
+}
+
+/* --- inputs ------------------------------------------------------------ */
+
+.ant-input-affix-wrapper,
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker {
+  transition:
+    border-color var(--oi-dur-hover) var(--oi-ease),
+    box-shadow var(--oi-dur-hover) var(--oi-ease),
+    background-color var(--oi-dur-hover) var(--oi-ease) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-number-input::placeholder {
+  color: var(--oi-subtle);
+}
+
+.ant-input-search .ant-input-search-button {
+  box-shadow: none !important;
+}
+
+.ant-checkbox-inner,
+.ant-radio-inner {
+  transition: all var(--oi-dur-hover) var(--oi-ease);
+}
+
+.ant-checkbox-wrapper:has(:focus-visible) .ant-checkbox-inner,
+.ant-radio-wrapper:has(:focus-visible) .ant-radio-inner,
+.ant-switch:focus-visible {
+  outline: 2px solid var(--oi-focus);
+  outline-offset: 2px;
+}
+
+.ant-switch .ant-switch-handle::before {
+  box-shadow: 0 1px 2px rgba(10, 16, 30, 0.28);
+}
+
+.ant-segmented {
+  box-shadow: inset 0 0 0 1px var(--oi-border-soft);
+}
+
+.ant-segmented .ant-segmented-item-selected {
+  box-shadow:
+    0 1px 2px rgba(10, 16, 30, 0.1),
+    0 0 0 1px var(--oi-border-soft);
+}
+
+.ant-segmented-item:has(:focus-visible) {
+  outline: 2px solid var(--oi-focus);
+  outline-offset: 1px;
+}
+
+/* --- forms ------------------------------------------------------------- */
+
+.ant-form-item .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.ant-form-item-extra,
+.ant-form-item-explain {
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+.oi-form-section {
+  margin: 6px 0 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--oi-border-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--oi-muted);
+}
+
+/* --- tables ------------------------------------------------------------ */
+
+.ant-table-wrapper .ant-table {
+  background: transparent;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-bottom-color: var(--oi-border-soft) !important;
+}
+
+.ant-table-wrapper .ant-table-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  transition: background-color var(--oi-dur-hover) var(--oi-ease);
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+.ant-table-wrapper .ant-table-pagination.ant-pagination {
+  margin: 14px 16px;
+}
+
+/* Row actions recede until the row is in play. */
+.oi-row-actions .ant-btn {
+  color: var(--oi-muted);
+  transition: color var(--oi-dur-hover) var(--oi-ease), opacity var(--oi-dur-hover) var(--oi-ease);
+}
+
+.oi-row-actions .ant-btn-dangerous {
+  color: var(--oi-muted);
+}
+
+.ant-table-row:hover .oi-row-actions .ant-btn,
+.oi-row-actions .ant-btn:focus-visible {
+  color: var(--oi-accent-text);
+}
+
+.ant-table-row:hover .oi-row-actions .ant-btn-dangerous,
+.oi-row-actions .ant-btn-dangerous:focus-visible {
+  color: var(--oi-negative);
+}
+
+/* --- alerts, tags, descriptions --------------------------------------- */
+
+.ant-alert {
+  border-radius: 12px;
+}
+
+.ant-alert-with-description .ant-alert-message {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ant-tag {
+  border-radius: var(--oi-radius-chip);
+  font-variant-numeric: tabular-nums;
+}
+
+.ant-descriptions .ant-descriptions-item-label {
+  color: var(--oi-muted) !important;
+}
+
+.ant-typography code {
+  background: var(--oi-code-bg);
+  border-color: var(--oi-border);
+  color: var(--oi-text-2);
+}

@@ -1,4 +1,4 @@
-import { PieChartOutlined } from '@ant-design/icons';
+﻿import { PieChartOutlined } from '@ant-design/icons';
 import { Button, Card } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ function band(percent: number | null): Band {
 
 const BAR_COLOR: Record<Band, string> = {
   ok: 'var(--oi-primary)',
-  near: 'var(--oi-warning)',
+  near: 'var(--oi-warning-fill)',
   over: 'var(--oi-negative)',
 };
 
@@ -94,7 +94,7 @@ export function BudgetUsageCard({ data }: { data: Dashboard }) {
             <div className="oi-line-head">
               <div className="oi-money-lg">
                 {formatMoney(budget.total_actual_minor, base)}{' '}
-                <span className="oi-muted" style={{ fontSize: 14, fontWeight: 400 }}>
+                <span className="oi-money-of">
                   of {formatMoney(budget.total_budget_minor, base)}
                 </span>
               </div>

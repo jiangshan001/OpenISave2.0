@@ -75,7 +75,7 @@ export function RecoveryKeyModal({ open, onClose }: RecoveryKeyModalProps) {
         </Button>
       }
     >
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Space direction="vertical" size={16} className="oi-full">
         <Alert
           type="warning"
           showIcon

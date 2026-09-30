@@ -72,7 +72,7 @@ export function AssetHoldingCost({ asset }: { asset: Asset }) {
                 : '—'}
             </div>
             {asset.current_value?.source === 'purchase_price' ? (
-              <div className="oi-muted" style={{ fontSize: 12 }}>
+              <div className="oi-meta">
                 using purchase value
               </div>
             ) : null}

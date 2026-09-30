@@ -30,7 +30,7 @@ export function UpcomingCard() {
     >
       <UpcomingList items={items.slice(0, VISIBLE)} compact />
       {items.length > VISIBLE ? (
-        <div className="oi-row-meta" style={{ paddingTop: 8 }}>
+        <div className="oi-row-meta oi-mt-8">
           +{items.length - VISIBLE} more in the next 14 days
         </div>
       ) : null}

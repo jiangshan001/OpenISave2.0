@@ -1,225 +1,114 @@
-/* Base, application shell, navigation and shared utilities.
-   Tokens live in tokens.css; cards and data display in cards.css. */
+/* Base: document, browser surfaces, motion policy, utilities, money type.
+   Tokens live in tokens.css; the app shell in shell.css; Ant Design control
+   refinements in controls.css; panels and data display in cards.css. */
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  background: var(--oi-bg);
+}
+
 body {
   margin: 0;
-  background: var(--oi-bg);
   color: var(--oi-text);
   font-family: var(--oi-font);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  caret-color: var(--oi-primary);
 }
 
 ::selection {
-  background: rgba(47, 91, 211, 0.16);
+  background: var(--oi-selection);
 }
 
 :focus-visible {
-  outline: 2px solid rgba(47, 91, 211, 0.55);
+  outline: 2px solid var(--oi-focus);
   outline-offset: 2px;
 }
 
-/* Quiet scrollbars for the scrolling content column and side panel. */
-.oi-content::-webkit-scrollbar,
-.oi-sider::-webkit-scrollbar {
-  width: 10px;
+a {
+  color: var(--oi-accent-text);
+  text-underline-offset: 3px;
 }
 
-.oi-content::-webkit-scrollbar-thumb,
-.oi-sider::-webkit-scrollbar-thumb {
-  background: rgba(22, 28, 44, 0.14);
+code,
+kbd {
+  font-family: var(--oi-font-mono);
+}
+
+/* Quiet, theme-aware scrollbars everywhere. */
+* {
+  scrollbar-color: var(--oi-scrollbar) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--oi-scrollbar);
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
-.oi-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(22, 28, 44, 0.26);
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--oi-scrollbar-hover);
 }
 
-.oi-content::-webkit-scrollbar-track,
-.oi-sider::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* Fixed application shell: the page itself never scrolls, only the content
-   column does. Keeps the navigation permanently in view. */
-.oi-shell {
-  height: 100vh;
-  overflow: hidden;
+/* Theme switch: one short cross-fade (view transition), never a sweep. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: var(--oi-ease);
 }
 
-.oi-sider {
-  border-right: 1px solid var(--oi-border);
-  height: 100vh;
-  overflow-y: auto;
-}
-
-.oi-main {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* --- sidebar ----------------------------------------------------------- */
-
-.oi-sidebar {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.oi-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 20px 18px;
-}
-
-.oi-brand-mark {
-  display: block;
-  flex: none;
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-  user-select: none;
-}
-
-.oi-brand-name {
-  font-family: var(--oi-font-display);
-  font-weight: 650;
-  font-size: 15.5px;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-}
-
-.oi-brand-version {
-  font-size: 11.5px;
-  color: var(--oi-subtle);
-  font-variant-numeric: tabular-nums;
-}
-
-.oi-menu {
-  border-inline-end: none !important;
-  font-size: 13.5px;
-  background: transparent !important;
-}
-
-.oi-menu .ant-menu-item-group-title {
-  padding: 16px 20px 6px !important;
-  letter-spacing: 0.01em;
-  font-weight: 500;
-}
-
-.oi-menu .ant-menu-item {
-  transition: background-color 0.18s var(--oi-ease), color 0.18s var(--oi-ease);
-}
-
-.oi-menu .ant-menu-item-selected {
-  font-weight: 600;
-}
-
-.oi-sidebar-spacer {
-  flex: 1 1 auto;
-  min-height: 16px;
-}
-
-.oi-sidebar-footer {
-  margin: 0 12px 14px;
-  padding: 12px;
-  border: 1px solid var(--oi-border);
-  border-radius: var(--oi-radius-control);
-  background: var(--oi-surface);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--oi-muted);
-}
-
-.oi-sidebar-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1.35;
-}
-
-.oi-sidebar-status .anticon {
-  color: var(--oi-positive);
-  font-size: 13px;
-}
-
-/* --- content column ---------------------------------------------------- */
-
-.oi-content {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding: 28px 32px 40px;
-}
-
-.oi-content-inner {
-  max-width: 1360px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.oi-page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--oi-space-md);
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.oi-page-title {
-  margin: 0;
-  font-family: var(--oi-font-display);
-  font-size: 26px;
-  font-weight: 650;
-  letter-spacing: -0.022em;
-  line-height: 1.15;
-  color: var(--oi-text);
-}
-
-.oi-page-subtitle {
-  margin-top: 6px;
-  color: var(--oi-muted);
-  font-size: 13.5px;
-  max-width: 80ch;
-}
-
-/* Content arriving after the skeleton fades up once. Motion is a state
-   transition only, and is skipped entirely under reduced motion. */
+/* Content arriving after the skeleton settles in once: a small fade with a
+   2px lift. State transition only; skipped entirely under reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   .oi-reveal {
-    animation: oi-reveal 0.42s var(--oi-ease) both;
+    animation: oi-reveal 0.32s var(--oi-ease) both;
   }
-  .oi-reveal:nth-child(2) { animation-delay: 40ms; }
-  .oi-reveal:nth-child(3) { animation-delay: 80ms; }
-  .oi-reveal:nth-child(4) { animation-delay: 120ms; }
-  .oi-reveal:nth-child(n + 5) { animation-delay: 160ms; }
+  .oi-reveal:nth-child(2) { animation-delay: 30ms; }
+  .oi-reveal:nth-child(3) { animation-delay: 60ms; }
+  .oi-reveal:nth-child(n + 4) { animation-delay: 90ms; }
 }
 
 @keyframes oi-reveal {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: none; }
 }
 
-/* Tactile press on buttons. */
-.ant-btn:not(:disabled):active {
-  transform: translateY(0.5px);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 /* --- utilities --------------------------------------------------------- */
 
 .oi-muted {
   color: var(--oi-muted);
+}
+
+.oi-subtle {
+  color: var(--oi-subtle);
 }
 
 .oi-strong {
@@ -242,8 +131,24 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.oi-small {
+  font-size: 12.5px;
+}
+
+.oi-mono {
+  font-family: var(--oi-font-mono);
+}
+
 .oi-section-gap {
   margin-top: var(--oi-gap);
+}
+
+.oi-stack-gap {
+  margin-bottom: var(--oi-gap);
+}
+
+.oi-flush {
+  margin: 0;
 }
 
 .oi-nowrap {
@@ -254,29 +159,24 @@ body {
   cursor: pointer;
 }
 
-.oi-fx-badge {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+.oi-full {
   width: 100%;
-  padding: 8px 0 0;
-  border: none;
-  border-top: 1px solid var(--oi-border-soft);
-  background: none;
+}
+
+.oi-note {
+  margin: 12px 0 0;
   color: var(--oi-muted);
-  font: inherit;
-  cursor: pointer;
-  transition: color 0.16s var(--oi-ease);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
-.oi-fx-badge:hover {
-  color: var(--oi-text);
-}
-
-.oi-fx-badge .ant-tag {
+.oi-panel-note {
   margin: 0;
-  border-radius: var(--oi-radius-chip);
+  padding: 12px 16px;
+  color: var(--oi-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border-top: 1px solid var(--oi-border-soft);
 }
 
 /* --- money ------------------------------------------------------------- */
@@ -303,16 +203,39 @@ body {
   font-family: var(--oi-font-display);
   font-size: 19px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
 }
 .oi-money-xl {
   font-family: var(--oi-font-display);
   font-size: 26px;
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.022em;
+}
+
+.oi-money-of {
+  font-family: var(--oi-font);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--oi-muted);
 }
 
 .oi-legend-label {
   font-size: 12.5px;
   color: var(--oi-text-2);
+}
+
+.oi-meta {
+  font-size: 12px;
+  color: var(--oi-muted);
+}
+
+.oi-mt-0 { margin-top: 0; }
+.oi-mt-4 { margin-top: 4px; }
+.oi-mt-8 { margin-top: 8px; }
+.oi-mt-12 { margin-top: 12px; }
+.oi-mt-14 { margin-top: 14px; }
+
+.oi-form-alert {
+  margin-bottom: 16px;
 }

@@ -66,7 +66,7 @@ export function AccountMapping({ labels, accounts, currency, onChange }: Account
           </div>
         ))}
       </div>
-      <div className="oi-row-meta" style={{ marginTop: 8 }}>
+      <div className="oi-row-meta oi-mt-8">
         Only {currency} accounts can receive this statement's rows.
       </div>
     </Card>

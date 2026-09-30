@@ -1,8 +1,9 @@
-/* One card language for every panel: hairline edge, 14px radius, a quiet
-   tinted shadow, and a header that is part of the card, not a title bar. */
+/* Panels and data display. A panel is a hairline-edged surface with no
+   resting shadow; elevation is kept for things you can act on (account
+   cards on hover) and things that float (popovers, toasts). */
 
-.ant-card:not(.ant-card-bordered) {
-  border: 1px solid var(--oi-border);
+.ant-card {
+  border: 1px solid var(--oi-border-soft) !important;
   box-shadow: var(--oi-shadow-card);
 }
 
@@ -14,12 +15,20 @@
 
 .ant-card .ant-card-head-title {
   font-family: var(--oi-font-display);
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-size: var(--oi-text-section);
+  font-weight: 620;
+  letter-spacing: -0.008em;
+  color: var(--oi-text);
 }
 
 .ant-card .ant-card-head + .ant-card-body {
   padding-top: 4px;
+}
+
+/* Header links (Edit, Manage, View all) align with the card's content edge. */
+.ant-card .ant-card-extra .ant-btn-link {
+  padding-inline: 0;
+  font-weight: 500;
 }
 
 .oi-card-fill {
@@ -34,6 +43,9 @@
   flex-direction: column;
 }
 
+.oi-card-flush > .ant-card-body {
+  padding: 0;
+}
 
 .oi-card-title-row {
   display: flex;
@@ -42,65 +54,41 @@
   gap: var(--oi-space-sm);
 }
 
-/* --- KPI / stat cards -------------------------------------------------- */
+/* --- stat strip: several figures on one surface, divided by hairlines -- */
 
-.oi-stat-card {
-  height: 100%;
-  transition: box-shadow 0.2s var(--oi-ease), border-color 0.2s var(--oi-ease);
+.oi-strip {
+  display: grid;
+  grid-template-columns: repeat(var(--oi-strip-cols, 4), minmax(0, 1fr));
+  background: var(--oi-surface);
+  border: 1px solid var(--oi-border-soft);
+  border-radius: var(--oi-radius);
 }
 
-.oi-stat-card:hover {
-  box-shadow: var(--oi-shadow-hover);
+.oi-strip-item {
+  min-width: 0;
+  padding: 18px 22px 17px;
 }
 
-.oi-stat-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 14px;
+.oi-strip-item + .oi-strip-item {
+  border-left: 1px solid var(--oi-border-soft);
 }
 
 .oi-stat-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--oi-muted);
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: var(--oi-text-label);
+  font-weight: 500;
+  color: var(--oi-muted);
 }
 
-.oi-stat-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--oi-radius-control);
-  background: var(--oi-surface-2);
-  color: var(--oi-text-2);
-  font-size: 14px;
+.oi-stat-glyph {
+  font-size: 12px;
 }
 
-.oi-stat-icon--positive {
-  background: var(--oi-positive-soft);
-  color: var(--oi-positive);
-}
-
-.oi-stat-icon--negative {
-  background: var(--oi-negative-soft);
-  color: var(--oi-negative);
-}
-
-.oi-stat-icon--primary {
-  background: var(--oi-primary-soft);
-  color: var(--oi-primary);
-}
-
-/* Cards that place the label directly (no icon row). */
-.oi-stat-card .ant-card-body > .oi-stat-label {
-  margin-bottom: 12px;
-}
+.oi-stat-glyph--positive { color: var(--oi-positive); }
+.oi-stat-glyph--negative { color: var(--oi-negative); }
+.oi-stat-glyph--primary { color: var(--oi-accent-text); }
 
 .oi-stat-hint {
   display: inline-flex;
@@ -110,62 +98,38 @@
 }
 
 .oi-stat-value {
+  margin-top: 8px;
   font-family: var(--oi-font-display);
-  font-size: 26px;
+  font-size: var(--oi-text-figure);
   font-weight: 650;
   letter-spacing: -0.022em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--oi-text);
+  overflow-wrap: anywhere;
 }
 
 .oi-stat-value.oi-positive { color: var(--oi-positive); }
 .oi-stat-value.oi-negative { color: var(--oi-negative); }
 
 .oi-stat-footer {
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 12.5px;
   color: var(--oi-muted);
   font-variant-numeric: tabular-nums;
 }
 
-/* The one elevated surface on the page: net worth, on solid ink. */
-.oi-stat-card--accent {
-  background: var(--oi-ink);
-  border-color: var(--oi-ink) !important;
-  box-shadow: 0 14px 34px -18px rgba(22, 28, 44, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+@media (max-width: 1100px) {
+  .oi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .oi-strip-item + .oi-strip-item { border-left: none; }
+  .oi-strip-item:nth-child(even) { border-left: 1px solid var(--oi-border-soft); }
+  .oi-strip-item:nth-child(n + 3) { border-top: 1px solid var(--oi-border-soft); }
 }
 
-.oi-stat-card--accent .oi-stat-label,
-.oi-stat-card--accent .oi-stat-footer {
-  color: rgba(236, 240, 247, 0.62);
-}
-
-.oi-stat-card--accent .oi-stat-value {
-  color: #f5f7fb;
-  font-size: 30px;
-}
-
-.oi-stat-card--accent .oi-stat-icon {
-  background: rgba(255, 255, 255, 0.08);
-  color: #dfe6f7;
-}
-
-.oi-stat-split {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.oi-stat-split span {
-  display: block;
-}
-
-.oi-stat-split strong {
-  display: block;
-  margin-top: 1px;
-  font-weight: 600;
-  color: rgba(245, 247, 251, 0.92);
+@media (max-width: 640px) {
+  .oi-strip { grid-template-columns: minmax(0, 1fr); }
+  .oi-strip-item:nth-child(even) { border-left: none; }
+  .oi-strip-item + .oi-strip-item { border-top: 1px solid var(--oi-border-soft); }
 }
 
 /* --- tone chips -------------------------------------------------------- */
@@ -188,37 +152,67 @@
 .oi-chip--positive { background: var(--oi-positive-soft); color: var(--oi-positive); }
 .oi-chip--negative { background: var(--oi-negative-soft); color: var(--oi-negative); }
 .oi-chip--warning { background: var(--oi-warning-soft); color: var(--oi-warning); }
-.oi-chip--primary { background: var(--oi-primary-soft); color: var(--oi-primary); }
+.oi-chip--primary { background: var(--oi-primary-soft); color: var(--oi-accent-text); }
+.oi-chip--quiet { background: transparent; box-shadow: inset 0 0 0 1px var(--oi-border); }
 
-/* --- account cards ----------------------------------------------------- */
+/* --- account cards: the one card you act on, so the one that lifts ---- */
 
 .oi-account-card {
   height: 100%;
-  transition: box-shadow 0.2s var(--oi-ease), transform 0.2s var(--oi-ease);
+  transition:
+    box-shadow var(--oi-dur-panel) var(--oi-ease),
+    border-color var(--oi-dur-panel) var(--oi-ease),
+    transform var(--oi-dur-panel) var(--oi-ease);
 }
 
-.oi-account-card:hover {
+.oi-account-card:hover,
+.oi-account-card:focus-within {
+  border-color: var(--oi-border) !important;
   box-shadow: var(--oi-shadow-hover);
-  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .oi-account-card:hover { transform: translateY(-1px); }
+}
+
+.oi-account-name {
+  font-weight: 600;
+  color: var(--oi-text);
+}
+
+.oi-account-institution {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--oi-muted);
+}
+
+.oi-account-balance {
+  margin: 20px 0 14px;
 }
 
 .oi-account-actions {
   display: flex !important;
   width: calc(100% + 16px);
-  margin: 14px -8px -6px;
-  padding-top: 10px;
+  margin: 16px -8px -8px;
+  padding-top: 8px;
   border-top: 1px solid var(--oi-border-soft);
 }
 
 .oi-account-actions .ant-btn {
+  color: var(--oi-subtle);
+}
+
+.oi-account-card:hover .oi-account-actions .ant-btn,
+.oi-account-card:focus-within .oi-account-actions .ant-btn {
   color: var(--oi-muted);
 }
 
-.oi-account-actions .ant-btn:hover {
+.oi-account-actions .ant-btn:hover,
+.oi-account-actions .ant-btn:focus-visible {
   color: var(--oi-text) !important;
 }
 
-/* --- list rows (recent transactions, goals) ---------------------------- */
+/* --- list rows (recent transactions, goals, upcoming) ------------------ */
 
 .oi-row-list {
   display: flex;
@@ -232,15 +226,12 @@
   padding: 10px 8px;
   margin: 0 -8px;
   border-radius: var(--oi-radius-control);
-  transition: background-color 0.16s var(--oi-ease);
+  transition: background-color var(--oi-dur-hover) var(--oi-ease);
 }
 
 .oi-row:hover {
   background: var(--oi-surface-2);
 }
-
-.oi-row .oi-row-icon.oi-stat-icon--positive { background: var(--oi-positive-soft); color: var(--oi-positive); }
-.oi-row .oi-row-icon.oi-stat-icon--primary { background: var(--oi-primary-soft); color: var(--oi-primary); }
 
 .oi-row-icon {
   flex: none;
@@ -253,7 +244,12 @@
   font-size: 13px;
   background: var(--oi-surface-2);
   color: var(--oi-text-2);
+  box-shadow: inset 0 0 0 1px var(--oi-border-soft);
 }
+
+.oi-row .oi-row-icon.oi-stat-icon--positive { background: var(--oi-positive-soft); color: var(--oi-positive); box-shadow: none; }
+.oi-row .oi-row-icon.oi-stat-icon--negative { background: var(--oi-negative-soft); color: var(--oi-negative); box-shadow: none; }
+.oi-row .oi-row-icon.oi-stat-icon--primary { background: var(--oi-primary-soft); color: var(--oi-accent-text); box-shadow: none; }
 
 .oi-row-main {
   flex: 1 1 auto;
@@ -312,19 +308,10 @@
   margin-top: 10px;
 }
 
-/* --- tables ------------------------------------------------------------ */
-
-.ant-table-wrapper .ant-table-thead > tr > th {
-  font-size: 12.5px;
-  font-weight: 500;
+.oi-tag-below {
+  margin-top: 12px;
 }
 
-.ant-table-wrapper .ant-table-cell {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Header links (Edit, Manage, View all) align with the card's content edge. */
-.ant-card .ant-card-extra .ant-btn-link {
-  padding-inline: 0;
-  font-weight: 500;
+.oi-goal-balance {
+  margin: 16px 0 8px;
 }

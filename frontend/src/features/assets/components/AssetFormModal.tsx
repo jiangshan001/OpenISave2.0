@@ -187,7 +187,7 @@ export function AssetFormModal({ open, asset, onClose }: AssetFormModalProps) {
           <Col span={8}>
             <Form.Item name="purchase_date" label="Purchase date" rules={[{ required: true }]}>
               <DatePicker
-                style={{ width: '100%' }}
+                className="oi-full"
                 format="DD MMM YYYY"
                 disabledDate={(value) => value && value > dayjs().endOf('day')}
               />

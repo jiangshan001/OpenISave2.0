@@ -87,7 +87,7 @@ export function TransferFormModal({ open, onClose }: { open: boolean; onClose: (
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="oi-form-alert"
         message="A transfer moves money between your own accounts. It is not counted as income or expense and does not change your net worth."
       />
       <Form form={form} layout="vertical" requiredMark="optional">
@@ -154,14 +154,14 @@ export function TransferFormModal({ open, onClose }: { open: boolean; onClose: (
             title="Effective exchange rate"
             value={`1 ${sourceCurrency} = ${effectiveRate.toFixed(4)} ${destCurrency}`}
             valueStyle={{ fontSize: 15 }}
-            style={{ marginBottom: 16 }}
+            className="oi-form-alert"
           />
         ) : null}
 
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="transaction_date" label="Date" rules={[{ required: true }]}>
-              <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+              <DatePicker className="oi-full" format="DD MMM YYYY" />
             </Form.Item>
           </Col>
           <Col span={12}>

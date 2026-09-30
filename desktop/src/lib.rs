@@ -10,9 +10,11 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use backend::{BackendState, BackendStatus, JobHandle};
+use tauri::webview::PageLoadEvent;
 use tauri::{Manager, RunEvent, State, WindowEvent};
 
 const STARTUP_TIMEOUT: Duration = Duration::from_secs(60);
+const WINDOW_SHOW_FALLBACK: Duration = Duration::from_secs(4);
 
 /// Keeps the Windows job object alive for as long as the app runs.
 #[derive(Default)]
@@ -64,7 +66,24 @@ pub fn run() {
         .manage(BackendState::default())
         .manage(JobGuard::default())
         .invoke_handler(tauri::generate_handler![api_info])
+        // The window is created hidden (tauri.conf.json) and shown once the
+        // page has loaded, by which point index.html has applied the saved
+        // light/dark theme. This avoids a white webview flashing before a
+        // dark first frame. The timer below is a safety net only.
+        .on_page_load(|webview, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                let _ = webview.window().show();
+            }
+        })
         .setup(|app| {
+            let fallback = app.handle().clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(WINDOW_SHOW_FALLBACK);
+                if let Some(window) = fallback.get_webview_window("main") {
+                    let _ = window.show();
+                }
+            });
+
             let resource_dir = app.path().resource_dir()?;
             let state = app.state::<BackendState>();
 

@@ -66,7 +66,7 @@ export function AssetDetailPage() {
 
             <Row gutter={[16, 16]} className="oi-section-gap">
               <Col xs={24} xl={12}>
-                <Card title="Details" variant="borderless" style={{ height: '100%' }}>
+                <Card title="Details" variant="borderless" className="oi-card-fill">
                   <Descriptions size="small" column={2} colon={false}>
                     <Descriptions.Item label="Status">
                       <Tag color={STATUS_COLOR[asset.status]}>{asset.status}</Tag>

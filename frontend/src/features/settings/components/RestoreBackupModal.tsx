@@ -99,7 +99,7 @@ export function RestoreBackupModal({ open, onClose }: RestoreBackupModalProps) {
       />
       {verified && selected && verified.id === selected.id ? (
         <Alert
-          style={{ marginTop: 12 }}
+          className="oi-mt-12"
           type={verified.ok ? 'success' : 'error'}
           showIcon
           message={

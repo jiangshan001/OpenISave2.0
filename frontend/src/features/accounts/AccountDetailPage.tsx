@@ -73,7 +73,7 @@ export function AccountDetailPage() {
                 </Card>
               </Col>
               <Col xs={24} lg={14}>
-                <Card variant="borderless" style={{ height: '100%' }}>
+                <Card variant="borderless" className="oi-card-fill">
                   <Descriptions size="small" column={2} colon={false}>
                     <Descriptions.Item label="Type">
                       {ACCOUNT_TYPE_LABELS[account.account_type]}

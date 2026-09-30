@@ -1,4 +1,28 @@
-/* Overview activity heatmap */
+/* Overview activity heatmap: a flat analytical section on the canvas. No
+   panel chrome; a hairline above separates it from the figures before it. */
+
+.oi-heat-section {
+  padding-top: 22px;
+  border-top: 1px solid var(--oi-border);
+}
+
+.oi-heat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--oi-space-md);
+  margin-bottom: 16px;
+}
+
+.oi-section-title {
+  margin: 0;
+  font-family: var(--oi-font-display);
+  font-size: var(--oi-text-section);
+  font-weight: 620;
+  letter-spacing: -0.008em;
+  color: var(--oi-text);
+}
+
 .oi-heatmap {
   position: relative;
   width: 100%;
@@ -10,11 +34,11 @@
 }
 
 .oi-heatmap rect {
-  transition: opacity 0.16s var(--oi-ease);
+  transition: opacity var(--oi-dur-hover) var(--oi-ease);
 }
 
 .oi-heatmap rect:hover {
-  stroke: var(--oi-ink);
+  stroke: var(--oi-heat-hover);
   stroke-width: 1;
 }
 
@@ -26,7 +50,7 @@
 .oi-heatmap-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 40px;
+  gap: 12px 44px;
   margin-bottom: 18px;
 }
 
@@ -36,17 +60,19 @@
 
 .oi-heatmap-stat {
   font-family: var(--oi-font-display);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -0.012em;
   font-variant-numeric: tabular-nums;
+  color: var(--oi-text);
 }
 
-.oi-heatmap-stat .oi-muted {
+.oi-heatmap-on {
   font-family: var(--oi-font);
   font-size: 12.5px;
   font-weight: 400;
   letter-spacing: 0;
+  color: var(--oi-muted);
 }
 
 .oi-heatmap-tooltip {
@@ -58,6 +84,7 @@
   background: var(--oi-surface);
   border: 1px solid var(--oi-border);
   box-shadow: var(--oi-shadow-pop);
+  color: var(--oi-text);
   font-size: 12px;
   line-height: 1.5;
   white-space: nowrap;
@@ -71,6 +98,7 @@
   gap: 4px;
   margin-top: 14px;
   font-size: 12px;
+  color: var(--oi-muted);
 }
 
 .oi-heatmap-swatch {

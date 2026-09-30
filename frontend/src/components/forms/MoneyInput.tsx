@@ -39,7 +39,7 @@ export function MoneyInput({
       min={allowNegative ? undefined : 0}
       precision={digits}
       step={digits === 0 ? 1 : 0.01}
-      style={{ width: '100%' }}
+      className="oi-full"
       stringMode={false}
     />
   );
