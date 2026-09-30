@@ -1,0 +1,161 @@
+/*
+ * Sidebar navigation items. Idle items are quiet; hover tints the row, lifts
+ * the label contrast and gives the icon one small gesture; the current page
+ * gets a 2px accent rail (which draws in once), a tinted icon well with a
+ * faint top highlight and a hairline inner edge. No glow, no bounce, and
+ * every transform sits behind prefers-reduced-motion: no-preference.
+ */
+
+.oi-menu {
+  border-inline-end: none !important;
+  font-size: 13.5px;
+  background: transparent !important;
+}
+
+.oi-menu .ant-menu-item-group-title {
+  padding: 18px 22px 6px !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.oi-menu .ant-menu-item {
+  position: relative;
+  transition:
+    background-color 170ms var(--oi-ease),
+    color 170ms var(--oi-ease),
+    box-shadow 170ms var(--oi-ease);
+}
+
+.oi-menu .ant-menu-item:focus-visible {
+  outline: 2px solid var(--oi-focus);
+  outline-offset: -2px;
+}
+
+/* --- icon well --------------------------------------------------------- */
+
+.oi-menu .ant-menu-item .oi-nav-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin-inline-start: -5px;
+  border-radius: 7px;
+  color: var(--oi-subtle);
+  transition:
+    background-color 170ms var(--oi-ease),
+    box-shadow 170ms var(--oi-ease),
+    color 170ms var(--oi-ease);
+}
+
+.oi-menu .ant-menu-item .oi-nav-icon + span {
+  margin-inline-start: 7px;
+}
+
+.oi-nav-icon .anticon {
+  font-size: 14px;
+  color: inherit;
+}
+
+/* The swap glyph is stacked twice; each copy shows one arrow. */
+.oi-nav-icon[data-motion='swap'] > span {
+  grid-area: 1 / 1;
+  display: inline-flex;
+}
+
+.oi-nav-swap-top { clip-path: inset(0 0 50% 0); }
+.oi-nav-swap-bottom { clip-path: inset(50% 0 0 0); }
+
+.oi-menu .ant-menu-item:hover .oi-nav-icon,
+.oi-menu .ant-menu-item:focus-visible .oi-nav-icon {
+  color: var(--oi-text-2);
+  background: var(--oi-nav-well-hover);
+}
+
+.oi-menu .ant-menu-item:active {
+  background: var(--oi-nav-press) !important;
+}
+
+/* --- current page ------------------------------------------------------ */
+
+.oi-menu .ant-menu-item-selected {
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--oi-nav-edge);
+}
+
+.oi-menu .ant-menu-item-selected .oi-nav-icon,
+.oi-menu .ant-menu-item-selected:hover .oi-nav-icon {
+  color: var(--oi-accent-text);
+  background: var(--oi-nav-well);
+  box-shadow: var(--oi-nav-highlight);
+}
+
+/* A 2px rail marks the current page; the tint alone would rely on colour. */
+.oi-menu .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--oi-primary);
+}
+
+/* --- motion ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .oi-nav-icon .anticon,
+  .oi-nav-icon[data-motion='swap'] > span {
+    transition: transform 180ms var(--oi-ease);
+  }
+
+  .oi-menu .ant-menu-item-selected::before {
+    animation: oi-rail-in 240ms var(--oi-ease) both;
+  }
+
+  .ant-menu-item:hover .oi-nav-icon[data-motion='default'] .anticon,
+  .ant-menu-item:focus-visible .oi-nav-icon[data-motion='default'] .anticon {
+    transform: scale(1.06);
+  }
+
+  .ant-menu-item:hover .oi-nav-swap-top,
+  .ant-menu-item:focus-visible .oi-nav-swap-top {
+    transform: translateX(1.5px);
+  }
+
+  .ant-menu-item:hover .oi-nav-swap-bottom,
+  .ant-menu-item:focus-visible .oi-nav-swap-bottom {
+    transform: translateX(-1.5px);
+  }
+
+  .ant-menu-item:hover .oi-nav-icon[data-motion='turn'] .anticon,
+  .ant-menu-item:focus-visible .oi-nav-icon[data-motion='turn'] .anticon {
+    transform: rotate(18deg);
+  }
+
+  .ant-menu-item:hover .oi-nav-icon[data-motion='lift'] .anticon,
+  .ant-menu-item:focus-visible .oi-nav-icon[data-motion='lift'] .anticon {
+    transform: translateY(-1.5px);
+  }
+
+  .oi-nav-icon[data-motion='flag'] .anticon {
+    transform-origin: 20% 90%;
+  }
+
+  .ant-menu-item:hover .oi-nav-icon[data-motion='flag'] .anticon,
+  .ant-menu-item:focus-visible .oi-nav-icon[data-motion='flag'] .anticon {
+    transform: translateY(-1px) rotate(-6deg);
+  }
+
+  .ant-menu-item:hover .oi-nav-icon[data-motion='gear'] .anticon,
+  .ant-menu-item:focus-visible .oi-nav-icon[data-motion='gear'] .anticon {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes oi-rail-in {
+  from { transform: scaleY(0.3); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}

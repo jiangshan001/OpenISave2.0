@@ -1,0 +1,71 @@
+/*
+ * Button micro-interactions, layered on controls.css. Primary buttons lift a
+ * pixel, pass one soft sheen across on hover and press down on click; icons
+ * inside any button make one small gesture that matches their meaning.
+ * Text actions only gain a faint fill and fuller contrast, never a colour
+ * change. All movement sits behind prefers-reduced-motion: no-preference.
+ *
+ * Interaction principle (not code) from the MIT-licensed Uiverse Galaxy
+ * buttons: a light sheen and a tactile press rather than glow or gloss.
+ */
+
+/* The sheen is a gradient parked off the left edge; hover slides it across. */
+.ant-btn-variant-solid.ant-btn-color-primary:not(:disabled) {
+  background-image: linear-gradient(
+    105deg,
+    transparent 38%,
+    var(--oi-btn-sheen) 50%,
+    transparent 62%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  background-position: 130% 0;
+}
+
+.ant-btn-variant-text:not(:disabled):not(.ant-btn-dangerous):hover {
+  color: var(--oi-text);
+}
+
+.ant-btn .anticon {
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ant-btn .anticon:not(.anticon-loading) {
+    transition: transform 180ms var(--oi-ease);
+  }
+
+  .ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):hover {
+    transform: translateY(-1px);
+    background-position: -30% 0;
+    transition:
+      background-color var(--oi-dur-hover) var(--oi-ease),
+      box-shadow var(--oi-dur-hover) var(--oi-ease),
+      transform var(--oi-dur-hover) var(--oi-ease),
+      background-position 720ms var(--oi-ease);
+  }
+
+  .ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):active {
+    transform: translateY(0.5px);
+    transition-duration: 80ms;
+  }
+
+  .ant-btn:not(:disabled):hover .anticon-plus { transform: rotate(90deg); }
+  .ant-btn:not(:disabled):hover .anticon-right,
+  .ant-btn:not(:disabled):hover .anticon-arrow-right { transform: translateX(2px); }
+  .ant-btn:not(:disabled):hover .anticon-arrow-left { transform: translateX(-2px); }
+  .ant-btn:not(:disabled):hover .anticon-import,
+  .ant-btn:not(:disabled):hover .anticon-upload,
+  .ant-btn:not(:disabled):hover .anticon-cloud-upload { transform: translateY(-1.5px); }
+  .ant-btn:not(:disabled):hover .anticon-download { transform: translateY(1.5px); }
+  .ant-btn:not(:disabled):hover .anticon-check { transform: scale(1.12); }
+  .ant-btn:not(:disabled):hover .anticon-save { transform: translateY(1px); }
+  .ant-btn:not(:disabled):hover .anticon-edit { transform: rotate(-10deg); }
+  .ant-btn:not(:disabled):hover .anticon-inbox { transform: translateY(1px); }
+  .ant-btn:not(:disabled):hover .anticon-undo { transform: rotate(-24deg); }
+  .ant-btn:not(:disabled):hover .anticon-sync,
+  .ant-btn:not(:disabled):hover .anticon-reload { transform: rotate(45deg); }
+  .ant-btn:not(:disabled):hover .anticon-delete { transform: rotate(-8deg); }
+  .ant-btn:not(:disabled):hover .anticon-down { transform: translateY(1px); }
+  .ant-btn:not(:disabled):hover .anticon-up { transform: translateY(-1px); }
+}

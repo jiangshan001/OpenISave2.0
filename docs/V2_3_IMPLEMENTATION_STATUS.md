@@ -94,3 +94,63 @@ footer theme control. Screenshots are not pixel-tested.
 (2.3.0) for Overview, Accounts, Transactions and Settings at 1440 × 900, all
 from the same synthetic fixture (`scripts/ui_review_fixture.py`, isolated
 scratch vault, in-memory key). No real financial data appears in any of them.
+
+## 6. Final polish: interaction, account identity, goal progress
+
+Still presentation only (no API, schema or calculation change).
+
+- **Sidebar** (`styles/nav.css`, `components/layout/navItems.tsx`): tinted hover
+  row, 24 px icon well, stronger label; the current page keeps its 2 px rail
+  (it now draws in once), gets a tinted well with a faint top highlight and a
+  hairline inner edge. Icons make one small gesture on hover or keyboard focus:
+  Transactions' two arrows part (the glyph is stacked twice and clipped),
+  Recurring turns 18°, Accounts lifts, Goals' flag rises, Settings turns 14°,
+  the rest scale to 1.06.
+- **Buttons** (`styles/interactions.css`): primary buttons lift 1 px, pass one
+  soft sheen across on hover, press down 0.5 px; icons inside any button make a
+  matching gesture (plus turns, arrows shift, import rises, edit tilts, undo
+  turns back). Text actions gain contrast, never colour.
+- **Account identity** (`theme/accountTheme.ts`, `styles/accountThemes.css`):
+  `resolveAccountTheme()` → known institution (HSBC, Bank of China, 招商银行,
+  CCB, Monzo, Barclays, WeChat, Alipay; matched on institution or account name)
+  → account type (cash, savings/provident fund, investment, credit/loan,
+  property) → one of seven fallback palettes chosen by an FNV-1a hash of
+  institution + account name. Each theme is one accent per mode plus an
+  abstract motif at 5–7.5 % opacity (lattice, arcs, ribbon, stacked bands,
+  dots, pinstripe, wave, rise, diagonal, contour) and a typographic monogram.
+  No logo or brand artwork is used. Monograms also appear on the Overview
+  accounts table and in goal contributions.
+- **Goals** (`theme/goalTheme.ts`, `components/common/MilestoneProgress.tsx`,
+  `styles/goals.css`, `styles/milestones.css`): goal kind from name keywords
+  (emergency, travel, home, education, car, occasion, else savings; UI only),
+  milestone track with stops at 25 / 50 / 75 % and a star at 100 %, calm copy
+  (Getting started, Momentum building, Halfway there, Almost there, Goal
+  reached), contribution split bar in each account's identity colour. A
+  milestone crossed since the last visit plays one soft ring (sparks at 100 %,
+  < 600 ms); the "already shown" marker is in `localStorage
+  ["openisave.goalMilestones"]` (goal ids and milestone numbers only). The
+  Overview card reads `remaining_minor` from `/goals` rather than computing it.
+- All motion sits behind `prefers-reduced-motion: no-preference` (test-enforced
+  in `theme/themeStyles.test.ts`, which also checks light/dark palette parity
+  and WCAG AA for monograms and goal percentages).
+- Screenshots: `docs/ui-review/2.3/before-{sidebar-interactions,accounts-themed,goals}.png`
+  and `after-*-{light,dark}.png`, from the synthetic fixture.
+- New tests: `theme/accountTheme.test.ts` (known institutions, type themes,
+  deterministic fallback, stable hash, monograms), `theme/goalTheme.test.ts`
+  (keyword classification and fallback, milestone boundaries 0 / 25 / 50 / 75 /
+  100, copy, one-shot milestone memory), `theme/themeStyles.test.ts` (palettes
+  for light and dark, WCAG AA, faint patterns, reduced-motion gating),
+  `features/goals/components/GoalCard.test.tsx`, extended `Sidebar.test.tsx`
+  (active state, accessible names, decorative icon wells, motion kinds).
+
+### Validation (final polish)
+
+| Check | Result |
+|---|---|
+| Backend `pytest` | 313 passed, 1 skipped (no backend change) |
+| Frontend `npm test` | 143 passed in 25 files |
+| typecheck / lint / check:size / build | pass (largest handwritten file 318 lines; expected >500 kB chunk warning) |
+| Installer | `release/OpenISave_2.3.0_x64-setup.exe`, SHA-256 `a2e64014364550d8cbeba2a1c7bfd3e6887ad2cbd7c9c746030f6e48637e8051` |
+| Real Windows install | via `explorer.exe`, outside the agent sandbox; registry and exe at 2.3.0 |
+| Installed-app smoke test (read-only) | sidebar hover / active, account themes, goal milestones and contributions, Overview goals in Light and Dark; System follows the OS; zero console errors |
+| Data | record counts and balance / goal digests identical before and after install; zero orphan backend processes |

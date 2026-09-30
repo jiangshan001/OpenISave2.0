@@ -1,0 +1,206 @@
+/*
+ * Savings goals: goal palettes (kind from src/theme/goalTheme.ts), the goal
+ * card, the milestone track and the contribution split. One accent per goal
+ * kind and theme mode (`--goal`); fills and tints are mixed from it.
+ */
+
+[data-goal='emergency'] { --goal: #0f6e66; }
+[data-goal='travel'] { --goal: #1f68ad; }
+[data-goal='home'] { --goal: #9a4f2b; }
+[data-goal='education'] { --goal: #4b44ad; }
+[data-goal='car'] { --goal: #3c5a7d; }
+[data-goal='gift'] { --goal: #8f3f6e; }
+[data-goal='savings'] { --goal: #2f5bd3; }
+
+[data-theme='dark'] [data-goal='emergency'] { --goal: #5fbcb0; }
+[data-theme='dark'] [data-goal='travel'] { --goal: #7aaee4; }
+[data-theme='dark'] [data-goal='home'] { --goal: #dc9670; }
+[data-theme='dark'] [data-goal='education'] { --goal: #a39deb; }
+[data-theme='dark'] [data-goal='car'] { --goal: #93acca; }
+[data-theme='dark'] [data-goal='gift'] { --goal: #da97bd; }
+[data-theme='dark'] [data-goal='savings'] { --goal: #86a6f5; }
+
+/* --- glyph well -------------------------------------------------------- */
+
+.oi-goal-glyph {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  color: var(--goal);
+  background: color-mix(in srgb, var(--goal) 10%, var(--oi-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--goal) 16%, transparent);
+}
+
+.oi-goal-glyph--sm {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+}
+
+/* --- goal card --------------------------------------------------------- */
+
+.oi-goal-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  height: 100%;
+  background: color-mix(in srgb, var(--goal) 2.5%, var(--oi-surface));
+  transition:
+    box-shadow var(--oi-dur-panel) var(--oi-ease),
+    border-color var(--oi-dur-panel) var(--oi-ease);
+}
+
+[data-theme='dark'] .oi-goal-card {
+  background: color-mix(in srgb, var(--goal) 3.5%, var(--oi-surface));
+}
+
+.oi-goal-card > .ant-card-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* A soft translucent disc behind the top-right corner. */
+.oi-goal-card::after {
+  content: '';
+  position: absolute;
+  top: -90px;
+  right: -80px;
+  width: 220px;
+  height: 220px;
+  z-index: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--goal) 11%, transparent), transparent 66%);
+}
+
+.oi-goal-card:hover,
+.oi-goal-card:focus-within {
+  border-color: color-mix(in srgb, var(--goal) 22%, var(--oi-border)) !important;
+  box-shadow: var(--oi-shadow-hover);
+}
+
+.oi-goal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.oi-goal-name {
+  font-weight: 600;
+  color: var(--oi-text);
+}
+
+.oi-goal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--oi-muted);
+}
+
+.oi-goal-meta .ant-tag {
+  margin: 0;
+}
+
+.oi-goal-figures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 2px;
+}
+
+.oi-goal-pct {
+  font-family: var(--oi-font-display);
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--goal);
+}
+
+.oi-goal-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--oi-muted);
+}
+
+.oi-goal-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--oi-text-2);
+}
+
+.oi-goal-copy[data-complete='true'] {
+  color: var(--oi-positive);
+}
+
+/* --- overview summary lines ------------------------------------------- */
+
+.oi-goal-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.oi-goal-line-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.oi-goal-line .oi-goal-pct {
+  font-size: 13px;
+}
+
+.oi-goal-line .oi-line-foot {
+  color: var(--oi-muted);
+}
+
+.oi-goal-card:hover .oi-account-actions .ant-btn,
+.oi-goal-card:focus-within .oi-account-actions .ant-btn {
+  color: var(--oi-muted);
+}
+
+.oi-account-actions .ant-btn-dangerous:not(:disabled):hover,
+.oi-account-actions .ant-btn-dangerous:focus-visible {
+  color: var(--oi-negative) !important;
+}
+
+/* Goal and account cards in one row keep their action rows aligned. */
+.oi-goal-card > .ant-card-body,
+.oi-account-card.oi-acct > .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.oi-goal-card .oi-account-actions,
+.oi-account-card.oi-acct .oi-account-actions {
+  margin-top: auto !important;
+}
+
+.oi-goal-card .oi-account-actions {
+  margin-bottom: -8px !important;
+}
+
+.oi-goal-foot,
+.oi-goal-card .oi-tag-below,
+.oi-acct-tags {
+  margin-bottom: 16px;
+}

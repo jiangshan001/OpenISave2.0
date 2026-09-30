@@ -8,7 +8,8 @@
 > Deeper references, in order of usefulness:
 > [`SECURITY_AND_DATA_STORAGE.md`](SECURITY_AND_DATA_STORAGE.md) (vault, keys,
 > backups, recovery) ·
-> [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md) (themes + visual system) ·
+> [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md) (themes, visual system,
+> account identity, goal milestones) ·
 > [`V2_2_IMPLEMENTATION_STATUS.md`](V2_2_IMPLEMENTATION_STATUS.md) (recurring +
 > import details) ·
 > [`OPENISAVE2_PROJECT_ARCHITECTURE.md`](OPENISAVE2_PROJECT_ARCHITECTURE.md)
@@ -26,16 +27,17 @@
 - [D. Data and security](#d-data-and-security)
 - [E. Financial invariants](#e-financial-invariants)
 - [F. Current features](#f-current-features)
-- [G. Recurring transactions](#g-recurring-transactions)
-- [H. WeChat statement import](#h-wechat-statement-import)
-- [I. Database and Alembic](#i-database-and-alembic)
-- [J. Testing](#j-testing)
-- [K. Desktop packaging](#k-desktop-packaging)
-- [L. Git and release workflow](#l-git-and-release-workflow)
-- [M. Safety rules for future agents](#m-safety-rules-for-future-agents)
-- [N. Known limitations and technical debt](#n-known-limitations-and-technical-debt)
-- [O. Recommended next steps](#o-recommended-next-steps)
-- [P. Git state at the time of writing](#p-git-state-at-the-time-of-writing)
+- [G. UI and design system](#g-ui-and-design-system)
+- [H. Recurring transactions](#h-recurring-transactions)
+- [I. WeChat statement import](#i-wechat-statement-import)
+- [J. Database and Alembic](#j-database-and-alembic)
+- [K. Testing](#k-testing)
+- [L. Desktop packaging](#l-desktop-packaging)
+- [M. Git and release workflow](#m-git-and-release-workflow)
+- [N. Safety rules for future agents](#n-safety-rules-for-future-agents)
+- [O. Known limitations and technical debt](#o-known-limitations-and-technical-debt)
+- [P. Recommended next steps](#p-recommended-next-steps)
+- [Q. Git state at the time of writing](#q-git-state-at-the-time-of-writing)
 
 ---
 
@@ -63,6 +65,19 @@ keeps its own native currency.
 Product principles: all data stays on the user's machine; the only outbound
 network request is for exchange rates and it sends nothing but currency
 codes; no accounts, no cloud, no telemetry, no AI.
+
+Product state at 2.3.0:
+
+- secure local-first finance manager: **SQLCipher-encrypted vault**, key in
+  **Windows Credential Manager**, scheduled / manual / safety **backups**,
+  recovery key and restore;
+- **multi-currency** ledger with CNY consolidation and frozen historical FX;
+- **recurring transactions** (review-first or automatic);
+- **WeChat Pay statement import** with **deterministic categorisation** rules;
+- **Light / Dark / System** appearance and a premium, restrained visual
+  system (section G);
+- **personalised account cards** (institution / type identity, no logos);
+- **milestone-based savings goals**.
 
 ---
 
@@ -149,12 +164,12 @@ Also: `backend/alembic/versions/` (migrations), `backend/tests/` (pytest;
 | Folder | Contents |
 |---|---|
 | `features/` | One folder per page: `dashboard` (Overview), `transactions`, `recurring`, `imports` (WeChat import wizard), `accounts`, `assets`, `goals`, `budgets`, `categories`, `rules` (auto-categorisation rules), `reports`, `settings` (incl. Data & Security, Recovery Key) |
-| `components/` | `layout` (AppLayout, Sidebar, FxStatusBadge), `charts` (chartTheme, tooltips, cash flow, category pie), `common` (PageHeader, StatCard, Meter, EmptyState), `forms` |
+| `components/` | `layout` (AppLayout, Sidebar, `navItems.tsx`, FxStatusBadge), `charts` (chartTheme, tooltips, cash flow, category pie), `common` (PageHeader, StatCard, Meter, EmptyState, `AccountMonogram`, `GoalGlyph`, `MilestoneProgress`), `forms` |
 | `api/` | `client.ts` (base URL from Tauri runtime or dev default) and one module per resource |
 | `hooks/` | TanStack Query hooks + `queryKeys.ts` |
 | `types/` | Shared TypeScript types mirroring backend schemas |
-| `styles/` | `tokens.css` (light + dark design tokens), `global.css`, `shell.css`, `controls.css`, `overlays.css`, `toolbar.css`, `cards.css`, `charts.css`, `overview.css`, `heatmap.css`, `settings.css`, `startup.css`, `imports.css` |
-| `theme/` | Appearance (Light / Dark / System): `appearance.ts` (preference in `localStorage["openisave.appearance"]`, applied to `<html data-theme>`), `ThemeProvider.tsx`, `antdTheme.ts` (`createTheme(mode)`), `palette.ts`, `chartPalette.ts` (`useChartPalette()`), `AppearanceSwitch.tsx` |
+| `styles/` | `tokens.css` (light + dark design tokens), `global.css`, `shell.css`, `nav.css` (sidebar items), `controls.css`, `interactions.css` (button micro-interactions), `overlays.css`, `toolbar.css`, `cards.css`, `accountThemes.css`, `goals.css`, `milestones.css`, `charts.css`, `overview.css`, `heatmap.css`, `settings.css`, `startup.css`, `imports.css` |
+| `theme/` | Appearance (Light / Dark / System): `appearance.ts` (preference in `localStorage["openisave.appearance"]`, applied to `<html data-theme>`), `ThemeProvider.tsx`, `antdTheme.ts` (`createTheme(mode)`), `palette.ts`, `chartPalette.ts` (`useChartPalette()`), `AppearanceSwitch.tsx`; presentation resolvers `accountTheme.ts` (`resolveAccountTheme()`), `goalTheme.ts` (`resolveGoalTheme()`, milestones, copy), `milestoneMemory.ts` |
 | `utils/` | money/date formatting, labels, form helpers |
 | `app/` | router, providers, `SecurityGate` (locked/recovery screens), `StartupScreen` |
 | `test/` | Vitest setup and synthetic fixtures |
@@ -284,25 +299,240 @@ explicit decision from the user, a migration, and tests.
 
 | Module | Key behaviour |
 |---|---|
-| **Accounts** | Types: bank, cash, e-wallet, savings, credit card, loan, investment, provident fund, property, other asset/liability. Each has a native currency, opening balance, purpose (daily spending, bills, emergency fund…) and institution. Archive instead of delete. Grouped summaries (Cash & Bank, Savings, Investments, Other Assets, Liabilities). |
+| **Accounts** | Types: bank, cash, e-wallet, savings, credit card, loan, investment, provident fund, property, other asset/liability. Each has a native currency, opening balance, purpose (daily spending, bills, emergency fund…) and institution. Archive instead of delete. Grouped summaries (Cash & Bank, Savings, Investments, Other Assets, Liabilities). Cards carry a deterministic visual identity (palette, abstract motif, monogram; section G). |
 | **Transactions** | Income, expense, transfer (plus adjustment, asset purchase/sale types). Double-entry postings behind the scenes; hierarchical categories; filtering; void instead of delete. Imported and recurring rows carry provenance. |
 | **Transfers** | Between own accounts, same- or cross-currency, optional fee; excluded from income/expense and net worth. |
 | **FX** | Frankfurter provider with local cache, freshness (fresh / stale / missing / identity), manual rates in Settings; conversions refuse to guess. |
-| **Overview (Dashboard)** | Net worth hero (assets / liabilities), month income / expenses / net cash flow / savings rate, net-worth composition bar with personal possessions as reference-only, activity heatmap (expenses or income, last 12 months), budget usage, income/expense category charts, recent transactions, goals summary, **Upcoming** recurring card. |
-| **Goals** | Savings targets aggregating selected accounts or "all eligible" accounts across currencies; never change net worth. |
+| **Overview (Dashboard)** | Net Worth Hero (assets / liabilities / possessions, composition bar with personal possessions as reference-only), flat stat strip (month income / expenses / net cash flow / savings rate), activity heatmap (expenses or income, last 12 months), budget usage, income/expense category charts, accounts summary, goals summary with mini milestone tracks, **Upcoming** recurring card, recent transactions. |
+| **Goals** | Savings targets aggregating selected accounts or "all eligible" accounts across currencies; never change net worth. Milestone progress track (25 / 50 / 75 / 100 %), visual-only goal icon, short progress copy, per-account contribution split (section G). |
 | **Budget** | Monthly limits per category; actuals derived from the ledger. |
 | **Categories** | Expense and income trees: create, rename, move (cycle/depth guards), archive branch, restore, usage counts. Hosts **Auto-categorisation rules**. |
 | **Assets** | Purchase price, valuations history, days held, cost per day, sale with effective cost/day; net-worth classification per section E.9. |
 | **Liabilities** | Loans / financing / mortgage, optionally linked to the asset they paid for; account-backed outstanding balance; repayments are transfers. |
 | **Reports** | Monthly report: cash flow, category breakdowns, account movement, budget variance, goal progress. |
 | **Security / Backup** | SQLCipher vault, Credential Manager key, scheduled + manual + safety backups, restore UI, recovery-key export and unlock-with-recovery-key, 2.0 → 2.1 plaintext migration with rollback copy. Settings → Data & Security. |
-| **Recurring Transactions** | See section G. |
-| **WeChat Import** | See section H. |
-| **Categorisation Rules** | Deterministic, explainable rules (user + 18 seeded system rules); see H. |
+| **Recurring Transactions** | See section H. |
+| **WeChat Import** | See section I. |
+| **Categorisation Rules** | Deterministic, explainable rules (user + 18 seeded system rules); see I. |
 
 ---
 
-## G. Recurring transactions
+## G. UI and design system
+
+Detail and screenshots: [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md)
+(`docs/ui-review/2.3/` is git-ignored; screenshots are regenerated locally
+from the synthetic fixture `scripts/ui_review_fixture.py` in a scratch vault).
+
+### Design position
+
+**Quiet luxury financial desktop UI**: calm, precise, premium, restrained,
+high information clarity, subtle depth, limited motion, accessibility first.
+Depth comes from a surface ladder (canvas → panel → raised → hero) and
+hairlines; shadows are reserved for things that float (popovers, toasts) and
+cards you act on. One brand accent (blue); account and goal identities add a
+second, quiet accent per card only.
+
+> The UI had a full overhaul in 2.3.0. **Unless the user explicitly asks,
+> do not start another large visual redesign.** Extend the existing system.
+
+### Where it lives
+
+| Piece | Location |
+|---|---|
+| Appearance preference, boot, provider | `frontend/src/theme/appearance.ts`, `ThemeProvider.tsx`, `themeContext.ts`, `AppearanceSwitch.tsx`; first-paint script in `frontend/index.html` |
+| Ant Design theme | `frontend/src/theme/antdTheme.ts` → `createTheme(mode)`; colours from `palette.ts` |
+| CSS tokens | `frontend/src/styles/tokens.css` (`:root` / `[data-theme='light']` and `[data-theme='dark']`, same `--oi-*` names) |
+| Chart / heatmap colours | `frontend/src/theme/chartPalette.ts` → `useChartPalette()` (separate light and dark series, axis, grid, heatmap levels) |
+| Shell and navigation | `styles/shell.css`, `styles/nav.css`, `components/layout/Sidebar.tsx`, `navItems.tsx` |
+| Controls | `styles/controls.css` (depth, focus, inputs, tables), `styles/interactions.css` (hover / press micro-interactions) |
+| Overlays | `styles/overlays.css` (modals, dropdowns, popovers, tooltips, messages, notifications) |
+| Panels and data | `styles/cards.css`, `charts.css`, `overview.css`, `heatmap.css` |
+| Account identity | `theme/accountTheme.ts`, `styles/accountThemes.css`, `components/common/AccountMonogram.tsx` |
+| Goal visuals | `theme/goalTheme.ts`, `theme/milestoneMemory.ts`, `components/common/MilestoneProgress.tsx`, `GoalGlyph.tsx`, `styles/goals.css`, `styles/milestones.css` |
+
+### Theme system
+
+- **Modes**: System (default), Light, Dark: Settings → Appearance and the
+  sidebar footer (icon options carry tooltips and accessible labels).
+- **Preference**: `localStorage["openisave.appearance"]` in the webview. It is
+  a UI preference, **not a database field**; no migration.
+- **Applying**: `<html data-theme="light|dark">` plus `color-scheme`. System
+  resolves through `prefers-color-scheme` and follows Windows live while
+  System is selected. Switches cross-fade with a 180 ms view transition
+  (instant under reduced motion).
+- **No flash at startup**: an inline script in `index.html` resolves the theme
+  and sets `data-theme` and the first-frame background through
+  `element.style` (CSSOM) before any bundle loads; the Tauri window is created
+  with `visible: false` and shown from `on_page_load` in `desktop/src/lib.rs`
+  (4 s safety fallback).
+- **Ant Design**: dark = official `theme.darkAlgorithm` + OpenISave tokens
+  (surfaces, text, accent, controls, tables, menu, overlays); light = default
+  algorithm + the same token set.
+- **Charts and heatmap**: always take colours from `useChartPalette()`; never
+  hard-code series colours in a chart component.
+
+> ⚠️ **CSP warning for future agents.** Never add an inline `<style>` element
+> to `frontend/index.html` (e.g. for first-paint theming). Tauri then adds a
+> nonce to the CSP `style-src`, browsers ignore `'unsafe-inline'`, and every
+> style Ant Design injects at runtime is blocked, **only in the packaged
+> desktop app**, while the Vite dev server looks perfect. This happened during
+> 2.3.0. Set first-paint values from the boot script through CSSOM instead.
+> `src/theme/appearance.test.ts` guards it; always verify UI changes in the
+> installed app too.
+
+### Accessibility and motion policy
+
+- Text tokens meet **WCAG AA** in both themes; new accent colours are
+  contrast-tested (`src/theme/themeStyles.test.ts`).
+- Colour is never the only channel: signs and words on amounts, glyph + text
+  on status chips, institution and account name next to monograms, percentage
+  and milestone text on goal tracks.
+- Visible 2 px focus rings on buttons, menu items, segmented controls,
+  switches, checkboxes and radios.
+- **Every animation and hover transform sits behind
+  `@media (prefers-reduced-motion: no-preference)`** (test-enforced for
+  `nav.css`, `interactions.css`, `milestones.css`, `accountThemes.css`,
+  `goals.css`). Nothing loops; nothing bounces.
+
+### Overview (dashboard) layout
+
+The Overview is **not** a wall of white cards any more:
+
+1. **Net Worth Hero**: the graphite-navy primary visual anchor (net worth,
+   assets / liabilities / possessions, composition bar).
+2. A **flat stat strip**: income, expenses, net cash flow, savings rate.
+3. **Activity heatmap** as a flat analytical section on the canvas.
+4. Theme-aware charts, budget usage, income / expense category splits.
+5. Accounts summary (with account monograms), savings goals (mini milestone
+   tracks), Upcoming recurring, recent transactions.
+
+Do not wrap every section back into a card; keep the hero as the one
+dominant element.
+
+### Sidebar interactions
+
+- **Hover**: subtly tinted row, 24 px icon well, stronger label, ~170 ms.
+- **Active**: 2 px accent rail (draws in once, 240 ms), tinted accent icon
+  well with a faint top highlight, hairline inner edge, 600 weight.
+- **Semantic icon motion** (hover and keyboard focus): Transactions' two
+  arrows part slightly (the glyph is stacked twice and clipped), Recurring
+  turns ~18°, Settings ~14°, Accounts lifts, the Goals flag rises; every other
+  item scales to 1.06.
+- Do **not** add glow, bounce, continuous animation or large translations.
+
+### Buttons and controls
+
+- **Primary**: inner top highlight, hover lifts 1 px with one soft sheen
+  passing across, press settles +0.5 px; icons inside buttons make a small
+  matching gesture (plus turns, arrows shift, import rises, edit tilts, undo
+  turns back).
+- **Text actions** (Edit, Archive, Details, Show accounts…): quiet fill and
+  stronger contrast on hover; no brand-blue takeover. Danger stays red.
+- **Form controls**: neutral at rest, stronger border on hover, restrained 3 px
+  brand focus halo, no glow. Tables: quiet headers, tabular figures, row
+  actions muted until the row is hovered or focused.
+
+### Account visual identity
+
+`resolveAccountTheme(account)` (`src/theme/accountTheme.ts`) returns a palette
+id (`data-acct`), a motif (`data-motif`) and a monogram. Order:
+
+1. **Known institution** (matched on institution *or* account name);
+2. **Account type**;
+3. **Deterministic fallback**: FNV-1a hash of
+   `institution + "|" + account name` (lower-cased, trimmed) → one of seven
+   palettes. **Never random**: the same account always gets the same theme.
+
+| Theme | Palette (light accent) | Motif | Monogram |
+|---|---|---|---|
+| HSBC / 汇丰 | cool burgundy | angular diamond lattice (corner) | H |
+| Bank of China / 中国银行 / 中行 | warm Chinese red | concentric arcs | BOC |
+| China Merchants Bank / 招商银行 / 招行 | rose red | fine diagonal band | CMB |
+| China Construction Bank / 建设银行 | deep blue | rising lines | CCB |
+| Monzo | coral | restrained four-colour layered stripe | M |
+| Barclays | teal-blue | wave | B |
+| WeChat / 微信 / 零钱 | muted green | dots and bubbles | W |
+| Alipay / 支付宝 / 余额宝 | sky blue | arcs | A |
+| Cash (type) | olive sand | pinstripe | initials |
+| Savings / provident fund (type) | cool teal-blue | wave | initials |
+| Investment (type) | deep indigo | rising lines | initials |
+| Credit card / loan / other liability (type) | plum graphite | fine diagonals | initials |
+| Property (type) | earth brown | contour lines | initials |
+| Fallback | navy, teal, burgundy, violet, slate, amber, forest | per palette | initials (e.g. "LCU") |
+
+- Card structure: near-surface tint (2.5 % light / 3.5 % dark), 2 px accent
+  edge fading to the right, monogram well, motif in the top-right corner at
+  **~7.5 % opacity in light, ~5 % in dark** (×1.6 on hover, plus 1 px lift).
+- **No bank logos are downloaded, copied or drawn.** Only an
+  institution-inspired palette, an abstract CSS motif and a text monogram.
+- Every palette is defined for light and dark and contrast-tested.
+- Do not turn account cards into skeuomorphic bank cards.
+
+### Goal visual system
+
+- The plain progress bar is replaced by a **milestone track**: stops at
+  **25 / 50 / 75 %** and a **star at 100 %**, a 25/50/75/100 % scale under the
+  track, fill as a subtle tonal gradient of the goal accent (dimmer in dark).
+- Progress comes from the backend's `progress_percent`; the frontend never
+  recomputes financial progress. Reached = `progress_percent >= milestone`.
+- **Copy** (lower bound inclusive): 0–24 *Getting started*, 25–49 *Momentum
+  building*, 50–74 *Halfway there*, 75–99 *Almost there*, 100+ *Goal reached*.
+- **Visual-only classifier** `resolveGoalTheme(name)` (English and Chinese
+  keywords): emergency → shield, travel → globe, home → house, education →
+  book, car → car, gift / occasion → gift, otherwise savings → wallet. It is
+  presentation only and is **never written to the database**.
+- **Motion**: the fill grows once on first render and reached stops settle in
+  after it. A milestone first crossed since this device last showed the goal
+  gets one soft ring; at 100 % a few small sparks; under 600 ms; nothing under
+  reduced motion. "Already shown" is kept in
+  `localStorage["openisave.goalMilestones"]` (goal id → highest milestone
+  number only). A goal seen for the first time is recorded silently. Do
+  **not** add a database field for this.
+- **Contributions** (expanded goal): a segmented split track coloured by each
+  account's identity theme, then per account: monogram, name, *shared* /
+  *check* tags, native balance (if another currency), converted amount and
+  share %. Amounts are the backend's; the share is only their ratio.
+- **Overview goals**: icon, name, percentage, mini milestone track, remaining
+  amount and short copy. `remaining_minor` comes from the existing `/goals`
+  endpoint (the dashboard payload does not carry it); nothing is recomputed.
+
+### External design reference
+
+[Uiverse Galaxy](https://github.com/uiverse-io/galaxy) (MIT) was used for
+interaction ideas only (tactile button press and inner highlight, subtle icon
+wells, toggle thumb, notification hierarchy); no snippet was copied (attribution
+in `styles/controls.css` and `styles/interactions.css`). Deliberately not
+used: neon, glow, glassmorphism, 3D, rainbow gradients, excessive or flashy
+motion.
+
+### UI regression rules (future agent checklist)
+
+Do **not**:
+
+- re-card the whole Overview or demote the Net Worth Hero;
+- assign account colours randomly or by array index;
+- download, copy or trace bank logos;
+- make goals childish (confetti, badges, streaks, cheering copy);
+- add continuous / looping animation, neon or glow;
+- ignore dark mode or hard-code light-only colours in components (a test
+  rejects colour literals outside `src/theme`);
+- use colour as the only carrier of meaning;
+- move financial calculations into the frontend.
+
+Always:
+
+- build Light and Dark together and verify System;
+- respect `prefers-reduced-motion`;
+- keep WCAG AA;
+- use tokens (`--oi-*`, `--acct`, `--goal`) and `createTheme()`;
+- keep every handwritten frontend file under 350 lines;
+- take screenshots only from a scratch vault seeded with
+  `scripts/ui_review_fixture.py` (synthetic data), never the real vault;
+- verify in the **installed** app, not only the Vite dev server.
+
+---
+
+## H. Recurring transactions
 
 Code: `models/recurring.py`, `services/recurrence.py` (pure date maths),
 `services/recurring_service.py`, `api/v1/recurring.py`,
@@ -344,7 +574,7 @@ API: `GET/POST /recurring`, `GET/PATCH /recurring/{id}`,
 
 ---
 
-## H. WeChat statement import
+## I. WeChat statement import
 
 Code: `importers/base.py`, `importers/wechat.py`,
 `services/statement_import_service.py`, `import_preview.py`,
@@ -424,7 +654,7 @@ preview/staging/confirm services rather than writing a second ledger path.
 
 ---
 
-## I. Database and Alembic
+## J. Database and Alembic
 
 Migration chain (head: **`c4d8f2a6e913`**):
 
@@ -451,15 +681,25 @@ Rules:
 
 ---
 
-## J. Testing
+## K. Testing
 
-Last known totals (release/v2.3.0, see section P):
+Last known totals (release/v2.3.0, see section Q):
 
 - **Backend: 313 passed, 1 skipped.** The skip is the opt-in real-statement
   parser test (`OPENISAVE_WECHAT_SAMPLE=<path to a real .xlsx>`); real
   statements are never copied into the repo.
-- **Frontend: 87 tests in 21 files passed**; typecheck, lint, `check:size`
-  and production build pass.
+- **Frontend: 143 tests in 25 files passed**; typecheck, lint, `check:size`
+  (largest handwritten file: `src/styles/cards.css`, 318 lines) and
+  production build pass (Vite's >500 kB chunk warning is expected, see O).
+
+UI guard suites (`frontend/src/`): `theme/darkMode.test.ts` (no colour
+literals in components, light/dark token parity, separate chart palettes),
+`theme/appearance.test.ts` (boot script, **no inline `<style>` in
+index.html**), `theme/ThemeProvider.test.tsx`, `theme/themeStyles.test.ts`
+(account and goal palettes defined for both themes, WCAG AA, reduced-motion
+gating), `theme/accountTheme.test.ts`, `theme/goalTheme.test.ts`,
+`components/layout/Sidebar.test.tsx`,
+`features/goals/components/GoalCard.test.tsx`. None are pixel snapshots.
 
 Run:
 
@@ -500,7 +740,7 @@ workbooks in memory; `frontend/src/test/fixtures.ts` holds UI fixtures.
 
 ---
 
-## K. Desktop packaging
+## L. Desktop packaging
 
 ```text
 backend  ──PyInstaller──►  desktop/binaries/openisave-server/   (one-folder sidecar, git-ignored)
@@ -535,11 +775,11 @@ desktop  ──tauri build──►  desktop/target/release/bundle/nsis/OpenISav
 
 ---
 
-## L. Git and release workflow
+## M. Git and release workflow
 
 ```text
 feature/* or release/vX.Y.Z branch
-   ↓  implement + tests (backend + frontend gates, section J)
+   ↓  implement + tests (backend + frontend gates, section K)
    ↓  push branch
    ↓  open PR → main
    ↓  USER reviews and merges manually
@@ -554,6 +794,9 @@ feature/* or release/vX.Y.Z branch
   GitHub Releases unless the user explicitly asks in that session.**
 - One coherent release commit per version is acceptable; don't split
   artificially.
+- Run `git fetch origin --prune` before judging what is merged: local
+  remote-tracking refs go stale, and GitHub deletes a PR's head branch after
+  merge (pushing the branch again simply recreates it; never force-push).
 - Commit only source: never `release/`, installers, databases, statements,
   logs, screenshots of real data, `node_modules`, `.venv`, `desktop/target`,
   `frontend/dist`, PyInstaller `build/`/`dist/`. `.gitignore` covers these —
@@ -561,7 +804,7 @@ feature/* or release/vX.Y.Z branch
 
 ---
 
-## M. Safety rules for future agents
+## N. Safety rules for future agents
 
 > ### ⚠️ Non-negotiable
 >
@@ -590,12 +833,18 @@ feature/* or release/vX.Y.Z branch
 > - **Always distinguish the source version from the installed desktop
 >   version.** Check the version shown in the sidebar of the running app /
 >   the installed files, not just the repo.
+> - **Never add an inline `<style>` element to `frontend/index.html`**: the
+>   packaged app's CSP then blocks every Ant Design runtime style (section G).
+>   Verify UI changes in the installed app, not only in Vite.
+> - **UI screenshots come from a scratch vault** seeded with
+>   `scripts/ui_review_fixture.py`; `docs/ui-review/` is git-ignored and must
+>   not be force-added.
 > - Don't merge, force-push, push to `main` or publish releases without an
 >   explicit request.
 
 ---
 
-## N. Known limitations and technical debt
+## O. Known limitations and technical debt
 
 Verified against the 2.3.0 code:
 
@@ -616,9 +865,13 @@ Verified against the 2.3.0 code:
 - Asset purchase/sale currency must match the asset's currency (no
   cross-currency asset purchase).
 - Liability **amortisation / interest accrual not modelled**.
-- **No export** (PDF/CSV) of reports; no tags; no attachments/receipts.
-- **Frontend bundle is a single ~2 MB chunk** (Vite warns >500 kB); no code
-  splitting / lazy routes yet.
+- **No bills / committed cash-flow view**: Upcoming lists the next 14 days of
+  recurring occurrences but does not compare commitments with balances.
+- **No export** (PDF/CSV) of reports; **no tags**; **no attachments/receipts**.
+- **Frontend bundle is a single ~2.1 MB chunk** (2,085 kB, 626 kB gzip; Vite
+  warns >500 kB); no code splitting / lazy routes yet.
+- Account identity themes know eight institutions; others get a
+  deterministic fallback palette (by design, section G).
 - Single FX provider (Frankfurter).
 - **Windows-only**: the Tauri shell is cross-platform, but only Windows is
   built and tested; key storage is Windows Credential Manager specific.
@@ -626,40 +879,55 @@ Verified against the 2.3.0 code:
 
 ---
 
-## O. Recommended next steps
+## P. Recommended next steps
 
-Roadmap only — nothing below is implemented.
+Roadmap only; nothing below is implemented.
 
-1. **Real-world WeChat import validation**: run the opt-in parser test and
+1. **Real-world WeChat import rule tuning**: run the opt-in parser test and
    imports against several real monthly statements (kept outside the repo),
-   tune the built-in rules, and add redacted regression cases for any new
-   layouts.
-2. **More importers**: generic CSV (with column mapping), Monzo, HSBC,
-   Alipay — reusing preview/staging/confirm and duplicate identity.
-3. **Monthly snapshots + historical net worth** chart.
-4. **Stronger reports**: multi-month trends, year view, CSV/PDF export.
-5. **Bills / upcoming committed cash flow**: build on recurring rules
+   tune the built-in rules, add redacted regression cases for new layouts.
+2. **Generic transaction import pipeline expansion**: generic CSV with column
+   mapping, reusing preview / staging / confirm and duplicate identity.
+3. **Monzo / HSBC importers** (then Alipay) on the same pipeline.
+4. **Monthly snapshots + historical net worth** chart.
+5. **Bills / committed future cash flow**: build on recurring rules
    (upcoming totals vs. account balances).
 6. **Tags** on transactions.
 7. **Transaction attachments** (encrypted, inside the vault folder).
 8. **Optional receipt recognition** (local, opt-in; never required).
-9. **Investment holdings** (securities, cost basis, prices).
+9. **Investment holdings engine** (securities, cost basis, prices).
 
-Smaller debt worth picking off: code splitting, asset valuation chart,
-refund matching, recurring catch-up option.
+Smaller debt worth picking off: code splitting / lazy routes, asset
+valuation chart, refund matching, recurring catch-up option, report export.
+
+> The UI has just had a complete overhaul (2.3.0). **Do not start another
+> large-scale visual redesign unless the user explicitly asks.** New screens
+> should reuse the tokens, primitives and rules in section G.
 
 ---
 
-## P. Git state at the time of writing
+## Q. Git state at the time of writing
 
 | | |
 |---|---|
-| Version | 2.3.0 (presentation-only; no schema change) |
-| Branch | `release/v2.3.0`, created locally from `release/v2.2.0` (`25d1eb0`); **not committed, not pushed** |
-| Previous release | 2.2.0 on `release/v2.2.0`; [jiangshan001/OpenISave2.0#2](https://github.com/jiangshan001/OpenISave2.0/pull/2) open, `main` still at `39d5b9c` (2.1.1) |
+| Version | **2.3.0** (presentation-only; no schema, API or calculation change) |
+| Branch | `release/v2.3.0` |
+| Already merged | 2.2.0 via [jiangshan001/OpenISave2.0#2](https://github.com/jiangshan001/OpenISave2.0/pull/2); first 2.3.0 commit `3f90436` (theme + visual system) via [jiangshan001/OpenISave2.0#3](https://github.com/jiangshan001/OpenISave2.0/pull/3); `main` at `eb690b8` |
+| This round | final UI polish (sidebar / button interactions, account identity, goal milestones) + this handoff; commit and PR: see below |
 | Alembic head | `c4d8f2a6e913` (unchanged) |
-| Tests | backend 313 passed / 1 skipped; frontend 87 / 21 files; typecheck, lint, check:size, build pass |
+| Tests | backend 313 passed / 1 skipped; frontend 143 / 25 files; typecheck, lint, check:size, build pass |
 | GitHub Release for 2.2.0 / 2.3.0 | not created |
+
+Final polish commit: _pending_ · PR: _pending_
+
+### Real installed app (last verified 2026-09-30)
+
+| | |
+|---|---|
+| Installed version | 2.3.0 at `%LOCALAPPDATA%\OpenISave\openisave.exe` (uninstall registry key `DisplayVersion` = 2.3.0) |
+| Installer | `release\OpenISave_2.3.0_x64-setup.exe` (git-ignored), SHA-256 `a2e64014364550d8cbeba2a1c7bfd3e6887ad2cbd7c9c746030f6e48637e8051` |
+| Production vault | `%LOCALAPPDATA%\OpenISave2Data` (never opened by tooling) |
+| Checks | installed through `explorer.exe` outside the agent sandbox; Light / Dark / System work; read-only smoke test of accounts, goals, sidebar and Overview passed with zero console errors; record counts and balance digests identical before and after install; zero orphan backend processes |
 
 Update this section whenever the branch, head commit, PR or test totals
 change.

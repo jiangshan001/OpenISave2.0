@@ -1,10 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Col, Row } from 'antd';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { PageHeader } from '@/components/common/PageHeader';
 import { StateBoundary } from '@/components/common/StateBoundary';
+import { useAccounts } from '@/hooks/useLedger';
 import { useGoals } from '@/hooks/useResources';
+import { resolveAccountTheme } from '@/theme/accountTheme';
 import type { Goal } from '@/types';
 import { GoalCard } from './components/GoalCard';
 import { GoalFormModal } from './components/GoalFormModal';
@@ -13,6 +15,11 @@ export function GoalsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Goal | null>(null);
   const { data, isLoading, error, refetch } = useGoals();
+  const { data: accounts } = useAccounts(true);
+  const accountThemes = useMemo(
+    () => new Map((accounts ?? []).map((account) => [account.id, resolveAccountTheme(account)])),
+    [accounts],
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -44,11 +51,12 @@ export function GoalsPage() {
           </Button>
         }
       >
-        <Row gutter={[16, 16]}>
+        <Row gutter={[20, 20]} align="top">
           {(data ?? []).map((goal) => (
             <Col key={goal.id} xs={24} sm={12} lg={8} xxl={6}>
               <GoalCard
                 goal={goal}
+                accountThemes={accountThemes}
                 onEdit={(selected) => {
                   setEditing(selected);
                   setFormOpen(true);

@@ -3,12 +3,22 @@ import { Button, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import { EmptyState } from '@/components/common/EmptyState';
-import { Meter } from '@/components/common/Meter';
+import { GoalGlyph } from '@/components/common/GoalGlyph';
+import { MilestoneProgress } from '@/components/common/MilestoneProgress';
+import { useGoals } from '@/hooks/useResources';
+import { goalEncouragement, resolveGoalTheme } from '@/theme/goalTheme';
 import type { Dashboard } from '@/types/dashboard';
 import { formatMoney, formatPercent } from '@/utils/money';
 
+/**
+ * Overview digest: each goal's progress, percentage and what is left. The
+ * remaining amount comes from the goals endpoint (the dashboard payload does
+ * not carry it); until it arrives the line shows current of target instead.
+ */
 export function GoalsSummaryCard({ data }: { data: Dashboard }) {
   const navigate = useNavigate();
+  const { data: goals } = useGoals();
+  const remaining = new Map((goals ?? []).map((goal) => [goal.id, goal.remaining_minor]));
   return (
     <Card
       title="Savings goals"
@@ -21,42 +31,50 @@ export function GoalsSummaryCard({ data }: { data: Dashboard }) {
       }
     >
       {data.goals.length > 0 ? (
-        <div className="oi-budget-lines" style={{ paddingTop: 0, gap: 18 }}>
-          {data.goals.slice(0, 5).map((goal) => (
-            <div key={goal.id}>
-              <div className="oi-line-head">
-                <span className="oi-strong">{goal.name}</span>
-                {goal.target_amount_minor ? (
-                  <span className="oi-chip oi-chip--primary">
-                    {formatPercent(goal.progress_percent)}
+        <div className="oi-goal-lines">
+          {data.goals.slice(0, 5).map((goal) => {
+            const { kind } = resolveGoalTheme(goal.name);
+            const hasTarget = Boolean(goal.target_amount_minor);
+            const complete = hasTarget && (goal.progress_percent ?? 0) >= 100;
+            return (
+              <div key={goal.id} className="oi-goal-line" data-goal={kind}>
+                <div className="oi-line-head">
+                  <span className="oi-goal-line-name">
+                    <GoalGlyph kind={kind} size="sm" />
+                    {goal.name}
                   </span>
-                ) : null}
-              </div>
-              {goal.target_amount_minor ? (
-                <Meter
-                  percent={goal.progress_percent}
-                  color="var(--oi-primary)"
-                  label={goal.name}
-                />
-              ) : (
-                <div style={{ height: 8 }} />
-              )}
-              <div className="oi-line-foot">
-                <span>
-                  {formatMoney(goal.current_amount_minor, goal.currency)}
-                  {goal.target_amount_minor ? (
-                    <span className="oi-muted">
-                      {' '}
-                      / {formatMoney(goal.target_amount_minor, goal.currency)}
-                    </span>
+                  {hasTarget ? (
+                    <span className="oi-goal-pct">{formatPercent(goal.progress_percent)}</span>
                   ) : null}
-                </span>
-                {goal.target_amount_minor ? null : (
-                  <span className="oi-muted">Accumulating · no target set</span>
-                )}
+                </div>
+                {hasTarget ? (
+                  <MilestoneProgress
+                    percent={goal.progress_percent}
+                    label={`${goal.name} progress`}
+                    size="sm"
+                  />
+                ) : null}
+                <div className="oi-line-foot">
+                  {hasTarget ? (
+                    <>
+                      <span>
+                        {complete
+                          ? 'Target met'
+                          : remaining.get(goal.id) != null
+                            ? `${formatMoney(remaining.get(goal.id), goal.currency)} remaining`
+                            : `${formatMoney(goal.current_amount_minor, goal.currency)} of ${formatMoney(goal.target_amount_minor, goal.currency)}`}
+                      </span>
+                      <span>{goalEncouragement(goal.progress_percent)}</span>
+                    </>
+                  ) : (
+                    <span>
+                      {formatMoney(goal.current_amount_minor, goal.currency)} · no target set
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <EmptyState
