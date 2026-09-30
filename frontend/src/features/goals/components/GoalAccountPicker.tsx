@@ -29,7 +29,7 @@ export function GoalAccountPicker({
   const eligible = accounts.filter(isEligible);
 
   return (
-    <Space direction="vertical" size={12} style={{ width: '100%' }}>
+    <Space direction="vertical" size={12} className="oi-full">
       <Radio.Group
         value={mode}
         onChange={(event) => onModeChange(event.target.value)}
@@ -59,11 +59,11 @@ export function GoalAccountPicker({
         <Checkbox.Group
           value={selected}
           onChange={(values) => onSelectedChange(values as number[])}
-          style={{ width: '100%' }}
+          className="oi-full"
         >
-          <Space direction="vertical" size={6} style={{ width: '100%' }}>
+          <Space direction="vertical" size={6} className="oi-full">
             {eligible.map((account) => (
-              <Checkbox key={account.id} value={account.id} style={{ width: '100%' }}>
+              <Checkbox key={account.id} value={account.id} className="oi-full">
                 <Space size={8} wrap>
                   <span className="oi-strong">{account.name}</span>
                   <Tag bordered={false}>{account.currency}</Tag>

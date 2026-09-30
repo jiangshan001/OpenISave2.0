@@ -88,7 +88,7 @@ export function CategoryFormModal({
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="oi-form-alert"
           message={`Used by ${category?.transaction_count} transaction(s). Renaming updates them all; they keep their history either way.`}
         />
       ) : null}

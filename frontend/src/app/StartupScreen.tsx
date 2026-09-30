@@ -14,33 +14,37 @@ interface StartupScreenProps {
 export function StartupScreen({ failed = false, message }: StartupScreenProps) {
   if (!failed) {
     return (
-      <div className="oi-startup">
-        <BrandMark className="oi-startup-mark" />
-        <div className="oi-startup-title">OpenISave</div>
-        <div className="oi-startup-note">{message ?? 'Starting…'}</div>
-        <div className="oi-startup-bar">
-          <span />
+      <div className="oi-startup-page">
+        <div className="oi-startup" role="status" aria-live="polite">
+          <BrandMark className="oi-startup-mark" />
+          <div className="oi-startup-title">OpenISave</div>
+          <div className="oi-startup-note">{message ?? 'Starting…'}</div>
+          <div className="oi-startup-bar" aria-hidden>
+            <span />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="oi-startup">
-      <BrandMark className="oi-startup-mark" />
-      <h1 className="oi-startup-title">OpenISave could not start</h1>
-      <p className="oi-startup-body">
-        {message ?? 'The local data service did not come up.'} Your accounts could not be
-        loaded, but nothing has been lost — your encrypted database is untouched on this
-        computer.
-      </p>
-      <p className="oi-startup-body oi-muted">
-        Close OpenISave and open it again. If it keeps happening, check the log at
-        <code> %LOCALAPPDATA%\OpenISave2Data\logs\openisave2.log</code>.
-      </p>
-      <button type="button" onClick={() => window.location.reload()}>
-        Try again
-      </button>
+    <div className="oi-startup-page">
+      <div className="oi-startup">
+        <BrandMark className="oi-startup-mark" />
+        <h1 className="oi-startup-title">OpenISave could not start</h1>
+        <p className="oi-startup-body">
+          {message ?? 'The local data service did not come up.'} Your accounts could not be
+          loaded, but nothing has been lost: your encrypted database is untouched on this
+          computer.
+        </p>
+        <p className="oi-startup-body oi-muted">
+          Close OpenISave and open it again. If it keeps happening, check the log at
+          <code> %LOCALAPPDATA%\OpenISave2Data\logs\openisave2.log</code>.
+        </p>
+        <button type="button" className="oi-startup-retry" onClick={() => window.location.reload()}>
+          Try again
+        </button>
+      </div>
     </div>
   );
 }

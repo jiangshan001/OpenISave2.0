@@ -15,6 +15,7 @@ import { Menu } from 'antd';
 import type { MenuProps } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BrandMark } from '@/components/common/BrandMark';
+import { AppearanceSwitch } from '@/theme/AppearanceSwitch';
 import { FxStatusBadge } from './FxStatusBadge';
 
 const MAIN_ITEMS = [
@@ -59,32 +60,31 @@ export function Sidebar() {
         <BrandMark className="oi-brand-mark" />
         <div>
           <div className="oi-brand-name">OpenISave</div>
-          <div className="oi-brand-version">v{__APP_VERSION__} · Local</div>
+          <div className="oi-brand-version">Version {__APP_VERSION__}</div>
         </div>
       </div>
-      <Menu
-        mode="inline"
-        theme="light"
-        selectedKeys={selected}
-        items={NAV}
-        onClick={go}
-        className="oi-menu"
-      />
+      <Menu mode="inline" selectedKeys={selected} items={NAV} onClick={go} className="oi-menu" />
       <div className="oi-sidebar-spacer" />
       <Menu
         mode="inline"
-        theme="light"
         selectedKeys={selected}
         items={SYSTEM_ITEMS}
         onClick={go}
         className="oi-menu"
       />
       <div className="oi-sidebar-footer">
-        <div className="oi-sidebar-status">
+        <div className="oi-sidebar-row" title="Encrypted on this computer, reporting in CNY">
           <LockOutlined />
-          <span>Encrypted on this computer, reporting in CNY</span>
+          <span>
+            <span className="oi-sidebar-row-title">Local &amp; encrypted</span>
+            <span className="oi-sidebar-row-meta"> · CNY</span>
+          </span>
         </div>
         <FxStatusBadge />
+        <div className="oi-sidebar-row oi-sidebar-theme">
+          <span>Theme</span>
+          <AppearanceSwitch compact size="small" />
+        </div>
       </div>
     </nav>
   );

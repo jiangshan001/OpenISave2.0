@@ -3,7 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>OpenISave</title>
+    <script>
+      // Resolve the appearance before the first paint so the window never
+      // flashes the wrong theme. Mirrors src/theme/appearance.ts.
+      //
+      // Keep this page free of inline style elements: the desktop build adds
+      // a nonce for them to the CSP, which then disables 'unsafe-inline' and
+      // blocks the styles Ant Design injects at runtime. Setting properties
+      // through element.style (CSSOM) is not affected.
+      (function () {
+        var theme = 'light';
+        try {
+          var pref = localStorage.getItem('openisave.appearance');
+          if (pref !== 'light' && pref !== 'dark') {
+            pref = 'system';
+          }
+          theme =
+            pref === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : pref;
+        } catch (error) {
+          theme = 'light';
+        }
+        var root = document.documentElement;
+        root.setAttribute('data-theme', theme);
+        root.style.colorScheme = theme;
+        root.style.backgroundColor = theme === 'dark' ? '#0e1117' : '#f4f5f7';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

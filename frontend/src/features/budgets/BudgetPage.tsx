@@ -1,9 +1,9 @@
 import { EditOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Progress, Row, Space, Table, Tag } from 'antd';
+import { Button, Card, Progress, Space, Table, Tag } from 'antd';
 import { useState } from 'react';
 
 import { PageHeader } from '@/components/common/PageHeader';
-import { StatCard } from '@/components/common/StatCard';
+import { StatCard, StatStrip } from '@/components/common/StatCard';
 import { StateBoundary } from '@/components/common/StateBoundary';
 import { useBudget, useCategories } from '@/hooks/useResources';
 import type { BudgetLine } from '@/types';
@@ -60,31 +60,25 @@ export function BudgetPage() {
       >
         {data ? (
           <>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={8}>
-                <StatCard label="Budgeted" amountMinor={data.total_budget_minor} currency={currency} />
-              </Col>
-              <Col xs={24} sm={8}>
-                <StatCard
-                  label="Spent"
-                  amountMinor={data.total_actual_minor}
-                  currency={currency}
-                  footer={
-                    overallPercent === null
-                      ? undefined
-                      : `${formatPercent(overallPercent)} of budget used`
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={8}>
-                <StatCard
-                  label="Remaining"
-                  amountMinor={data.total_remaining_minor}
-                  currency={currency}
-                  tone={data.total_remaining_minor < 0 ? 'negative' : 'positive'}
-                />
-              </Col>
-            </Row>
+            <StatStrip columns={3}>
+              <StatCard label="Budgeted" amountMinor={data.total_budget_minor} currency={currency} />
+              <StatCard
+                label="Spent"
+                amountMinor={data.total_actual_minor}
+                currency={currency}
+                footer={
+                  overallPercent === null
+                    ? undefined
+                    : `${formatPercent(overallPercent)} of budget used`
+                }
+              />
+              <StatCard
+                label="Remaining"
+                amountMinor={data.total_remaining_minor}
+                currency={currency}
+                tone={data.total_remaining_minor < 0 ? 'negative' : 'positive'}
+              />
+            </StatStrip>
 
             <Card title="By category" variant="borderless" className="oi-section-gap">
               <Table<BudgetLine>
@@ -98,7 +92,7 @@ export function BudgetPage() {
                       <Space direction="vertical" size={0}>
                         <span className="oi-strong">{row.category_name}</span>
                         {row.parent_name ? (
-                          <span className="oi-muted" style={{ fontSize: 12 }}>
+                          <span className="oi-meta">
                             in {row.parent_name}
                           </span>
                         ) : null}
@@ -133,7 +127,7 @@ export function BudgetPage() {
                     render: (_, row) => {
                       const percent = row.used_percent ?? 0;
                       return (
-                        <Space direction="vertical" size={2} style={{ width: '100%' }}>
+                        <Space direction="vertical" size={2} className="oi-full">
                           <Progress
                             percent={Math.min(percent, 100)}
                             size="small"

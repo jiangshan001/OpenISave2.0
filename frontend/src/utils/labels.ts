@@ -49,25 +49,8 @@ export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
 
 export const FX_FRESHNESS_LABELS: Record<string, string> = {
   fresh: 'Fresh',
-  stale: 'Stale — using cached rate',
+  stale: 'Stale, using cached rate',
   missing: 'No rate available',
   identity: 'Base currency',
 };
 
-/** Chart palette; index-stable so a category keeps its colour across renders. */
-export const CHART_COLORS = [
-  '#2f5bd3',
-  '#3a9b72',
-  '#e0a13a',
-  '#d8674f',
-  '#7a6fd0',
-  '#3b9db5',
-  '#c0689a',
-  '#8a9540',
-  '#8d98aa',
-  '#b5835a',
-];
-
-export function colorForIndex(index: number): string {
-  return CHART_COLORS[index % CHART_COLORS.length];
-}

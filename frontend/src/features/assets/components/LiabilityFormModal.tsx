@@ -106,7 +106,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="oi-form-alert"
         message={
           isEdit
             ? 'The outstanding balance lives on this liability’s account. Record repayments to change it.'
@@ -166,17 +166,17 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="start_date" label="Start date">
-              <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+              <DatePicker className="oi-full" format="DD MMM YYYY" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="end_date" label="Ends">
-              <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+              <DatePicker className="oi-full" format="DD MMM YYYY" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="interest_rate_percent" label="Interest rate %">
-              <InputNumber style={{ width: '100%' }} min={0} step={0.1} precision={4} />
+              <InputNumber className="oi-full" min={0} step={0.1} precision={4} />
             </Form.Item>
           </Col>
         </Row>

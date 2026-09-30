@@ -1,6 +1,6 @@
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { Card, Tooltip } from 'antd';
-import type { ReactNode } from 'react';
+import { Tooltip } from 'antd';
+import type { CSSProperties, ReactNode } from 'react';
 
 import type { CurrencyCode } from '@/types';
 import { formatMoney } from '@/utils/money';
@@ -15,8 +15,7 @@ interface StatCardProps {
   hint?: string;
   tone?: 'neutral' | 'positive' | 'negative' | 'auto';
   footer?: ReactNode;
-  accent?: boolean;
-  /** Optional glyph shown top-right in a tinted square. */
+  /** Optional small glyph before the label; the tone colours only the glyph. */
   icon?: ReactNode;
   iconTone?: StatTone;
 }
@@ -31,6 +30,19 @@ function resolveTone(tone: StatCardProps['tone'], amountMinor?: number | null): 
   return '';
 }
 
+/**
+ * Several headline figures on one surface, split by hairlines rather than
+ * boxed separately. Collapses to two columns, then one.
+ */
+export function StatStrip({ children, columns }: { children: ReactNode; columns: number }) {
+  return (
+    <div className="oi-strip" style={{ '--oi-strip-cols': columns } as CSSProperties}>
+      {children}
+    </div>
+  );
+}
+
+/** One figure inside a StatStrip. */
 export function StatCard({
   label,
   amountMinor,
@@ -39,30 +51,30 @@ export function StatCard({
   hint,
   tone = 'neutral',
   footer,
-  accent = false,
   icon,
   iconTone = 'neutral',
 }: StatCardProps) {
-  const body =
-    value ?? formatMoney(amountMinor ?? 0, currency, { signed: tone === 'auto' });
+  const body = value ?? formatMoney(amountMinor ?? 0, currency, { signed: tone === 'auto' });
 
   return (
-    <Card className={`oi-stat-card${accent ? ' oi-stat-card--accent' : ''}`} variant="borderless">
-      <div className="oi-stat-head">
-        <div className="oi-stat-label">
-          {label}
-          {hint ? (
-            <Tooltip title={hint}>
-              <span className="oi-stat-hint" aria-label="More information">
-                <QuestionCircleOutlined />
-              </span>
-            </Tooltip>
-          ) : null}
-        </div>
-        {icon ? <span className={`oi-stat-icon oi-stat-icon--${iconTone}`}>{icon}</span> : null}
+    <div className="oi-strip-item">
+      <div className="oi-stat-label">
+        {icon ? (
+          <span className={`oi-stat-glyph oi-stat-glyph--${iconTone}`} aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        {label}
+        {hint ? (
+          <Tooltip title={hint}>
+            <span className="oi-stat-hint" aria-label="More information" tabIndex={0}>
+              <QuestionCircleOutlined />
+            </span>
+          </Tooltip>
+        ) : null}
       </div>
-      <div className={`oi-stat-value ${accent ? '' : resolveTone(tone, amountMinor)}`}>{body}</div>
+      <div className={`oi-stat-value ${resolveTone(tone, amountMinor)}`}>{body}</div>
       {footer ? <div className="oi-stat-footer">{footer}</div> : null}
-    </Card>
+    </div>
   );
 }

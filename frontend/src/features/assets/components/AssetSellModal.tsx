@@ -79,7 +79,7 @@ export function AssetSellModal({ open, asset, onClose }: AssetSellModalProps) {
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="oi-form-alert"
         message="The asset leaves your current holdings but keeps its full history, so its lifetime cost stays available."
       />
       <Form form={form} layout="vertical" requiredMark="optional">
@@ -91,7 +91,7 @@ export function AssetSellModal({ open, asset, onClose }: AssetSellModalProps) {
               rules={[{ required: true, message: 'Pick a date' }]}
             >
               <DatePicker
-                style={{ width: '100%' }}
+                className="oi-full"
                 format="DD MMM YYYY"
                 disabledDate={(value) =>
                   value &&

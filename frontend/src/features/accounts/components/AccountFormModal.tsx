@@ -112,6 +112,7 @@ export function AccountFormModal({ open, account, onClose }: AccountFormModalPro
           </Col>
         </Row>
 
+        <div className="oi-form-section">Classification</div>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="account_type" label="Type" rules={[{ required: true }]}>
@@ -150,6 +151,7 @@ export function AccountFormModal({ open, account, onClose }: AccountFormModalPro
           </Col>
         </Row>
 
+        <div className="oi-form-section">Balance</div>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -183,7 +185,7 @@ export function AccountFormModal({ open, account, onClose }: AccountFormModalPro
           <Alert
             type="info"
             showIcon
-            style={{ marginBottom: 16 }}
+            className="oi-form-alert"
             message="This is a liability account. The amount owed is stored as a negative balance and subtracted from net worth."
           />
         ) : null}
@@ -192,7 +194,7 @@ export function AccountFormModal({ open, account, onClose }: AccountFormModalPro
           <Alert
             type="warning"
             showIcon
-            style={{ marginBottom: 16 }}
+            className="oi-form-alert"
             message="Changing the opening balance shifts every historical balance for this account."
           />
         ) : null}

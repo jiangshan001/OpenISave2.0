@@ -22,22 +22,26 @@ export function AccountCard({ account, purposeLabel, onEdit }: AccountCardProps)
       <div className="oi-card-title-row">
         <div>
           <Space size={6} wrap>
-            <span className="oi-strong">{account.name}</span>
-            {account.is_archived ? <Tag>Archived</Tag> : null}
+            <span className="oi-account-name">{account.name}</span>
+            {account.is_archived ? <Tag bordered={false}>Archived</Tag> : null}
             {!account.include_in_net_worth ? (
               <Tooltip title="Excluded from net worth">
-                <Tag color="orange">Off net worth</Tag>
+                <Tag color="orange" bordered={false}>
+                  Off net worth
+                </Tag>
               </Tooltip>
             ) : null}
           </Space>
-          <div className="oi-muted" style={{ fontSize: 12.5, marginTop: 2 }}>
+          <div className="oi-account-institution">
             {account.institution ?? ACCOUNT_TYPE_LABELS[account.account_type]}
           </div>
         </div>
-        <span className={`oi-chip${account.is_liability ? ' oi-chip--negative' : ''}`}>{account.currency}</span>
+        <span className={`oi-chip oi-chip--quiet${account.is_liability ? ' oi-negative' : ''}`}>
+          {account.currency}
+        </span>
       </div>
 
-      <div style={{ margin: '18px 0 12px' }}>
+      <div className="oi-account-balance">
         <MoneyText
           amountMinor={account.balance_minor}
           currency={account.currency}

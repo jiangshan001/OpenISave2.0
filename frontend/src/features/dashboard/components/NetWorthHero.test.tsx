@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { renderWithProviders, screen } from '@/test/utils';
 import type { Dashboard } from '@/types/dashboard';
-import { AssetBreakdown } from './AssetBreakdown';
+import { NetWorthHero } from './NetWorthHero';
 
 function dashboard(overrides: Partial<Dashboard> = {}): Dashboard {
   return {
@@ -45,11 +45,11 @@ function dashboard(overrides: Partial<Dashboard> = {}): Dashboard {
   };
 }
 
-describe('AssetBreakdown — net worth composition', () => {
+describe('NetWorthHero - net worth and composition', () => {
   it('shows possessions separately and marks them as reference only', () => {
-    renderWithProviders(<AssetBreakdown data={dashboard()} />);
-    expect(screen.getByText('Net Worth Assets')).toBeInTheDocument();
-    expect(screen.getByText('Personal Possessions')).toBeInTheDocument();
+    renderWithProviders(<NetWorthHero data={dashboard()} />);
+    expect(screen.getByText('Net worth assets')).toBeInTheDocument();
+    expect(screen.getByText('Personal possessions')).toBeInTheDocument();
     expect(screen.getByText('reference only · not in net worth')).toBeInTheDocument();
     // ¥18,000 of possessions is displayed but net worth stays ¥32,000.
     expect(screen.getByText('¥18,000.00')).toBeInTheDocument();

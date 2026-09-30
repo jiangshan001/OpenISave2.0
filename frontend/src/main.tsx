@@ -4,11 +4,22 @@ import ReactDOM from 'react-dom/client';
 import { resolveApiOrigin } from './api/runtime';
 import { App } from './app/App';
 import { StartupScreen } from './app/StartupScreen';
+import { initAppearance } from './theme/appearance';
 import './styles/tokens.css';
 import './styles/global.css';
+import './styles/shell.css';
+import './styles/controls.css';
+import './styles/overlays.css';
+import './styles/toolbar.css';
 import './styles/cards.css';
 import './styles/charts.css';
+import './styles/overview.css';
+import './styles/settings.css';
 import './styles/imports.css';
+
+// index.html has already applied the theme before first paint; this keeps
+// the two in step (and covers environments that skip the inline script).
+initAppearance();
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 

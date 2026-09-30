@@ -1,0 +1,55 @@
+/* Filter toolbar and active-filter chips (Transactions). */
+
+.oi-toolbar {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--oi-border-soft);
+}
+
+.oi-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oi-filter-search { width: 220px; }
+.oi-filter-account { width: 180px; }
+.oi-filter-type { width: 120px; }
+.oi-filter-category { width: 180px; }
+.oi-filter-currency { width: 104px; }
+.oi-filter-dates { width: 240px; }
+
+.oi-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.oi-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--oi-border);
+  border-radius: 999px;
+  background: var(--oi-primary-soft);
+  color: var(--oi-text-2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition:
+    border-color var(--oi-dur-hover) var(--oi-ease),
+    color var(--oi-dur-hover) var(--oi-ease);
+}
+
+.oi-filter-chip .anticon {
+  font-size: 9px;
+  color: var(--oi-subtle);
+}
+
+.oi-filter-chip:hover {
+  border-color: var(--oi-border-strong);
+  color: var(--oi-text);
+}

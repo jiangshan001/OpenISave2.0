@@ -127,7 +127,7 @@ export function GoalFormModal({ open, goal, onClose }: GoalFormModalProps) {
           </Col>
           <Col span={8}>
             <Form.Item name="deadline" label="Deadline">
-              <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+              <DatePicker className="oi-full" format="DD MMM YYYY" />
             </Form.Item>
           </Col>
         </Row>

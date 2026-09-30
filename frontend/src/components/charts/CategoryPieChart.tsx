@@ -2,7 +2,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import type { CurrencyCode } from '@/types';
 import type { CategoryBreakdown } from '@/types/dashboard';
-import { colorForIndex } from '@/utils/labels';
+import { categoryColor } from '@/theme/chartPalette';
+import { useChartPalette } from '@/theme/themeContext';
 import { formatMoney, formatPercent, toMajor } from '@/utils/money';
 import { ChartTooltip } from './ChartTooltip';
 
@@ -46,6 +47,8 @@ export function CategoryPieChart({
   const total = slices.reduce((sum, slice) => sum + slice.valueMinor, 0);
   const minorByName = new Map(slices.map((slice) => [slice.name, slice.valueMinor]));
   const size = Math.min(height, 220);
+  const palette = useChartPalette();
+  const colorForIndex = (index: number) => categoryColor(palette, index);
 
   return (
     <div className="oi-donut" style={{ minHeight: size }}>

@@ -1,9 +1,9 @@
 import { CreditCardOutlined, GoldOutlined, PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Row, Space, Tabs } from 'antd';
+import { Button, Card, Space, Tabs } from 'antd';
 import { useState } from 'react';
 
 import { PageHeader } from '@/components/common/PageHeader';
-import { StatCard } from '@/components/common/StatCard';
+import { StatCard, StatStrip } from '@/components/common/StatCard';
 import { StateBoundary } from '@/components/common/StateBoundary';
 import { useAssets, useLiabilities } from '@/hooks/useAssets';
 import { useDashboard } from '@/hooks/useResources';
@@ -62,8 +62,8 @@ export function AssetsPage() {
         }
       />
 
-      <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
-        <Col xs={24} sm={8}>
+      <div className="oi-stack-gap">
+        <StatStrip columns={3}>
           <StatCard
             label="Counted in net worth"
             icon={<GoldOutlined />}
@@ -72,8 +72,6 @@ export function AssetsPage() {
             currency={base}
             hint="Assets that store wealth, such as property."
           />
-        </Col>
-        <Col xs={24} sm={8}>
           <StatCard
             label="Personal possessions"
             icon={<ShoppingOutlined />}
@@ -82,8 +80,6 @@ export function AssetsPage() {
             hint="Current value of things you use. Reference only — not part of net worth."
             footer="Not in net worth"
           />
-        </Col>
-        <Col xs={24} sm={8}>
           <StatCard
             label="Outstanding debt"
             icon={<CreditCardOutlined />}
@@ -92,8 +88,8 @@ export function AssetsPage() {
             currency={base}
             tone={debts > 0 ? 'negative' : 'neutral'}
           />
-        </Col>
-      </Row>
+        </StatStrip>
+      </div>
 
       <Card variant="borderless" styles={{ body: { paddingTop: 8 } }}>
         <Tabs

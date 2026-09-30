@@ -13,7 +13,7 @@ export function VaultMissingPanel({ onRestored }: { onRestored: () => void }) {
   const rows = backups.data ?? [];
 
   return (
-    <Space direction="vertical" size={12} style={{ width: '100%' }}>
+    <Space direction="vertical" size={12} className="oi-full">
       <Typography.Text type="secondary">
         OpenISave will not create an empty database while your data might still be recoverable.
         Choose the most recent backup to restore.

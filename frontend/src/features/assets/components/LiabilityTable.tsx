@@ -36,7 +36,7 @@ export function LiabilityTable({ rows, loading, onEdit, onRepay }: LiabilityTabl
           render: (_, row) => (
             <Space direction="vertical" size={0}>
               <span className="oi-strong">{row.name}</span>
-              <span className="oi-muted" style={{ fontSize: 12 }}>
+              <span className="oi-meta">
                 {TYPE_LABELS[row.liability_type] ?? row.liability_type}
                 {row.lender ? ` · ${row.lender}` : ''}
                 {row.linked_asset_names.length > 0
@@ -75,13 +75,13 @@ export function LiabilityTable({ rows, loading, onEdit, onRepay }: LiabilityTabl
           title: 'Repaid',
           width: 180,
           render: (_, row) => (
-            <Space direction="vertical" size={2} style={{ width: '100%' }}>
+            <Space direction="vertical" size={2} className="oi-full">
               <Progress
                 percent={Math.min(row.repaid_percent ?? 0, 100)}
                 size="small"
                 showInfo={false}
               />
-              <span className="oi-muted" style={{ fontSize: 12 }}>
+              <span className="oi-meta">
                 {formatMoney(row.repaid_minor, row.currency)} ({formatPercent(row.repaid_percent)})
               </span>
             </Space>

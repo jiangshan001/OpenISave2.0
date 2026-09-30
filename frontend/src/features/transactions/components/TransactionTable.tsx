@@ -28,7 +28,7 @@ export function TransactionTable({
 }: TransactionTableProps) {
   const voidTransaction = useVoidTransaction();
   const accountName = (id: number | null) =>
-    accounts.find((account) => account.id === id)?.name ?? '—';
+    accounts.find((account) => account.id === id)?.name ?? '-';
   const categoryName = (id: number | null) =>
     categories.find((category) => category.id === id)?.name ?? null;
 
@@ -48,7 +48,7 @@ export function TransactionTable({
             {value || TRANSACTION_TYPE_LABELS[row.type]}
           </span>
           {row.type === 'transfer' ? (
-            <span className="oi-muted" style={{ fontSize: 12 }}>
+            <span className="oi-row-meta">
               {accountName(row.from_account_id)} → {accountName(row.to_account_id)}
             </span>
           ) : null}
@@ -115,9 +115,9 @@ export function TransactionTable({
       align: 'right',
       render: (_, row) =>
         row.is_voided ? null : (
-          <Space size={2}>
+          <Space size={2} className="oi-row-actions">
             {onEdit && row.type !== 'transfer' ? (
-              <Button size="small" type="link" onClick={() => onEdit(row)}>
+              <Button size="small" type="text" onClick={() => onEdit(row)}>
                 Edit
               </Button>
             ) : null}
@@ -127,7 +127,7 @@ export function TransactionTable({
               okText="Void"
               onConfirm={() => voidTransaction.mutate(row.id)}
             >
-              <Button size="small" type="link" danger>
+              <Button size="small" type="text" danger>
                 Void
               </Button>
             </Popconfirm>

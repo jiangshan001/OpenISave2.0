@@ -26,7 +26,7 @@ export function RemovePlaintextModal({ open, files, onClose }: RemovePlaintextMo
       afterClose={() => setConfirmed(false)}
       destroyOnHidden
     >
-      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+      <Space direction="vertical" size={12} className="oi-full">
         <Alert
           type="warning"
           showIcon

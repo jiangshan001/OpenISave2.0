@@ -45,7 +45,7 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
         <Tag bordered={false}>{goal.currency}</Tag>
       </div>
 
-      <div style={{ margin: '16px 0 8px' }}>
+      <div className="oi-goal-balance">
         <span className="oi-money-lg">{formatMoney(goal.current_amount_minor, goal.currency)}</span>
         {hasTarget ? (
           <span className="oi-muted">
@@ -62,24 +62,24 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
             status={percent >= 100 ? 'success' : 'active'}
             format={() => formatPercent(goal.progress_percent)}
           />
-          <div className="oi-muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+          <div className="oi-muted oi-small oi-mt-4">
             {formatMoney(goal.remaining_minor, goal.currency)} to go
             {goal.deadline ? ` · by ${formatDate(goal.deadline)}` : ''}
           </div>
         </>
       ) : (
-        <div className="oi-muted" style={{ fontSize: 12.5 }}>
+        <div className="oi-muted oi-small">
           Accumulating · no target set
         </div>
       )}
 
       {goal.unconverted_accounts.length > 0 ? (
-        <Tag color="red" style={{ marginTop: 12 }}>
+        <Tag color="red" className="oi-tag-below">
           No rate for {goal.unconverted_accounts.join(', ')}
         </Tag>
       ) : null}
 
-      <Space size={4} style={{ marginTop: 14 }} wrap>
+      <Space size={4} className="oi-mt-14" wrap>
         <Button
           size="small"
           type="text"
@@ -104,7 +104,7 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
       </Space>
 
       {expanded ? (
-        <div style={{ marginTop: 12 }}>
+        <div className="oi-mt-12">
           <GoalContributions
             contributions={goal.contributions}
             goalCurrency={goal.currency}

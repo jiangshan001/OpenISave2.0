@@ -75,7 +75,7 @@ export function LiabilityRepayModal({ open, liability, onClose }: LiabilityRepay
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="oi-form-alert"
         message={
           liability
             ? `Outstanding: ${formatMoney(liability.outstanding_minor, liability.currency)}. ` +
@@ -112,7 +112,7 @@ export function LiabilityRepayModal({ open, liability, onClose }: LiabilityRepay
           <MoneyInput currency={currency} />
         </Form.Item>
         <Form.Item name="transaction_date" label="Date" rules={[{ required: true }]}>
-          <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+          <DatePicker className="oi-full" format="DD MMM YYYY" />
         </Form.Item>
       </Form>
     </Modal>

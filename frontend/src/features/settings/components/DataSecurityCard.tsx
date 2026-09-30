@@ -1,12 +1,14 @@
 import {
+  CheckOutlined,
   CloudUploadOutlined,
+  ExclamationOutlined,
   FolderOpenOutlined,
   HistoryOutlined,
   KeyOutlined,
   LockOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Card, Descriptions, Space, Tag, Typography } from 'antd';
-import { useState } from 'react';
+import { Alert, Button, Card, Space, Typography } from 'antd';
+import { useState, type ReactNode } from 'react';
 
 import { StateBoundary } from '@/components/common/StateBoundary';
 import { useBackUpNow, useOpenDataFolder, useSecurityStatus } from '@/hooks/useSecurity';
@@ -14,6 +16,27 @@ import { RecoveryKeyModal } from './RecoveryKeyModal';
 import { RemovePlaintextModal } from './RemovePlaintextModal';
 import { RestoreBackupModal } from './RestoreBackupModal';
 import { formatBackupTime } from './securityFormat';
+
+type Tone = 'positive' | 'warning' | 'negative';
+
+/** Status in words first; the tone and glyph only reinforce it. */
+function Status({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return (
+    <span className={`oi-chip oi-chip--${tone}`}>
+      {tone === 'positive' ? <CheckOutlined /> : <ExclamationOutlined />}
+      {children}
+    </span>
+  );
+}
+
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
 
 /** Settings → Data & Security. Shows where data lives and how it is protected. */
 export function DataSecurityCard() {
@@ -28,12 +51,7 @@ export function DataSecurityCard() {
   return (
     <Card
       id="data-security"
-      title={
-        <Space>
-          <LockOutlined />
-          Data &amp; Security
-        </Space>
-      }
+      title="Data & Security"
       variant="borderless"
       extra={
         <Space wrap>
@@ -51,7 +69,7 @@ export function DataSecurityCard() {
     >
       <StateBoundary isLoading={status.isLoading} error={status.error} onRetry={() => void status.refetch()}>
         {data ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Space direction="vertical" size={18} className="oi-full">
             {data.migration.plaintext_backup_exists ? (
               <Alert
                 type="warning"
@@ -66,56 +84,63 @@ export function DataSecurityCard() {
               />
             ) : null}
 
-            <Descriptions column={{ xs: 1, md: 2 }} size="small" colon={false}>
-              <Descriptions.Item label="Database Encryption">
-                <Tag color="green">{data.encryption.engine} · Encrypted</Tag>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {data.encryption.cipher_version ? `SQLCipher ${data.encryption.cipher_version}` : ''}
-                </Typography.Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Encryption Key">
+            <div className="oi-vault">
+              <span className="oi-vault-mark" aria-hidden>
+                <LockOutlined />
+              </span>
+              <div className="oi-vault-text">
+                <div className="oi-vault-title">
+                  Encrypted with {data.encryption.engine}
+                  {data.encryption.cipher_version ? ` ${data.encryption.cipher_version}` : ''}
+                </div>
+                <div className="oi-vault-meta">{data.encryption.algorithm}</div>
+              </div>
+            </div>
+
+            <dl className="oi-facts oi-facts--grid">
+              <Fact label="Encryption key">
                 {data.key_storage.present ? (
-                  <Tag color="green">Stored in {data.key_storage.label}</Tag>
+                  <Status tone="positive">Stored in {data.key_storage.label}</Status>
                 ) : (
-                  <Tag color="red">Not found in {data.key_storage.label}</Tag>
+                  <Status tone="negative">Not found in {data.key_storage.label}</Status>
                 )}
-              </Descriptions.Item>
-              <Descriptions.Item label="Data Location">
-                <Typography.Text code style={{ fontSize: 12 }}>
-                  {data.data_location}
-                </Typography.Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Last Backup">
-                {data.last_backup ? (
-                  <span>
-                    {formatBackupTime(data.last_backup.created_at)}{' '}
-                    <Tag bordered={false}>{data.last_backup.kind}</Tag>
-                  </span>
-                ) : (
-                  <Tag color="orange">None yet</Tag>
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="Backups">
-                {data.backup_count} encrypted ·{' '}
-                <span className="oi-muted">
-                  {['daily', 'weekly', 'monthly', 'manual', 'safety']
-                    .map((kind) => `${data.backup_counts[kind as 'daily'] ?? 0} ${kind}`)
-                    .join(' · ')}
-                </span>
-              </Descriptions.Item>
-              <Descriptions.Item label="Recovery Key">
-                <Space size={8}>
+              </Fact>
+              <Fact label="Recovery key">
+                <Space size={8} wrap>
                   {data.recovery_key.configured ? (
-                    <Tag color="green">Configured</Tag>
+                    <Status tone="positive">Configured</Status>
                   ) : (
-                    <Tag color="orange">Not configured</Tag>
+                    <Status tone="warning">Not configured</Status>
                   )}
                   <Button size="small" icon={<KeyOutlined />} onClick={() => setRecoveryOpen(true)}>
                     Export Recovery Key
                   </Button>
                 </Space>
-              </Descriptions.Item>
-            </Descriptions>
+              </Fact>
+              <Fact label="Last backup">
+                {data.last_backup ? (
+                  <span>
+                    {formatBackupTime(data.last_backup.created_at)}{' '}
+                    <span className="oi-muted">· {data.last_backup.kind}</span>
+                  </span>
+                ) : (
+                  <Status tone="warning">None yet</Status>
+                )}
+              </Fact>
+              <Fact label="Backups">
+                <span className="oi-num">{data.backup_count} encrypted</span>
+                <div className="oi-muted oi-small">
+                  {['daily', 'weekly', 'monthly', 'manual', 'safety']
+                    .map((kind) => `${data.backup_counts[kind as 'daily'] ?? 0} ${kind}`)
+                    .join(' · ')}
+                </div>
+              </Fact>
+              <Fact label="Data location">
+                <Typography.Text code className="oi-path">
+                  {data.data_location}
+                </Typography.Text>
+              </Fact>
+            </dl>
 
             {!data.recovery_key.configured ? (
               <Alert
@@ -125,11 +150,10 @@ export function DataSecurityCard() {
                 description="If Windows Credential Manager is ever lost (a new PC, a reinstalled Windows), the recovery key is the only way to open your encrypted data and backups."
               />
             ) : null}
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {data.encryption.algorithm}. Backups are encrypted with the same key: 7 daily, 4
-              weekly and 12 monthly are kept, plus a safety copy before every schema change or
-              restore.
-            </Typography.Text>
+            <p className="oi-note oi-flush oi-small">
+              Backups are encrypted with the same key: 7 daily, 4 weekly and 12 monthly are kept,
+              plus a safety copy before every schema change or restore.
+            </p>
           </Space>
         ) : null}
       </StateBoundary>

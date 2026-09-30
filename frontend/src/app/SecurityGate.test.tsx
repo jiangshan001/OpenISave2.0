@@ -10,7 +10,7 @@ function status(overrides: Partial<SecurityStatus> = {}): SecurityStatus {
     state: 'ready',
     reason: null,
     message: null,
-    app_version: '2.2.0',
+    app_version: '2.3.0',
     encryption: {
       enabled: true,
       engine: 'SQLCipher',

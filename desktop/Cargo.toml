@@ -1,6 +1,6 @@
 [package]
 name = "openisave"
-version = "2.2.0"
+version = "2.3.0"
 description = "OpenISave 2.0 — local-first personal finance"
 authors = ["OpenISave"]
 edition = "2021"

@@ -1,7 +1,8 @@
-import { Card, Empty, Segmented, Skeleton } from 'antd';
-import { useMemo, useState, type MouseEvent } from 'react';
+import { Empty, Segmented, Skeleton } from 'antd';
+import { useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 
 import { useDashboardActivity } from '@/hooks/useResources';
+import { useChartPalette } from '@/theme/themeContext';
 import type { ActivityKind, DailyActivity } from '@/types/dashboard';
 import { formatDate } from '@/utils/dates';
 import { formatMoney } from '@/utils/money';
@@ -18,12 +19,6 @@ const WEEKDAY_LABELS: [number, string][] = [
   [4, 'Fri'],
 ];
 
-/** Index = backend intensity level 0-4. Level 0 is an empty day. */
-export const LEVEL_COLORS: Record<ActivityKind, string[]> = {
-  expense: ['#eef0f3', '#f7dcd2', '#eeb09a', '#df7d62', '#b0503a'],
-  income: ['#eef0f3', '#d3ebdf', '#98cfb3', '#4ea57f', '#22724f'],
-};
-
 const KIND_OPTIONS = [
   { label: 'Expenses', value: 'expense' },
   { label: 'Income', value: 'income' },
@@ -35,8 +30,30 @@ interface HoverState {
   y: number;
 }
 
+/** Flat analytical section: title and toggle, figures, then the grid itself. */
+function HeatmapSection({
+  title,
+  extra,
+  children,
+}: {
+  title: string;
+  extra?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="oi-heat-section oi-section-gap" aria-label={title}>
+      <header className="oi-heat-header">
+        <h2 className="oi-section-title">{title}</h2>
+        {extra}
+      </header>
+      {children}
+    </section>
+  );
+}
+
 /** Heatmap body for an already-loaded activity payload; owns the toggle. */
 export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
+  const palette = useChartPalette();
   const [kind, setKind] = useState<ActivityKind>('expense');
   const [hover, setHover] = useState<HoverState | null>(null);
   const series = data.series[kind];
@@ -45,7 +62,7 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
     [data.start, data.end, series.days],
   );
   const base = data.base_currency;
-  const colors = LEVEL_COLORS[kind];
+  const colors = palette.heatmap[kind];
   const width = LEFT + grid.weeks.length * STEP;
   const height = TOP + 7 * STEP;
   const noun = kind === 'expense' ? 'Spent' : 'Received';
@@ -65,10 +82,8 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
   };
 
   return (
-    <Card
+    <HeatmapSection
       title={kind === 'expense' ? 'Daily spending' : 'Daily income'}
-      variant="borderless"
-      className="oi-section-gap"
       extra={
         <Segmented
           size="small"
@@ -86,9 +101,7 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
           <div className="oi-stat-label">
             {noun} in the last {data.months} months
           </div>
-          <div className="oi-heatmap-stat">
-            <span className="oi-strong">{formatMoney(series.total_minor, base)}</span>
-          </div>
+          <div className="oi-heatmap-stat">{formatMoney(series.total_minor, base)}</div>
         </div>
         <div>
           <div className="oi-stat-label">Active days</div>
@@ -99,12 +112,16 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
             <div className="oi-stat-label">Busiest day</div>
             <div className="oi-heatmap-stat">
               {formatMoney(series.max_minor, base)}{' '}
-              {busiest ? <span className="oi-muted">on {formatDate(busiest)}</span> : null}
+              {busiest ? <span className="oi-heatmap-on">on {formatDate(busiest)}</span> : null}
             </div>
           </div>
         ) : null}
       </div>
-      <div className="oi-heatmap" onMouseLeave={() => setHover(null)}>
+      <div
+        className="oi-heatmap"
+        onMouseLeave={() => setHover(null)}
+        style={{ '--oi-heat-hover': palette.heatmapHover } as CSSProperties}
+      >
         <svg
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
@@ -156,7 +173,7 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
           </div>
         ) : null}
       </div>
-      <div className="oi-heatmap-legend oi-muted">
+      <div className="oi-heatmap-legend">
         <span>Less</span>
         {colors.map((color) => (
           <span key={color} className="oi-heatmap-swatch" style={{ background: color }} />
@@ -164,16 +181,16 @@ export function ActivityHeatmapPanel({ data }: { data: DailyActivity }) {
         <span>More</span>
         <span className="oi-heatmap-note">In {base}, transfers excluded</span>
       </div>
-    </Card>
+    </HeatmapSection>
   );
 }
 
-/** Overview card: last 12 months of daily income or expenses. */
+/** Overview section: last 12 months of daily income or expenses. */
 export function ActivityHeatmapCard() {
   const { data, isLoading, error } = useDashboardActivity(12);
   if (data) return <ActivityHeatmapPanel data={data} />;
   return (
-    <Card title="Daily spending" variant="borderless" className="oi-section-gap">
+    <HeatmapSection title="Daily spending">
       {isLoading ? (
         <Skeleton active paragraph={{ rows: 4 }} />
       ) : (
@@ -186,6 +203,6 @@ export function ActivityHeatmapCard() {
           }
         />
       )}
-    </Card>
+    </HeatmapSection>
   );
 }

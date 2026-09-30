@@ -167,7 +167,7 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
               label="Date"
               rules={[{ required: true, message: 'Pick a date' }]}
             >
-              <DatePicker style={{ width: '100%' }} format="DD MMM YYYY" />
+              <DatePicker className="oi-full" format="DD MMM YYYY" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -183,6 +183,7 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
           </Col>
         </Row>
 
+        <div className="oi-form-section">Details</div>
         <Form.Item name="description" label="Description">
           <Input placeholder={type === 'income' ? 'e.g. Salary' : 'e.g. Tesco'} />
         </Form.Item>

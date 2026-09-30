@@ -50,7 +50,7 @@ export function ManualRateModal({ open, initialCurrency, onClose }: ManualRateMo
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="oi-form-alert"
         message="Use this when the rate service is unreachable. Transactions already saved keep the rate they were recorded with."
       />
       <Form form={form} layout="vertical">
@@ -73,7 +73,7 @@ export function ManualRateModal({ open, initialCurrency, onClose }: ManualRateMo
             },
           ]}
         >
-          <InputNumber style={{ width: '100%' }} step={0.0001} precision={6} placeholder="9.6500" />
+          <InputNumber className="oi-full" step={0.0001} precision={6} placeholder="9.6500" />
         </Form.Item>
       </Form>
     </Modal>

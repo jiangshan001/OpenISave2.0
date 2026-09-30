@@ -1,5 +1,5 @@
 import { EditOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Descriptions, InputNumber, Row, Space, Table, Tag } from 'antd';
+import { Button, Card, Col, InputNumber, Row, Space, Table, Tag } from 'antd';
 import { useState } from 'react';
 
 import { PageHeader } from '@/components/common/PageHeader';
@@ -8,6 +8,7 @@ import { useFxRates, useRefreshFx, useSettings, useUpdateSettings } from '@/hook
 import type { FxRateStatus } from '@/types';
 import { formatDate } from '@/utils/dates';
 import { CURRENCY_META } from '@/utils/money';
+import { AppearanceCard } from './components/AppearanceCard';
 import { DataSecurityCard } from './components/DataSecurityCard';
 import { ManualRateModal } from './components/ManualRateModal';
 
@@ -33,10 +34,10 @@ export function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        subtitle="Base currency, exchange rates, and how your data is stored and protected."
+        subtitle="Appearance, base currency, exchange rates, and how your data is stored and protected."
       />
 
-      <div style={{ marginBottom: 16 }}>
+      <div className="oi-stack-gap">
         <DataSecurityCard />
       </div>
 
@@ -46,61 +47,79 @@ export function SettingsPage() {
         onRetry={() => void settings.refetch()}
       >
         {settings.data ? (
-          <Row gutter={[16, 16]}>
+          <Row gutter={[20, 20]}>
             <Col xs={24} xl={10}>
-              <Card title="Reporting" variant="borderless">
-                <Descriptions column={1} size="small" colon={false}>
-                  <Descriptions.Item label="Base currency">
-                    <Tag color="blue">{settings.data.base_currency}</Tag>
-                    <span className="oi-muted">
-                      {CURRENCY_META[settings.data.base_currency]?.name}
-                    </span>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Timezone">{settings.data.timezone}</Descriptions.Item>
-                  <Descriptions.Item label="Supported currencies">
-                    <Space size={4} wrap>
-                      {settings.data.supported_currencies.map((code) => (
-                        <Tag key={code} bordered={false}>
-                          {code}
-                        </Tag>
-                      ))}
-                    </Space>
-                  </Descriptions.Item>
-                </Descriptions>
-                <p className="oi-muted" style={{ marginTop: 12, marginBottom: 0 }}>
+              <AppearanceCard />
+
+              <Card title="Reporting" variant="borderless" className="oi-section-gap">
+                <dl className="oi-facts">
+                  <div>
+                    <dt>Base currency</dt>
+                    <dd>
+                      <span className="oi-chip oi-chip--primary">{settings.data.base_currency}</span>{' '}
+                      <span className="oi-muted">
+                        {CURRENCY_META[settings.data.base_currency]?.name}
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Timezone</dt>
+                    <dd>{settings.data.timezone}</dd>
+                  </div>
+                  <div>
+                    <dt>Supported currencies</dt>
+                    <dd>
+                      <Space size={4} wrap>
+                        {settings.data.supported_currencies.map((code) => (
+                          <Tag key={code} bordered={false}>
+                            {code}
+                          </Tag>
+                        ))}
+                      </Space>
+                    </dd>
+                  </div>
+                </dl>
+                <p className="oi-note">
                   All consolidated figures are reported in {settings.data.base_currency}. Accounts
                   and transactions always keep their own currency.
                 </p>
               </Card>
 
               <Card title="Exchange rate freshness" variant="borderless" className="oi-section-gap">
-                <Space align="center" wrap>
-                  <span>Treat a rate as stale after</span>
-                  <InputNumber
-                    min={1}
-                    max={365}
-                    value={effectiveStaleDays}
-                    onChange={(value) => setStaleDays(value)}
-                    style={{ width: 90 }}
-                  />
-                  <span>days</span>
-                  <Button
-                    type="primary"
-                    loading={updateSettings.isPending}
-                    disabled={staleDays === null || staleDays === settings.data.fx_stale_after_days}
-                    onClick={() =>
-                      updateSettings.mutate({ fx_stale_after_days: effectiveStaleDays })
-                    }
-                  >
-                    Save
-                  </Button>
-                </Space>
+                <div className="oi-setting-row">
+                  <label className="oi-setting-label" htmlFor="stale-days">
+                    Treat a rate as stale after
+                  </label>
+                  <Space align="center">
+                    <InputNumber
+                      id="stale-days"
+                      min={1}
+                      max={365}
+                      value={effectiveStaleDays}
+                      onChange={(value) => setStaleDays(value)}
+                      addonAfter="days"
+                      className="oi-input-days"
+                    />
+                    <Button
+                      type="primary"
+                      loading={updateSettings.isPending}
+                      disabled={
+                        staleDays === null || staleDays === settings.data.fx_stale_after_days
+                      }
+                      onClick={() =>
+                        updateSettings.mutate({ fx_stale_after_days: effectiveStaleDays })
+                      }
+                    >
+                      Save
+                    </Button>
+                  </Space>
+                </div>
               </Card>
 
               <Card title="Privacy" variant="borderless" className="oi-section-gap">
-                <p className="oi-muted" style={{ marginTop: 0, marginBottom: 0 }}>
-                  Nothing financial leaves this computer — the only outbound request is for
-                  exchange rates, which sends currency codes only.
+                <p className="oi-note oi-flush">
+                  Nothing financial leaves this computer. The only outbound request is for
+                  exchange rates, and it sends currency codes only.
                 </p>
               </Card>
             </Col>
@@ -109,13 +128,13 @@ export function SettingsPage() {
               <Card
                 title={`Exchange rates to ${settings.data.base_currency}`}
                 variant="borderless"
+                className="oi-card-flush"
                 extra={
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => setManualOpen(true)}>
                       Manual rate
                     </Button>
                     <Button
-                      type="primary"
                       icon={<ReloadOutlined />}
                       loading={refresh.isPending}
                       onClick={() => refresh.mutate()}
@@ -124,7 +143,6 @@ export function SettingsPage() {
                     </Button>
                   </Space>
                 }
-                styles={{ body: { padding: 0 } }}
               >
                 <StateBoundary
                   isLoading={rates.isLoading}
@@ -139,7 +157,12 @@ export function SettingsPage() {
                     columns={[
                       {
                         title: 'Pair',
-                        render: (_, row) => `${row.from_currency} / ${row.to_currency}`,
+                        render: (_, row) => (
+                          <span className="oi-strong">
+                            {row.from_currency}
+                            <span className="oi-muted"> / {row.to_currency}</span>
+                          </span>
+                        ),
                       },
                       {
                         title: 'Rate',
@@ -148,7 +171,7 @@ export function SettingsPage() {
                           row.rate ? (
                             Number(row.rate).toFixed(4)
                           ) : (
-                            <span className="oi-muted">—</span>
+                            <span className="oi-muted">-</span>
                           ),
                       },
                       {
@@ -157,18 +180,21 @@ export function SettingsPage() {
                       },
                       {
                         title: 'Source',
-                        render: (_, row) => row.source ?? <span className="oi-muted">—</span>,
+                        render: (_, row) =>
+                          row.source ?? <span className="oi-muted">-</span>,
                       },
                       {
                         title: 'Status',
                         render: (_, row) => (
-                          <Tag color={FRESHNESS_TONE[row.freshness]}>{row.freshness}</Tag>
+                          <Tag color={FRESHNESS_TONE[row.freshness]} bordered={false}>
+                            {row.freshness}
+                          </Tag>
                         ),
                       },
                     ]}
                   />
                 </StateBoundary>
-                <p className="oi-muted" style={{ padding: '12px 16px', marginBottom: 0 }}>
+                <p className="oi-panel-note">
                   When no rate is available OpenISave refuses the conversion rather than assuming a
                   rate of 1. Enter a manual rate to continue working offline.
                 </p>

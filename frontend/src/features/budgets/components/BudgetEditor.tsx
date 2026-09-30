@@ -82,7 +82,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
             title: 'Category',
             render: (_, row, index) => (
               <Select
-                style={{ width: '100%' }}
+                className="oi-full"
                 showSearch
                 optionFilterProp="label"
                 value={row.category_id}
@@ -118,7 +118,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
           },
         ]}
       />
-      <Space style={{ marginTop: 12 }}>
+      <Space className="oi-mt-12">
         <Button icon={<PlusOutlined />} onClick={addRow} disabled={options.length === 0}>
           Add category
         </Button>

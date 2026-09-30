@@ -1,4 +1,4 @@
-import { Alert, Button, Input, Space, Spin, Typography } from 'antd';
+import { Alert, Button, Input, Space, Typography } from 'antd';
 import { useState, type ReactNode } from 'react';
 
 import { errorMessage } from '@/api/client';
@@ -19,18 +19,28 @@ export function SecurityGate({ children }: { children: ReactNode }) {
 
   if (status.isLoading) {
     return (
-      <div className="oi-startup">
-        <Spin />
+      <div className="oi-startup-page">
+        <div className="oi-startup" role="status" aria-live="polite">
+          <BrandMark className="oi-startup-mark" />
+          <div className="oi-startup-title">OpenISave</div>
+          <div className="oi-startup-note">Opening your encrypted data…</div>
+          <div className="oi-startup-bar" aria-hidden>
+            <span />
+          </div>
+        </div>
       </div>
     );
   }
   if (!status.data) {
     return (
-      <div className="oi-startup">
-        <Alert type="error" showIcon message={errorMessage(status.error)} />
-        <Button style={{ marginTop: 16 }} onClick={() => void status.refetch()}>
-          Try again
-        </Button>
+      <div className="oi-startup-page">
+        <div className="oi-startup">
+          <BrandMark className="oi-startup-mark" />
+          <Alert type="error" showIcon message={errorMessage(status.error)} />
+          <Button className="oi-startup-error" onClick={() => void status.refetch()}>
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -66,63 +76,82 @@ function LockedScreen({ status, onChange }: { status: SecurityStatus; onChange: 
   };
 
   return (
-    <div className="oi-startup" style={{ maxWidth: 620, textAlign: 'left' }}>
-      <div style={{ textAlign: 'center' }}>
-        <BrandMark className="oi-startup-mark" />
-        <h1 className="oi-startup-title">{titles[status.state] ?? titles.error}</h1>
+    <div className="oi-startup-page">
+      <div className="oi-startup oi-startup--wide">
+        <div className="oi-startup-head">
+          <BrandMark className="oi-startup-mark" />
+          <h1 className="oi-startup-title">{titles[status.state] ?? titles.error}</h1>
+        </div>
+        <p className="oi-startup-body">{status.message}</p>
+
+        {status.state === 'locked' ||
+        (status.state === 'vault_missing' && !status.key_storage.present) ? (
+          <div className="oi-startup-panel">
+            <Space direction="vertical" size={12} className="oi-full">
+              <label htmlFor="recovery-key">
+                <Typography.Text type="secondary">
+                  Enter the recovery key you exported from Settings → Data &amp; Security. It is
+                  checked against your encrypted data before being saved to Windows Credential
+                  Manager.
+                </Typography.Text>
+              </label>
+              <Input.TextArea
+                id="recovery-key"
+                rows={2}
+                autoFocus
+                spellCheck={false}
+                autoComplete="off"
+                placeholder="OIS1-XXXXX-XXXXX-…"
+                value={recoveryKey}
+                onChange={(event) => setRecoveryKey(event.target.value)}
+                className="oi-startup-key"
+              />
+              <Button
+                type="primary"
+                loading={busy}
+                disabled={recoveryKey.trim().length < 10}
+                onClick={() => void run(() => securityApi.unlock(recoveryKey))}
+              >
+                Unlock
+              </Button>
+            </Space>
+          </div>
+        ) : null}
+
+        {status.state === 'vault_missing' && status.key_storage.present ? (
+          <div className="oi-startup-panel">
+            <VaultMissingPanel onRestored={onChange} />
+          </div>
+        ) : null}
+
+        {status.state === 'migration_failed' || status.state === 'error' ? (
+          <div className="oi-startup-panel">
+            <Space direction="vertical" size={12} className="oi-full">
+              {status.migration.failure?.reason ? (
+                <Alert type="warning" showIcon message={status.migration.failure.reason} />
+              ) : null}
+              <Typography.Text type="secondary">
+                Nothing was deleted or changed. Close any other OpenISave window, then retry. The
+                details are in the migration report inside the data folder.
+              </Typography.Text>
+              <Space>
+                <Button
+                  type="primary"
+                  loading={busy}
+                  onClick={() => void run(() => securityApi.retryMigration())}
+                >
+                  Retry
+                </Button>
+                <Button onClick={() => void run(() => securityApi.openDataFolder())}>
+                  Open Data Folder
+                </Button>
+              </Space>
+            </Space>
+          </div>
+        ) : null}
+
+        {error ? <Alert className="oi-startup-error" type="error" showIcon message={error} /> : null}
       </div>
-      <p className="oi-startup-body">{status.message}</p>
-
-      {status.state === 'locked' || (status.state === 'vault_missing' && !status.key_storage.present) ? (
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          <Typography.Text type="secondary">
-            Enter the recovery key you exported from Settings → Data &amp; Security. It is checked
-            against your encrypted data before being saved to Windows Credential Manager.
-          </Typography.Text>
-          <Input.TextArea
-            rows={2}
-            autoFocus
-            spellCheck={false}
-            autoComplete="off"
-            placeholder="OIS1-XXXXX-XXXXX-…"
-            value={recoveryKey}
-            onChange={(event) => setRecoveryKey(event.target.value)}
-            style={{ fontFamily: 'monospace' }}
-          />
-          <Button
-            type="primary"
-            loading={busy}
-            disabled={recoveryKey.trim().length < 10}
-            onClick={() => void run(() => securityApi.unlock(recoveryKey))}
-          >
-            Unlock
-          </Button>
-        </Space>
-      ) : null}
-
-      {status.state === 'vault_missing' && status.key_storage.present ? (
-        <VaultMissingPanel onRestored={onChange} />
-      ) : null}
-
-      {status.state === 'migration_failed' || status.state === 'error' ? (
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          {status.migration.failure?.reason ? (
-            <Alert type="warning" showIcon message={status.migration.failure.reason} />
-          ) : null}
-          <Typography.Text type="secondary">
-            Nothing was deleted or changed. Close any other OpenISave window, then retry. The
-            details are in the migration report inside the data folder.
-          </Typography.Text>
-          <Space>
-            <Button type="primary" loading={busy} onClick={() => void run(() => securityApi.retryMigration())}>
-              Retry
-            </Button>
-            <Button onClick={() => void run(() => securityApi.openDataFolder())}>Open Data Folder</Button>
-          </Space>
-        </Space>
-      ) : null}
-
-      {error ? <Alert style={{ marginTop: 16 }} type="error" showIcon message={error} /> : null}
     </div>
   );
 }

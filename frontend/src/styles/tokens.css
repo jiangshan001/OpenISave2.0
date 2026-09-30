@@ -1,40 +1,15 @@
 /*
- * Design tokens. One cool-neutral family, one accent (the brand blue,
- * deepened and desaturated), and calibrated semantic tones.
+ * Design tokens. One cool-neutral family per theme, one accent (the brand
+ * blue), calibrated semantic tones. Colour values mirror src/theme/palette.ts
+ * (Ant Design) and src/theme/chartPalette.ts (SVG); change them together.
  *
- * Shape rule: cards/panels 14px, controls 8px, chips 6px, bars fully round.
+ * Surface ladder: canvas → panel → raised → hero. Depth comes from the
+ * ladder and hairlines; shadows are reserved for things that float.
+ * Shape rule: panels 14px, controls 8px, chips 6px, bars fully round.
  */
 :root {
-  /* surfaces */
-  --oi-bg: #f4f5f7;
-  --oi-surface: #ffffff;
-  --oi-surface-2: #f8f9fb;
-  --oi-sidebar: #fafbfc;
-  --oi-border: #e6e8ec;
-  --oi-border-soft: #eef0f3;
-  --oi-border-strong: #d6dae1;
-
-  /* text */
-  --oi-text: #151a23;
-  --oi-text-2: #3c4350;
-  --oi-muted: #6a7282;
-  --oi-subtle: #98a0ad;
-
-  /* accent */
-  --oi-primary: #2f5bd3;
-  --oi-primary-strong: #2449b3;
-  --oi-primary-soft: #edf1fc;
-  --oi-ink: #161c2c;
-
-  /* semantic */
-  --oi-positive: #1a7f55;
-  --oi-positive-soft: #e7f4ee;
-  --oi-negative: #c2412d;
-  --oi-negative-soft: #fbece8;
-  --oi-warning: #b7791f;
-  --oi-warning-soft: #fcf3e2;
-
   /* spacing */
+  --oi-space-2xs: 4px;
   --oi-space-xs: 6px;
   --oi-space-sm: 12px;
   --oi-space-md: 16px;
@@ -44,13 +19,9 @@
 
   /* shape */
   --oi-radius: 14px;
+  --oi-radius-hero: 18px;
   --oi-radius-control: 8px;
   --oi-radius-chip: 6px;
-
-  /* elevation: shadows tinted to the ink hue, never pure black */
-  --oi-shadow-card: 0 1px 2px rgba(22, 28, 44, 0.04), 0 0 0 1px rgba(22, 28, 44, 0.02);
-  --oi-shadow-hover: 0 10px 28px -14px rgba(22, 28, 44, 0.22), 0 1px 2px rgba(22, 28, 44, 0.05);
-  --oi-shadow-pop: 0 12px 32px -8px rgba(22, 28, 44, 0.22), 0 2px 6px rgba(22, 28, 44, 0.06);
 
   /* type */
   --oi-font:
@@ -59,7 +30,117 @@
   --oi-font-display:
     'Segoe UI Variable Display', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC',
     'Microsoft YaHei', Roboto, Helvetica, Arial, sans-serif;
+  --oi-font-mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', Menlo, monospace;
+  --oi-text-hero: 36px;
+  --oi-text-figure: 22px;
+  --oi-text-page: 26px;
+  --oi-text-section: 15px;
+  --oi-text-label: 12.5px;
 
-  /* motion */
+  /* motion: quick, exponential ease-out; nothing bounces */
   --oi-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --oi-dur-hover: 160ms;
+  --oi-dur-panel: 200ms;
+}
+
+:root,
+[data-theme='light'] {
+  --oi-bg: #f4f5f7;
+  --oi-surface: #ffffff;
+  --oi-surface-2: #f8f9fb;
+  --oi-sunken: #eef0f3;
+  --oi-sidebar: #f9fafb;
+  --oi-border: #e3e6eb;
+  --oi-border-soft: #eceef2;
+  --oi-border-strong: #d2d7df;
+
+  --oi-text: #141922;
+  --oi-text-2: #3a414d;
+  --oi-muted: #606978;
+  --oi-subtle: #838b99;
+
+  --oi-primary: #2f5bd3;
+  --oi-primary-hover: #3d68dc;
+  --oi-primary-strong: #2449b3;
+  --oi-accent-text: #2a52c2;
+  --oi-primary-soft: #edf1fc;
+  --oi-ring: rgba(47, 91, 211, 0.16);
+  --oi-focus: rgba(47, 91, 211, 0.6);
+
+  --oi-positive: #177a50;
+  --oi-positive-soft: #e6f3ec;
+  --oi-negative: #c2412d;
+  --oi-negative-soft: #fbece8;
+  --oi-warning: #9a6410;
+  --oi-warning-soft: #fcf3e2;
+  --oi-warning-fill: #d59a33;
+
+  /* hero: deep graphite-navy with the faintest tonal lift */
+  --oi-hero-bg: linear-gradient(158deg, #1b2335 0%, #141a28 58%, #121724 100%);
+  --oi-hero-edge: rgba(255, 255, 255, 0.06);
+  --oi-hero-text: #f4f6fb;
+  --oi-hero-muted: rgba(226, 232, 244, 0.64);
+  --oi-hero-rule: rgba(255, 255, 255, 0.08);
+  --oi-hero-shadow: 0 18px 40px -24px rgba(20, 26, 41, 0.6);
+
+  --oi-shadow-card: none;
+  --oi-shadow-hover: 0 12px 28px -16px rgba(20, 26, 41, 0.24), 0 1px 2px rgba(20, 26, 41, 0.05);
+  --oi-shadow-pop: 0 16px 36px -12px rgba(20, 26, 41, 0.22), 0 2px 6px rgba(20, 26, 41, 0.06);
+  --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --oi-btn-depth: 0 1px 2px rgba(20, 42, 110, 0.18);
+
+  --oi-scrollbar: rgba(20, 26, 41, 0.14);
+  --oi-scrollbar-hover: rgba(20, 26, 41, 0.26);
+  --oi-selection: rgba(47, 91, 211, 0.16);
+  --oi-code-bg: #eef0f4;
+}
+
+[data-theme='dark'] {
+  --oi-bg: #0e1117;
+  --oi-surface: #151922;
+  --oi-surface-2: #1a1f29;
+  --oi-sunken: #11151c;
+  --oi-sidebar: #11151c;
+  --oi-border: #272d37;
+  --oi-border-soft: #202630;
+  --oi-border-strong: #353c48;
+
+  --oi-text: #f2f4f7;
+  --oi-text-2: #c4cbd6;
+  --oi-muted: #98a1b0;
+  --oi-subtle: #737c8c;
+
+  --oi-primary: #416bd9;
+  --oi-primary-hover: #4e78e3;
+  --oi-primary-strong: #3a60c6;
+  --oi-accent-text: #86a6f5;
+  --oi-primary-soft: rgba(110, 146, 240, 0.14);
+  --oi-ring: rgba(110, 146, 240, 0.26);
+  --oi-focus: rgba(134, 166, 245, 0.75);
+
+  --oi-positive: #5bbf93;
+  --oi-positive-soft: rgba(91, 191, 147, 0.13);
+  --oi-negative: #ec8a78;
+  --oi-negative-soft: rgba(236, 138, 120, 0.13);
+  --oi-warning: #d8a651;
+  --oi-warning-soft: rgba(216, 166, 81, 0.13);
+  --oi-warning-fill: #c9973f;
+
+  --oi-hero-bg: linear-gradient(158deg, #1f2940 0%, #192236 56%, #161e30 100%);
+  --oi-hero-edge: rgba(150, 175, 235, 0.14);
+  --oi-hero-text: #f4f6fb;
+  --oi-hero-muted: rgba(214, 223, 242, 0.62);
+  --oi-hero-rule: rgba(255, 255, 255, 0.08);
+  --oi-hero-shadow: 0 20px 44px -26px rgba(0, 0, 0, 0.8);
+
+  --oi-shadow-card: none;
+  --oi-shadow-hover: 0 14px 30px -16px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --oi-shadow-pop: 0 18px 40px -12px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --oi-btn-depth: 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  --oi-scrollbar: rgba(255, 255, 255, 0.12);
+  --oi-scrollbar-hover: rgba(255, 255, 255, 0.22);
+  --oi-selection: rgba(110, 146, 240, 0.32);
+  --oi-code-bg: #1f2531;
 }

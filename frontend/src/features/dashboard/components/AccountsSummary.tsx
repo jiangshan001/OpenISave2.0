@@ -37,7 +37,7 @@ export function AccountsSummary({ data }: { data: Dashboard }) {
             render: (value: string, row) => (
               <div>
                 <div className="oi-strong">{value}</div>
-                <div className="oi-muted" style={{ fontSize: 12 }}>
+                <div className="oi-meta">
                   {row.institution ?? ACCOUNT_TYPE_LABELS[row.account_type]}
                 </div>
               </div>

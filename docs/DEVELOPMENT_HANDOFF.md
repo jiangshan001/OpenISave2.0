@@ -8,6 +8,7 @@
 > Deeper references, in order of usefulness:
 > [`SECURITY_AND_DATA_STORAGE.md`](SECURITY_AND_DATA_STORAGE.md) (vault, keys,
 > backups, recovery) ·
+> [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md) (themes + visual system) ·
 > [`V2_2_IMPLEMENTATION_STATUS.md`](V2_2_IMPLEMENTATION_STATUS.md) (recurring +
 > import details) ·
 > [`OPENISAVE2_PROJECT_ARCHITECTURE.md`](OPENISAVE2_PROJECT_ARCHITECTURE.md)
@@ -48,7 +49,7 @@ keeps its own native currency.
 
 | | |
 |---|---|
-| Current version | **2.2.0** (source) |
+| Current version | **2.3.0** (source) |
 | Platform | Windows 10/11 x64 desktop app (only Windows is built and tested) |
 | Frontend | React 18 + TypeScript + Vite, Ant Design 5, TanStack Query, Recharts |
 | Backend | Python 3.11, FastAPI, Pydantic, SQLAlchemy 2, Alembic |
@@ -152,9 +153,10 @@ Also: `backend/alembic/versions/` (migrations), `backend/tests/` (pytest;
 | `api/` | `client.ts` (base URL from Tauri runtime or dev default) and one module per resource |
 | `hooks/` | TanStack Query hooks + `queryKeys.ts` |
 | `types/` | Shared TypeScript types mirroring backend schemas |
-| `styles/` | `tokens.css` (design tokens), `global.css`, `cards.css`, `charts.css`, `heatmap.css`, `imports.css` |
+| `styles/` | `tokens.css` (light + dark design tokens), `global.css`, `shell.css`, `controls.css`, `overlays.css`, `toolbar.css`, `cards.css`, `charts.css`, `overview.css`, `heatmap.css`, `settings.css`, `startup.css`, `imports.css` |
+| `theme/` | Appearance (Light / Dark / System): `appearance.ts` (preference in `localStorage["openisave.appearance"]`, applied to `<html data-theme>`), `ThemeProvider.tsx`, `antdTheme.ts` (`createTheme(mode)`), `palette.ts`, `chartPalette.ts` (`useChartPalette()`), `AppearanceSwitch.tsx` |
 | `utils/` | money/date formatting, labels, form helpers |
-| `app/` | router, providers, theme, `SecurityGate` (locked/recovery screens) |
+| `app/` | router, providers, `SecurityGate` (locked/recovery screens), `StartupScreen` |
 | `test/` | Vitest setup and synthetic fixtures |
 
 ### scripts/
@@ -451,12 +453,12 @@ Rules:
 
 ## J. Testing
 
-Last known totals (release/v2.2.0, see section P):
+Last known totals (release/v2.3.0, see section P):
 
 - **Backend: 313 passed, 1 skipped.** The skip is the opt-in real-statement
   parser test (`OPENISAVE_WECHAT_SAMPLE=<path to a real .xlsx>`); real
   statements are never copied into the repo.
-- **Frontend: 65 tests in 18 files passed**; typecheck, lint, `check:size`
+- **Frontend: 87 tests in 21 files passed**; typecheck, lint, `check:size`
   and production build pass.
 
 Run:
@@ -595,7 +597,7 @@ feature/* or release/vX.Y.Z branch
 
 ## N. Known limitations and technical debt
 
-Verified against the 2.2.0 code:
+Verified against the 2.3.0 code:
 
 - **Importers**: only WeChat Pay XLSX. No Alipay, HSBC, Monzo, or generic
   CSV/OFX importer yet (the `StatementImporter` registry is ready for them).
@@ -652,15 +654,12 @@ refund matching, recurring catch-up option.
 
 | | |
 |---|---|
-| Version | 2.2.0 |
-| Branch | `release/v2.2.0` (tracking `origin/release/v2.2.0`) |
-| Release commit | `9739f29` — *OpenISave 2.2.0: recurring transactions and statement import* |
-| This document | added in the follow-up commit *Add OpenISave development handoff guide* on the same branch |
-| Base | `main` at `39d5b9c` (2.1.1 merged via PR #1) |
-| Pull request | [jiangshan001/OpenISave2.0#2](https://github.com/jiangshan001/OpenISave2.0/pull/2) — open, to be merged manually by the user |
-| Alembic head | `c4d8f2a6e913` |
-| Tests | backend 313 passed / 1 skipped; frontend 65 / 18 files; typecheck, lint, check:size, build pass |
-| GitHub Release for 2.2.0 | not created |
+| Version | 2.3.0 (presentation-only; no schema change) |
+| Branch | `release/v2.3.0`, created locally from `release/v2.2.0` (`25d1eb0`); **not committed, not pushed** |
+| Previous release | 2.2.0 on `release/v2.2.0`; [jiangshan001/OpenISave2.0#2](https://github.com/jiangshan001/OpenISave2.0/pull/2) open, `main` still at `39d5b9c` (2.1.1) |
+| Alembic head | `c4d8f2a6e913` (unchanged) |
+| Tests | backend 313 passed / 1 skipped; frontend 87 / 21 files; typecheck, lint, check:size, build pass |
+| GitHub Release for 2.2.0 / 2.3.0 | not created |
 
 Update this section whenever the branch, head commit, PR or test totals
 change.

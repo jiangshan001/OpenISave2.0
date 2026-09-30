@@ -81,14 +81,13 @@ export function TransactionsPage() {
         }
       />
 
-      <TransactionFilters
-        value={filters}
-        accounts={accounts ?? []}
-        categories={categories ?? []}
-        onChange={handleFilterChange}
-      />
-
-      <Card variant="borderless" styles={{ body: { padding: 0 } }}>
+      <Card variant="borderless" className="oi-card-flush">
+        <TransactionFilters
+          value={filters}
+          accounts={accounts ?? []}
+          categories={categories ?? []}
+          onChange={handleFilterChange}
+        />
         <StateBoundary
           isLoading={query.isLoading}
           error={query.error}

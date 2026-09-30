@@ -1,8 +1,10 @@
-import { Button, Card, DatePicker, Input, Select, Space } from 'antd';
-import type { Dayjs } from 'dayjs';
+import { CloseOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Input, Select } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
+import { useEffect, useState } from 'react';
 
 import type { Account, Category, CurrencyCode, TransactionType } from '@/types';
-import { toApiDate } from '@/utils/dates';
+import { formatDate, toApiDate } from '@/utils/dates';
 import { CURRENCY_CODES } from '@/utils/money';
 import { buildCategoryOptions } from '../categoryOptions';
 
@@ -25,29 +27,90 @@ interface TransactionFiltersProps {
   onChange: (next: FilterState) => void;
 }
 
+const TYPE_OPTIONS = [
+  { value: 'income', label: 'Income' },
+  { value: 'expense', label: 'Expense' },
+  { value: 'transfer', label: 'Transfer' },
+];
+
+interface ActiveChip {
+  key: string;
+  label: string;
+  clear: Partial<FilterState>;
+}
+
+function activeChips(
+  value: FilterState,
+  accounts: Account[],
+  categories: Category[],
+): ActiveChip[] {
+  const chips: ActiveChip[] = [];
+  if (value.search) chips.push({ key: 'search', label: `“${value.search}”`, clear: { search: undefined } });
+  if (value.account_id !== undefined) {
+    const name = accounts.find((account) => account.id === value.account_id)?.name ?? 'Account';
+    chips.push({ key: 'account', label: name, clear: { account_id: undefined } });
+  }
+  if (value.type) {
+    const label = TYPE_OPTIONS.find((option) => option.value === value.type)?.label ?? value.type;
+    chips.push({ key: 'type', label, clear: { type: undefined } });
+  }
+  if (value.category_id !== undefined) {
+    const name = categories.find((category) => category.id === value.category_id)?.name ?? 'Category';
+    chips.push({ key: 'category', label: name, clear: { category_id: undefined } });
+  }
+  if (value.currency) chips.push({ key: 'currency', label: value.currency, clear: { currency: undefined } });
+  if (value.date_from || value.date_to) {
+    const from = value.date_from ? formatDate(value.date_from) : 'Any date';
+    const to = value.date_to ? formatDate(value.date_to) : 'today';
+    chips.push({
+      key: 'dates',
+      label: `${from} to ${to}`,
+      clear: { date_from: undefined, date_to: undefined },
+    });
+  }
+  return chips;
+}
+
+/** Compact filter toolbar with the active filters echoed as removable chips. */
 export function TransactionFilters({
   value,
   accounts,
   categories,
   onChange,
 }: TransactionFiltersProps) {
+  const [search, setSearch] = useState(value.search ?? '');
+  useEffect(() => setSearch(value.search ?? ''), [value.search]);
+
   const set = (patch: Partial<FilterState>) => onChange({ ...value, ...patch });
-  const hasFilters = Object.values(value).some((entry) => entry !== undefined && entry !== '');
+  const chips = activeChips(value, accounts, categories);
+  const range: [Dayjs | null, Dayjs | null] | null =
+    value.date_from || value.date_to
+      ? [value.date_from ? dayjs(value.date_from) : null, value.date_to ? dayjs(value.date_to) : null]
+      : null;
 
   return (
-    <Card variant="borderless" style={{ marginBottom: 16 }} styles={{ body: { padding: 16 } }}>
-      <Space wrap size={12}>
-        <Input.Search
+    <div className="oi-toolbar" role="search" aria-label="Filter transactions">
+      <div className="oi-toolbar-row">
+        <Input
           allowClear
+          variant="filled"
+          prefix={<SearchOutlined className="oi-subtle" />}
           placeholder="Search description"
-          style={{ width: 220 }}
-          defaultValue={value.search}
-          onSearch={(text) => set({ search: text || undefined })}
+          aria-label="Search description"
+          className="oi-filter-search"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            if (!event.target.value && value.search) set({ search: undefined });
+          }}
+          onPressEnter={() => set({ search: search.trim() || undefined })}
         />
         <Select
           allowClear
+          variant="filled"
           placeholder="Account"
-          style={{ width: 190 }}
+          aria-label="Account"
+          className="oi-filter-account"
           value={value.account_id}
           onChange={(next) => set({ account_id: next })}
           options={accounts.map((account) => ({
@@ -57,46 +120,69 @@ export function TransactionFilters({
         />
         <Select
           allowClear
+          variant="filled"
           placeholder="Type"
-          style={{ width: 130 }}
+          aria-label="Type"
+          className="oi-filter-type"
           value={value.type}
           onChange={(next) => set({ type: next })}
-          options={[
-            { value: 'income', label: 'Income' },
-            { value: 'expense', label: 'Expense' },
-            { value: 'transfer', label: 'Transfer' },
-          ]}
+          options={TYPE_OPTIONS}
         />
         <Select
           allowClear
           showSearch
+          variant="filled"
           optionFilterProp="label"
           placeholder="Category"
-          style={{ width: 200 }}
+          aria-label="Category"
+          className="oi-filter-category"
           value={value.category_id}
           onChange={(next) => set({ category_id: next })}
           options={buildCategoryOptions(categories)}
         />
         <Select
           allowClear
+          variant="filled"
           placeholder="Currency"
-          style={{ width: 120 }}
+          aria-label="Currency"
+          className="oi-filter-currency"
           value={value.currency}
           onChange={(next) => set({ currency: next })}
           options={CURRENCY_CODES.map((code) => ({ value: code, label: code }))}
         />
         <RangePicker
+          variant="filled"
           format="DD MMM YYYY"
-          onChange={(range) => {
-            const [from, to] = (range ?? []) as (Dayjs | null)[];
+          className="oi-filter-dates"
+          value={range}
+          onChange={(next) => {
+            const [from, to] = (next ?? []) as (Dayjs | null)[];
             set({
               date_from: from ? toApiDate(from) : undefined,
               date_to: to ? toApiDate(to) : undefined,
             });
           }}
         />
-        {hasFilters ? <Button onClick={() => onChange({})}>Clear</Button> : null}
-      </Space>
-    </Card>
+      </div>
+      {chips.length > 0 ? (
+        <div className="oi-filter-chips" aria-label="Active filters">
+          {chips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              className="oi-filter-chip"
+              onClick={() => set(chip.clear)}
+              aria-label={`Remove filter ${chip.label}`}
+            >
+              {chip.label}
+              <CloseOutlined />
+            </button>
+          ))}
+          <Button type="text" size="small" onClick={() => onChange({})}>
+            Clear all
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }

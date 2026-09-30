@@ -1,9 +1,9 @@
-import { Card, Col, Row, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 
+import { StatCard, StatStrip } from '@/components/common/StatCard';
 import { useDashboard } from '@/hooks/useResources';
 import type { AccountBalance, AccountGroup } from '@/types';
 import { ACCOUNT_GROUP_LABELS } from '@/utils/labels';
-import { formatMoney } from '@/utils/money';
 
 const GROUP_ORDER: AccountGroup[] = [
   'cash',
@@ -34,25 +34,24 @@ export function AccountGroupSummary({ accounts }: { accounts: AccountBalance[] }
   if (visible.length === 0) return null;
 
   return (
-    <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
-      {visible.map((group) => {
-        const amount = data.groups[group] ?? 0;
-        const count = counts.get(group) ?? 0;
-        const isLiability = group === 'liabilities';
-        return (
-          <Col key={group} flex="1 1 180px">
-            <Card className="oi-stat-card" variant="borderless">
-              <div className="oi-stat-label">{ACCOUNT_GROUP_LABELS[group]}</div>
-              <div className={`oi-stat-value ${isLiability ? 'oi-negative' : ''}`}>
-                {formatMoney(isLiability ? -amount : amount, data.base_currency)}
-              </div>
-              <div className="oi-stat-footer">
-                {count} account{count === 1 ? '' : 's'}
-              </div>
-            </Card>
-          </Col>
-        );
-      })}
-    </Row>
+    <div className="oi-stack-gap">
+      <StatStrip columns={visible.length}>
+        {visible.map((group) => {
+          const amount = data.groups[group] ?? 0;
+          const count = counts.get(group) ?? 0;
+          const isLiability = group === 'liabilities';
+          return (
+            <StatCard
+              key={group}
+              label={ACCOUNT_GROUP_LABELS[group]}
+              amountMinor={isLiability ? -amount : amount}
+              currency={data.base_currency}
+              tone={isLiability && amount ? 'negative' : 'neutral'}
+              footer={`${count} account${count === 1 ? '' : 's'}`}
+            />
+          );
+        })}
+      </StatStrip>
+    </div>
   );
 }

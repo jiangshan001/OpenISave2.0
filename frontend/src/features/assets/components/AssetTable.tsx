@@ -24,7 +24,7 @@ export function AssetTable({ rows, loading, sold = false, onSell, onValue }: Ass
       render: (_, row) => (
         <Space direction="vertical" size={0}>
           <span className="oi-strong">{row.name}</span>
-          <span className="oi-muted" style={{ fontSize: 12 }}>
+          <span className="oi-meta">
             {row.category_name ?? 'Uncategorised'}
             {row.liability_name ? ` · financed by ${row.liability_name}` : ''}
           </span>
@@ -97,12 +97,12 @@ export function AssetTable({ rows, loading, sold = false, onSell, onValue }: Ass
               <span>{formatMoney(row.current_value.value_minor, row.current_value.currency)}</span>
               {row.current_value.source === 'purchase_price' ? (
                 <Tooltip title="No valuation recorded yet, so the purchase price is shown">
-                  <span className="oi-muted" style={{ fontSize: 11.5 }}>
+                  <span className="oi-meta">
                     using purchase value
                   </span>
                 </Tooltip>
               ) : (
-                <span className="oi-muted" style={{ fontSize: 11.5 }}>
+                <span className="oi-meta">
                   valued {formatDate(row.current_value.valuation_date)}
                 </span>
               )}

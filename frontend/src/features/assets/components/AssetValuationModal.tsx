@@ -57,7 +57,7 @@ export function AssetValuationModal({ open, asset, onClose }: AssetValuationModa
       width={480}
       destroyOnHidden
     >
-      <p className="oi-muted" style={{ marginTop: 0 }}>
+      <p className="oi-muted oi-mt-0">
         Valuations are kept as a history, so you can see how this asset has depreciated.
       </p>
       <Form form={form} layout="vertical" requiredMark="optional">
@@ -74,7 +74,7 @@ export function AssetValuationModal({ open, asset, onClose }: AssetValuationModa
           rules={[{ required: true, message: 'Pick a date' }]}
         >
           <DatePicker
-            style={{ width: '100%' }}
+            className="oi-full"
             format="DD MMM YYYY"
             disabledDate={(value) =>
               value && asset ? value < dayjs(asset.purchase_date).startOf('day') : false
