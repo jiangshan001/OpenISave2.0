@@ -1,0 +1,234 @@
+/*
+ * Account identity themes (src/theme/accountTheme.ts decides which one).
+ * A palette is one accent per theme mode (`--acct`); tints and wells are
+ * mixed from it against the current surface, so they follow Light / Dark.
+ * Light accents keep >= 4.5:1 against the tinted well (they colour the
+ * monogram text); dark accents are lifted, desaturated versions. Institution
+ * palettes are inspired by a bank's colours only; no logo is drawn.
+ */
+
+[data-acct='hsbc'] { --acct: #841f3b; }
+[data-acct='boc'] { --acct: #a8281f; }
+[data-acct='cmb'] { --acct: #b34453; }
+[data-acct='ccb'] { --acct: #22519d; }
+[data-acct='monzo'] { --acct: #b1502c; --acct-2: #a86a14; --acct-3: #2f7d77; --acct-4: #2c4c7c; }
+[data-acct='barclays'] { --acct: #0d6593; }
+[data-acct='wechat'] { --acct: #247548; }
+[data-acct='alipay'] { --acct: #1a5fb4; }
+[data-acct='cash'] { --acct: #6a5f33; }
+[data-acct='savings'] { --acct: #17657f; }
+[data-acct='investment'] { --acct: #3e3f98; }
+[data-acct='credit'] { --acct: #6b3a64; }
+[data-acct='property'] { --acct: #77563b; }
+[data-acct='navy'] { --acct: #28477f; }
+[data-acct='teal'] { --acct: #1b6b68; }
+[data-acct='burgundy'] { --acct: #8a2f45; }
+[data-acct='violet'] { --acct: #5b4596; }
+[data-acct='slate'] { --acct: #4b5a6f; }
+[data-acct='amber'] { --acct: #875a12; }
+[data-acct='forest'] { --acct: #37663b; }
+
+[data-theme='dark'] [data-acct='hsbc'] { --acct: #dc8aa0; }
+[data-theme='dark'] [data-acct='boc'] { --acct: #ec8c78; }
+[data-theme='dark'] [data-acct='cmb'] { --acct: #e7a0a8; }
+[data-theme='dark'] [data-acct='ccb'] { --acct: #8eaae6; }
+[data-theme='dark'] [data-acct='monzo'] { --acct: #eba080; --acct-2: #d8ab5f; --acct-3: #6cc0bb; --acct-4: #8ea9e0; }
+[data-theme='dark'] [data-acct='barclays'] { --acct: #70bddf; }
+[data-theme='dark'] [data-acct='wechat'] { --acct: #6fc293; }
+[data-theme='dark'] [data-acct='alipay'] { --acct: #82afec; }
+[data-theme='dark'] [data-acct='cash'] { --acct: #c6b983; }
+[data-theme='dark'] [data-acct='savings'] { --acct: #6bb8cf; }
+[data-theme='dark'] [data-acct='investment'] { --acct: #a6a8ec; }
+[data-theme='dark'] [data-acct='credit'] { --acct: #cf9ac5; }
+[data-theme='dark'] [data-acct='property'] { --acct: #cfa482; }
+[data-theme='dark'] [data-acct='navy'] { --acct: #93ade2; }
+[data-theme='dark'] [data-acct='teal'] { --acct: #6dc3bf; }
+[data-theme='dark'] [data-acct='burgundy'] { --acct: #e091a3; }
+[data-theme='dark'] [data-acct='violet'] { --acct: #b5a5e9; }
+[data-theme='dark'] [data-acct='slate'] { --acct: #a7b4c6; }
+[data-theme='dark'] [data-acct='amber'] { --acct: #d9ac62; }
+[data-theme='dark'] [data-acct='forest'] { --acct: #93c596; }
+
+/* --- identity well (cards, overview rows, goal contributions) --------- */
+
+.oi-acct-mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-family: var(--oi-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--acct);
+  background: color-mix(in srgb, var(--acct) 9%, var(--oi-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acct) 16%, transparent);
+  user-select: none;
+}
+
+.oi-acct-mark[data-len='3'] { font-size: 10.5px; }
+.oi-acct-mark[data-len='4'] { font-size: 9.5px; letter-spacing: 0; }
+
+.oi-acct-mark--sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.oi-acct-mark--sm[data-len='3'] { font-size: 8.5px; }
+.oi-acct-mark--sm[data-len='4'] { font-size: 7.5px; }
+
+/* --- themed account card ---------------------------------------------- */
+
+.oi-account-card.oi-acct {
+  --acct-motif: 0.075;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: color-mix(in srgb, var(--acct) 2.5%, var(--oi-surface));
+}
+
+[data-theme='dark'] .oi-account-card.oi-acct {
+  --acct-motif: 0.05;
+  background: color-mix(in srgb, var(--acct) 3.5%, var(--oi-surface));
+}
+
+.oi-account-card.oi-acct > .ant-card-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Accent edge: full strength at the left, easing out to the right. */
+.oi-acct::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 2;
+  background: linear-gradient(90deg, var(--acct), color-mix(in srgb, var(--acct) 18%, transparent));
+  opacity: 0.75;
+  transition: opacity var(--oi-dur-panel) var(--oi-ease);
+}
+
+/* Background motif: a faint texture confined to the top-right corner. */
+.oi-acct::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 64%;
+  height: 76%;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--acct);
+  opacity: var(--acct-motif);
+  mask-image: radial-gradient(ellipse 100% 100% at 100% 0, #000 20%, transparent 78%);
+  transition: opacity var(--oi-dur-panel) var(--oi-ease);
+}
+
+.oi-account-card.oi-acct:hover,
+.oi-account-card.oi-acct:focus-within {
+  border-color: color-mix(in srgb, var(--acct) 24%, var(--oi-border)) !important;
+}
+
+.oi-acct:hover::before,
+.oi-acct:focus-within::before { opacity: 1; }
+
+.oi-acct:hover::after,
+.oi-acct:focus-within::after { opacity: calc(var(--acct-motif) * 1.6); }
+
+.oi-acct[data-motif='lattice']::after {
+  background:
+    repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 12px);
+  mask-image: linear-gradient(225deg, #000 0 26%, transparent 58%);
+}
+
+.oi-acct[data-motif='arcs']::after {
+  background: repeating-radial-gradient(circle at 100% 0, transparent 0 13px, currentColor 13px 14px);
+}
+
+.oi-acct[data-motif='ribbon']::after {
+  background: repeating-linear-gradient(118deg, currentColor 0 1px, transparent 1px 5px);
+  mask-image: linear-gradient(118deg, transparent 34%, #000 46%, #000 60%, transparent 74%);
+}
+
+.oi-acct[data-motif='stack']::after {
+  opacity: calc(var(--acct-motif) * 1.6);
+  background: linear-gradient(
+    155deg,
+    transparent 0 34%,
+    var(--acct) 34% 37%,
+    var(--acct-2) 37% 40%,
+    var(--acct-3) 40% 43%,
+    var(--acct-4) 43% 46%,
+    transparent 46%
+  );
+  mask-image: linear-gradient(225deg, #000 10%, transparent 72%);
+}
+
+.oi-acct[data-motif='stack']:hover::after { opacity: calc(var(--acct-motif) * 2.2); }
+
+.oi-acct[data-motif='dots']::after {
+  background:
+    radial-gradient(circle, currentColor 0 1.3px, transparent 1.8px) 0 0 / 12px 12px,
+    radial-gradient(circle, currentColor 0 5px, transparent 5.5px) 18px 6px / 48px 48px;
+}
+
+.oi-acct[data-motif='pinstripe']::after {
+  background: repeating-linear-gradient(0deg, currentColor 0 1px, transparent 1px 6px);
+  mask-image: linear-gradient(to left, #000 10%, transparent 80%);
+}
+
+.oi-acct[data-motif='wave']::after {
+  background-color: currentColor;
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='12'%3E%3Cpath d='M0 6 Q12 0 24 6 T48 6' fill='none' stroke='%23000' stroke-width='1.1'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 100% 100% at 100% 0, #000 20%, transparent 78%);
+  mask-composite: intersect;
+}
+
+/* Vertical hairlines under a rising diagonal: an abstract upward trend. */
+.oi-acct[data-motif='rise']::after {
+  background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 9px);
+  mask-image: linear-gradient(to top left, #000 36%, transparent 58%);
+}
+
+.oi-acct[data-motif='diagonal']::after {
+  background: repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 7px);
+}
+
+.oi-acct[data-motif='contour']::after {
+  background: repeating-radial-gradient(
+    ellipse 150% 100% at 100% 0,
+    transparent 0 9px,
+    currentColor 9px 10px
+  );
+}
+
+/* --- card content ------------------------------------------------------ */
+
+.oi-acct-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.oi-acct-head-text {
+  min-width: 0;
+}
+
+.oi-acct-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.oi-acct-tags .oi-chip {
+  font-weight: 500;
+}

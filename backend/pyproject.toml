@@ -1,6 +1,6 @@
 [project]
 name = "openisave2-backend"
-version = "2.3.0"
+version = "2.4.0"
 description = "OpenISave 2.0 — local-first multi-currency personal finance backend"
 requires-python = ">=3.11"
 

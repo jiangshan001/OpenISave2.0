@@ -1,0 +1,48 @@
+.oi-monthly-budget {
+  max-width: 900px;
+}
+
+.oi-monthly-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.oi-monthly-title .oi-meta {
+  margin-left: 12px;
+  font-weight: 400;
+}
+
+.oi-budget-input {
+  display: grid;
+  gap: 8px;
+  max-width: 320px;
+}
+
+.oi-budget-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 64px;
+  margin: 28px 0;
+}
+
+.oi-budget-facts dt {
+  color: var(--oi-muted);
+  font-size: 13px;
+}
+
+.oi-budget-facts dd {
+  margin: 8px 0 0;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.oi-monthly-progress {
+  display: grid;
+  gap: 10px;
+}
+
+.oi-category-budgets {
+  padding-top: 24px;
+  border-top: 1px solid var(--oi-border-soft);
+}

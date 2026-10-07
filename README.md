@@ -16,6 +16,10 @@ for exchange rates, and it sends nothing but currency codes.
 - **A calmer, clearer interface**: a single net worth summary at the top of
   the Overview, flatter panels, refined controls and tables, and charts and the
   activity heatmap tuned for both themes.
+- **Personalised account cards**: each account gets a quiet colour, texture
+  and monogram inspired by its bank or account type (no bank logos are used).
+- **Milestone savings goals**: progress tracks with 25 / 50 / 75 / 100%
+  milestones, a goal icon, short progress notes and a per-account breakdown.
 
 2.3.0 changes only the interface. There are no database changes and nothing
 about how your finances are calculated has changed.
@@ -114,7 +118,8 @@ place as a rollback until you remove them from **Data & Security**.
 - **Liabilities** — loans and instalment financing, optionally linked to the
   asset they paid for, with a single authoritative outstanding balance.
 - **Goals** — savings targets that aggregate several accounts across currencies.
-- **Budget** — monthly limits per category, with actuals derived from the ledger.
+- **Budget** — a simple overall monthly budget with optional category budgets;
+  actual spending comes from the ledger (available in the development checkout).
 - **Categories** — a full manager for the expense and income trees.
 - **Reports** — a monthly report with cash flow, category breakdowns, account
   movement, budget variance and goal progress.

@@ -1,0 +1,257 @@
+/*
+ * Milestone progress track (components/common/MilestoneProgress.tsx) and the
+ * goal contribution split. Stops sit at 25 / 50 / 75%, a star at 100%.
+ * Motion: the fill grows once on first render and reached stops settle in
+ * after it; a milestone crossed since the last visit gets one soft ring
+ * (and, at 100%, a few sparks, < 600 ms). None of it runs under reduced
+ * motion, and nothing loops.
+ */
+
+.oi-ms {
+  --ms-h: 6px;
+  --ms-stop: 10px;
+  padding-right: 8px;
+}
+
+.oi-ms--sm {
+  --ms-h: 4px;
+  --ms-stop: 7px;
+  padding-right: 6px;
+}
+
+.oi-ms-track {
+  position: relative;
+  height: var(--ms-h);
+  margin: 10px 0;
+  border-radius: 999px;
+  background: var(--oi-sunken);
+  box-shadow: inset 0 0 0 1px var(--oi-border-soft);
+}
+
+.oi-ms--sm .oi-ms-track {
+  margin: 8px 0 7px;
+}
+
+.oi-ms-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  transform-origin: left center;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--goal) 74%, var(--oi-text)), var(--goal));
+}
+
+[data-theme='dark'] .oi-ms-fill {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--goal) 52%, var(--oi-surface)), var(--goal));
+}
+
+.oi-ms-stop,
+.oi-ms-star {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+[data-m='25'] { left: 25%; }
+[data-m='50'] { left: 50%; }
+[data-m='75'] { left: 75%; }
+[data-m='100'] { left: 100%; }
+
+.oi-ms-stop {
+  width: var(--ms-stop);
+  height: var(--ms-stop);
+  border-radius: 50%;
+  background: var(--oi-surface);
+  box-shadow: inset 0 0 0 1.5px var(--oi-border-strong);
+}
+
+/* Reached: a light bead set into the fill. */
+.oi-ms-stop[data-reached='true'] {
+  background: var(--oi-surface);
+  box-shadow:
+    inset 0 0 0 2px var(--goal),
+    0 0 0 1.5px var(--oi-surface);
+}
+
+.oi-ms-star {
+  display: inline-grid;
+  place-items: center;
+  font-size: calc(var(--ms-stop) + 4px);
+  line-height: 0;
+  color: var(--oi-border-strong);
+}
+
+.oi-ms-star[data-reached='true'] {
+  color: var(--goal);
+}
+
+.oi-ms-scale {
+  position: relative;
+  height: 14px;
+  margin-top: 2px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--oi-muted);
+}
+
+.oi-ms-scale > span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  line-height: 14px;
+}
+
+.oi-ms-scale > span[data-m='100'] {
+  transform: translateX(-72%);
+}
+
+.oi-ms-scale > span[data-reached='true'] {
+  color: var(--oi-text-2);
+  font-weight: 600;
+}
+
+.oi-ms-spark {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .oi-ms-fill {
+    animation: oi-ms-grow 0.7s var(--oi-ease) both;
+  }
+
+  .oi-ms-stop[data-reached='true'],
+  .oi-ms-star[data-reached='true'] {
+    animation: oi-ms-settle 0.36s var(--oi-ease) both;
+  }
+
+  .oi-ms-track > [data-m='25'] { animation-delay: 0.16s; }
+  .oi-ms-track > [data-m='50'] { animation-delay: 0.28s; }
+  .oi-ms-track > [data-m='75'] { animation-delay: 0.4s; }
+  .oi-ms-track > [data-m='100'] { animation-delay: 0.52s; }
+
+  .oi-ms-stop[data-moment='true'],
+  .oi-ms-star[data-moment='true'] {
+    animation: oi-ms-moment 0.56s var(--oi-ease) 0.6s both;
+  }
+
+  .oi-ms-spark {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--goal);
+    opacity: 0;
+    animation: oi-ms-spark 0.52s var(--oi-ease) 0.66s both;
+  }
+
+  .oi-ms-spark:nth-child(2) { --dx: -11px; --dy: -9px; }
+  .oi-ms-spark:nth-child(3) { --dx: 2px; --dy: -14px; }
+  .oi-ms-spark:nth-child(4) { --dx: 12px; --dy: -7px; }
+  .oi-ms-spark:nth-child(5) { --dx: 10px; --dy: 9px; }
+  .oi-ms-spark:nth-child(6) { --dx: -9px; --dy: 10px; }
+}
+
+@keyframes oi-ms-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes oi-ms-settle {
+  from { transform: translate(-50%, -50%) scale(0.6); }
+  to { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes oi-ms-moment {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--goal) 55%, transparent));
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1.45);
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--goal) 45%, transparent));
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes oi-ms-spark {
+  0% { opacity: 0; transform: translate(-50%, -50%); }
+  30% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))); }
+}
+
+/* --- contribution split ------------------------------------------------ */
+
+.oi-contrib {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--oi-border-soft);
+}
+
+.oi-contrib-bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--oi-sunken);
+}
+
+.oi-contrib-bar > span {
+  min-width: 3px;
+  background: var(--acct);
+}
+
+.oi-contrib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oi-contrib-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.oi-contrib-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--oi-text);
+}
+
+.oi-contrib-name .ant-tag {
+  margin: 0;
+}
+
+.oi-contrib-native {
+  font-size: 11.5px;
+  color: var(--oi-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.oi-contrib-figure {
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.oi-contrib-share {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--oi-muted);
+}

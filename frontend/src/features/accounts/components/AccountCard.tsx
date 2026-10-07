@@ -2,8 +2,10 @@ import { EditOutlined, InboxOutlined, RightOutlined, UndoOutlined } from '@ant-d
 import { Button, Card, Space, Tag, Tooltip } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { AccountMonogram } from '@/components/common/AccountMonogram';
 import { MoneyText } from '@/components/common/MoneyText';
 import { useArchiveAccount } from '@/hooks/useLedger';
+import { resolveAccountTheme } from '@/theme/accountTheme';
 import type { AccountBalance } from '@/types';
 import { ACCOUNT_TYPE_LABELS } from '@/utils/labels';
 
@@ -16,24 +18,33 @@ interface AccountCardProps {
 export function AccountCard({ account, purposeLabel, onEdit }: AccountCardProps) {
   const navigate = useNavigate();
   const archive = useArchiveAccount();
+  const theme = resolveAccountTheme(account);
 
   return (
-    <Card className="oi-account-card" variant="borderless">
+    <Card
+      className="oi-account-card oi-acct"
+      variant="borderless"
+      data-acct={theme.id}
+      data-motif={theme.motif}
+    >
       <div className="oi-card-title-row">
-        <div>
-          <Space size={6} wrap>
-            <span className="oi-account-name">{account.name}</span>
-            {account.is_archived ? <Tag bordered={false}>Archived</Tag> : null}
-            {!account.include_in_net_worth ? (
-              <Tooltip title="Excluded from net worth">
-                <Tag color="orange" bordered={false}>
-                  Off net worth
-                </Tag>
-              </Tooltip>
-            ) : null}
-          </Space>
-          <div className="oi-account-institution">
-            {account.institution ?? ACCOUNT_TYPE_LABELS[account.account_type]}
+        <div className="oi-acct-head">
+          <AccountMonogram theme={theme} />
+          <div className="oi-acct-head-text">
+            <Space size={6} wrap>
+              <span className="oi-account-name">{account.name}</span>
+              {account.is_archived ? <Tag bordered={false}>Archived</Tag> : null}
+              {!account.include_in_net_worth ? (
+                <Tooltip title="Excluded from net worth">
+                  <Tag color="orange" bordered={false}>
+                    Off net worth
+                  </Tag>
+                </Tooltip>
+              ) : null}
+            </Space>
+            <div className="oi-account-institution">
+              {account.institution ?? ACCOUNT_TYPE_LABELS[account.account_type]}
+            </div>
           </div>
         </div>
         <span className={`oi-chip oi-chip--quiet${account.is_liability ? ' oi-negative' : ''}`}>
@@ -52,14 +63,10 @@ export function AccountCard({ account, purposeLabel, onEdit }: AccountCardProps)
         />
       </div>
 
-      <Space size={6} wrap>
-        <Tag bordered={false}>{ACCOUNT_TYPE_LABELS[account.account_type]}</Tag>
-        {purposeLabel ? (
-          <Tag bordered={false} color="blue">
-            {purposeLabel}
-          </Tag>
-        ) : null}
-      </Space>
+      <div className="oi-acct-tags">
+        <span className="oi-chip">{ACCOUNT_TYPE_LABELS[account.account_type]}</span>
+        {purposeLabel ? <span className="oi-chip">{purposeLabel}</span> : null}
+      </div>
 
       <Space size={2} wrap className="oi-account-actions">
         <Button

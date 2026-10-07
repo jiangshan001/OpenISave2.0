@@ -159,7 +159,14 @@ export interface BudgetLine {
   used_percent: number | null;
 }
 
-export interface BudgetPeriod {
+export interface OverallBudgetUsage {
+  overall_limit_minor: number | null;
+  overall_actual_minor: number;
+  overall_remaining_minor: number | null;
+  overall_used_percent: number | null;
+}
+
+export interface BudgetPeriod extends OverallBudgetUsage {
   year: number;
   month: number;
   currency: CurrencyCode;

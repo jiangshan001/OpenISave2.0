@@ -73,7 +73,7 @@ export function createTheme(mode: ResolvedTheme): ThemeConfig {
         itemBg: 'transparent',
         itemSelectedBg: p.primarySoft,
         itemSelectedColor: dark ? '#dbe5ff' : '#1f3f9e',
-        itemHoverBg: dark ? 'rgba(255, 255, 255, 0.045)' : 'rgba(20, 26, 41, 0.045)',
+        itemHoverBg: dark ? 'rgba(150, 175, 235, 0.055)' : 'rgba(36, 60, 130, 0.045)',
         itemHoverColor: p.text,
         itemActiveBg: dark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(20, 26, 41, 0.07)',
         itemColor: p.text2,

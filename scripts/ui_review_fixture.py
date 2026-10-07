@@ -101,12 +101,20 @@ def main() -> None:
                                    "rate_date": TODAY.isoformat()})
 
     cats = category_ids()
-    main_bank = account("Everyday Current", "bank", "CNY", 38200, "Harbour Bank", "daily_spending")
-    wallet = account("Pocket Wallet", "ewallet", "CNY", 2150, "Wallet App", "daily_spending")
+    # Real institution names are used only so the account theme system can be
+    # reviewed; every balance and account name is invented.
+    hsbc = account("HSBC Current", "bank", "GBP", 3400, "HSBC")
+    main_bank = account("Salary Account", "bank", "CNY", 38200, "Bank of China",
+                        "daily_spending")
+    monzo = account("Monzo Current", "bank", "GBP", 820, "Monzo", "travel")
+    wallet = account("WeChat Wallet", "ewallet", "CNY", 2150, "WeChat Pay", "daily_spending")
+    cmb = account("Everyday Card", "bank", "CNY", 12400, "招商银行", "bills")
+    local = account("Community Account", "bank", "CNY", 8600, "Lakeside Credit Union",
+                    "long_term_savings")
     saver = account("Reserve Saver", "savings", "CNY", 126000, "Harbour Bank", "emergency_fund")
-    pound = account("Sterling Account", "bank", "GBP", 3400, "Northgate Bank")
     invest = account("Index Portfolio", "investment", "CNY", 84500, "Meridian Invest")
     card = account("Travel Card", "credit_card", "CNY", 0, "Harbour Bank")
+    account("Cash", "cash", "CNY", 640)
 
     spend = [
         ("Food/Groceries", "Weekly groceries", 90, 320, 0.5),
@@ -153,12 +161,16 @@ def main() -> None:
         {"category_id": cats[("expense", name)], "amount_minor": fen(amount)}
         for name, amount in budget]})
 
-    call("POST", "/goals", {"name": "Emergency fund", "currency": "CNY",
+    call("POST", "/goals", {"name": "Emergency Fund", "currency": "CNY",
                             "target_amount_minor": fen(180000), "account_ids": [saver]})
+    call("POST", "/goals", {"name": "Travel", "currency": "CNY",
+                            "target_amount_minor": fen(36000), "account_ids": [monzo, hsbc]})
     call("POST", "/goals", {"name": "Home deposit", "currency": "CNY",
                             "target_amount_minor": fen(600000),
                             "deadline": f"{year + 3}-06-30",
-                            "account_ids": [saver, invest, pound]})
+                            "account_ids": [saver, invest, hsbc]})
+    call("POST", "/goals", {"name": "General Savings", "currency": "CNY",
+                            "target_amount_minor": fen(100000), "account_ids": [cmb, local]})
 
     asset_cats = {row["name"]: row["id"] for row in call("GET", "/assets/categories")}  # type: ignore[union-attr]
     call("POST", "/assets", {"name": "Laptop", "asset_category_id": asset_cats["Electronics"],

@@ -1,7 +1,9 @@
 import { Button, Card, Table, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { AccountMonogram } from '@/components/common/AccountMonogram';
 import { MoneyText } from '@/components/common/MoneyText';
+import { resolveAccountTheme } from '@/theme/accountTheme';
 import type { Dashboard, DashboardAccount } from '@/types/dashboard';
 import { ACCOUNT_TYPE_LABELS } from '@/utils/labels';
 
@@ -35,10 +37,13 @@ export function AccountsSummary({ data }: { data: Dashboard }) {
             title: 'Account',
             dataIndex: 'name',
             render: (value: string, row) => (
-              <div>
-                <div className="oi-strong">{value}</div>
-                <div className="oi-meta">
-                  {row.institution ?? ACCOUNT_TYPE_LABELS[row.account_type]}
+              <div className="oi-acct-head">
+                <AccountMonogram theme={resolveAccountTheme(row)} size="sm" />
+                <div>
+                  <div className="oi-strong">{value}</div>
+                  <div className="oi-meta">
+                    {row.institution ?? ACCOUNT_TYPE_LABELS[row.account_type]}
+                  </div>
                 </div>
               </div>
             ),

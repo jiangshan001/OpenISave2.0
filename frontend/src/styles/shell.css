@@ -73,53 +73,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.oi-menu {
-  border-inline-end: none !important;
-  font-size: 13.5px;
-  background: transparent !important;
-}
-
-.oi-menu .ant-menu-item-group-title {
-  padding: 18px 22px 6px !important;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.oi-menu .ant-menu-item {
-  position: relative;
-  transition:
-    background-color var(--oi-dur-hover) var(--oi-ease),
-    color var(--oi-dur-hover) var(--oi-ease);
-}
-
-.oi-menu .ant-menu-item .anticon {
-  color: var(--oi-subtle);
-  transition: color var(--oi-dur-hover) var(--oi-ease);
-}
-
-.oi-menu .ant-menu-item:hover .anticon {
-  color: var(--oi-text-2);
-}
-
-.oi-menu .ant-menu-item-selected {
-  font-weight: 600;
-}
-
-.oi-menu .ant-menu-item-selected .anticon {
-  color: var(--oi-accent-text);
-}
-
-/* A 2px rail marks the current page; the tint alone would rely on colour. */
-.oi-menu .ant-menu-item-selected::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--oi-primary);
-}
+/* Navigation items (hover, active rail, icon wells) live in nav.css. */
 
 .oi-sidebar-spacer {
   flex: 1 1 auto;

@@ -50,6 +50,10 @@ class BudgetSave(ApiModel):
     entries: list[BudgetEntry]
 
 
+class OverallBudgetSave(ApiModel):
+    overall_limit_minor: int | None = Field(..., gt=0, le=9_007_199_254_740_991, strict=True)
+
+
 class BudgetLineRead(ApiModel):
     category_id: int
     category_name: str
@@ -67,6 +71,10 @@ class BudgetPeriodRead(ApiModel):
     total_budget_minor: int
     total_actual_minor: int
     total_remaining_minor: int
+    overall_limit_minor: int | None
+    overall_actual_minor: int
+    overall_remaining_minor: int | None
+    overall_used_percent: float | None
     lines: list[BudgetLineRead]
 
 

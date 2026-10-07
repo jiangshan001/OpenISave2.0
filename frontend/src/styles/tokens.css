@@ -88,6 +88,14 @@
   --oi-shadow-pop: 0 16px 36px -12px rgba(20, 26, 41, 0.22), 0 2px 6px rgba(20, 26, 41, 0.06);
   --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   --oi-btn-depth: 0 1px 2px rgba(20, 42, 110, 0.18);
+  --oi-btn-sheen: rgba(255, 255, 255, 0.2);
+
+  /* navigation: tinted hover, icon wells, selected edge */
+  --oi-nav-well-hover: rgba(36, 60, 130, 0.07);
+  --oi-nav-press: rgba(36, 60, 130, 0.09);
+  --oi-nav-well: rgba(47, 91, 211, 0.12);
+  --oi-nav-edge: rgba(47, 91, 211, 0.08);
+  --oi-nav-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   --oi-scrollbar: rgba(20, 26, 41, 0.14);
   --oi-scrollbar-hover: rgba(20, 26, 41, 0.26);
@@ -138,6 +146,13 @@
   --oi-shadow-pop: 0 18px 40px -12px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.35);
   --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   --oi-btn-depth: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --oi-btn-sheen: rgba(255, 255, 255, 0.12);
+
+  --oi-nav-well-hover: rgba(150, 175, 235, 0.08);
+  --oi-nav-press: rgba(150, 175, 235, 0.11);
+  --oi-nav-well: rgba(110, 146, 240, 0.18);
+  --oi-nav-edge: rgba(134, 166, 245, 0.1);
+  --oi-nav-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   --oi-scrollbar: rgba(255, 255, 255, 0.12);
   --oi-scrollbar-hover: rgba(255, 255, 255, 0.22);

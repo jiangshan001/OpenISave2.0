@@ -12,12 +12,14 @@ export function PeriodPicker({ year, month, onChange }: PeriodPickerProps) {
   return (
     <Space size={8}>
       <Select
+        aria-label="Budget month"
         value={month}
         style={{ width: 140 }}
         onChange={(value) => onChange({ year, month: value })}
         options={MONTH_OPTIONS}
       />
       <Select
+        aria-label="Budget year"
         value={year}
         style={{ width: 100 }}
         onChange={(value) => onChange({ year: value, month })}

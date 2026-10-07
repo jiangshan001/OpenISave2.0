@@ -6,12 +6,12 @@ import { MoneyInput } from '@/components/forms/MoneyInput';
 import { useSaveBudget } from '@/hooks/useResources';
 import type { BudgetPeriod, Category } from '@/types';
 import { monthLabel } from '@/utils/dates';
-import { toMajor, toMinor } from '@/utils/money';
+import { budgetInputMinor, budgetInputValue } from '../budgetMoney';
 import { buildCategoryOptions } from '../../transactions/categoryOptions';
 
 interface EditorRow {
   category_id: number;
-  amount: number;
+  amount: string | null;
 }
 
 interface BudgetEditorProps {
@@ -30,7 +30,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
     setRows(
       period.lines.map((line) => ({
         category_id: line.category_id,
-        amount: toMajor(line.budget_minor, period.currency),
+        amount: budgetInputValue(line.budget_minor, period.currency),
       })),
     );
   }, [open, period]);
@@ -40,7 +40,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
 
   const addRow = () => {
     const next = options[0];
-    if (next) setRows([...rows, { category_id: next.value, amount: 0 }]);
+    if (next) setRows([...rows, { category_id: next.value, amount: null }]);
   };
 
   const updateRow = (index: number, patch: Partial<EditorRow>) =>
@@ -49,20 +49,20 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
   const handleSave = () =>
     save.mutate(
       rows
-        .filter((row) => row.amount > 0)
         .map((row) => ({
           category_id: row.category_id,
-          amount_minor: toMinor(row.amount, period.currency),
-        })),
+          amount_minor: budgetInputMinor(row.amount, period.currency),
+        }))
+        .filter((entry): entry is { category_id: number; amount_minor: number } => entry.amount_minor !== null),
     );
 
   return (
     <Modal
       open={open}
-      title={`Budget for ${monthLabel(period.year, period.month)}`}
+      title={`Category budgets for ${monthLabel(period.year, period.month)}`}
       onCancel={onClose}
       onOk={handleSave}
-      okText="Save budget"
+      okText="Save category budgets"
       confirmLoading={save.isPending}
       width={620}
       destroyOnHidden
@@ -82,6 +82,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
             title: 'Category',
             render: (_, row, index) => (
               <Select
+                aria-label="Budget category"
                 className="oi-full"
                 showSearch
                 optionFilterProp="label"
@@ -98,9 +99,11 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
             width: 190,
             render: (_, row, index) => (
               <MoneyInput
+                stringMode
+                aria-label={`Category limit ${index + 1}`}
                 currency={period.currency}
                 value={row.amount}
-                onChange={(value) => updateRow(index, { amount: value ?? 0 })}
+                onChange={(value) => updateRow(index, { amount: value })}
               />
             ),
           },
@@ -110,6 +113,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
             render: (_, _row, index) => (
               <Button
                 type="text"
+                aria-label={`Remove category budget ${index + 1}`}
                 danger
                 icon={<DeleteOutlined />}
                 onClick={() => setRows(rows.filter((__, position) => position !== index))}
@@ -119,7 +123,7 @@ export function BudgetEditor({ open, period, categories, onClose }: BudgetEditor
         ]}
       />
       <Space className="oi-mt-12">
-        <Button icon={<PlusOutlined />} onClick={addRow} disabled={options.length === 0}>
+        <Button aria-label="Add category" icon={<PlusOutlined />} onClick={addRow} disabled={options.length === 0}>
           Add category
         </Button>
       </Space>
