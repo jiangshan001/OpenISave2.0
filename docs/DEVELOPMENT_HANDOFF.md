@@ -1023,8 +1023,10 @@ valuation chart, refund matching, recurring catch-up option, report export.
 |---|---|
 | Version | **2.4.0** source and existing local installer; Budget adds a table/API without changing ledger accounting rules |
 | Branch | `codex/budget-simplification`; implementation base `55188529353d28dd7c1e0dc2d58bf6f5e5275b53` |
-| Source commit | Pending the implementation commit; filled after PR creation |
-| PR | Pending creation; base `main`, compare `codex/budget-simplification`; user merges manually |
+| Latest source commit | [`f74c100c880ec2aba88282a8955096817843a8de`](https://github.com/jiangshan001/OpenISave2.0/commit/f74c100c880ec2aba88282a8955096817843a8de) — `Simplify monthly budgets with optional category limits` |
+| Published branch HEAD | [Current branch on GitHub](https://github.com/jiangshan001/OpenISave2.0/tree/codex/budget-simplification); the following documentation-only commit records this source SHA and PR. Resolve its exact SHA with `git rev-parse HEAD` after pulling the branch |
+| PR | [#4 — OpenISave 2.4.0: simplified monthly budgeting and 2.3 UI polish](https://github.com/jiangshan001/OpenISave2.0/pull/4); open, unmerged; base `main`, compare `codex/budget-simplification`; user merges manually |
+| Upstream | `origin/codex/budget-simplification`; source commit pushed and PR created; this metadata is published by a small follow-up documentation commit |
 | Remote main | Fresh fetch for publication: `eb690b820808de7df5f5aaea785603dfe95dea50`; no local or remote main write authorised |
 | Already merged | 2.2.0 via [#2](https://github.com/jiangshan001/OpenISave2.0/pull/2); first 2.3.0 theme/visual commit `3f90436` via [#3](https://github.com/jiangshan001/OpenISave2.0/pull/3) |
 | PR scope | Existing 2.3 final polish commit `5518852` (sidebar/buttons, account identities, goal milestones) plus the 2.4.0 Overall Monthly Budget and optional Category Budgets |
