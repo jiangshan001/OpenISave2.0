@@ -16,6 +16,7 @@ import './styles/toolbar.css';
 import './styles/cards.css';
 import './styles/accountThemes.css';
 import './styles/goals.css';
+import './styles/budgets.css';
 import './styles/milestones.css';
 import './styles/charts.css';
 import './styles/overview.css';

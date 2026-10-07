@@ -1,4 +1,5 @@
-import type { AccountGroup, AccountType, CurrencyCode, FxRateStatus, TransactionType } from '.';
+import type { AccountGroup, AccountType, CurrencyCode, FxRateStatus, TransactionType,
+  OverallBudgetUsage } from '.';
 
 export interface CategoryBreakdown {
   category_id: number | null;
@@ -83,7 +84,7 @@ export interface Dashboard {
   income_by_category: CategoryBreakdown[];
   cash_flow_series: CashFlowPoint[];
   /** Every active monthly budget line with its live ledger actual. */
-  budget: {
+  budget: OverallBudgetUsage & {
     total_budget_minor: number;
     total_actual_minor: number;
     total_remaining_minor: number;

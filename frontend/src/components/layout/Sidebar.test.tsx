@@ -25,7 +25,7 @@ describe('Sidebar', () => {
   it('shows the released app version from package.json', () => {
     renderWithProviders(<Sidebar />);
     expect(screen.getByText(`Version ${packageJson.version}`)).toBeInTheDocument();
-    expect(packageJson.version).toBe('2.3.0');
+    expect(packageJson.version).toBe('2.4.0');
   });
 
   it('keeps the privacy status and a compact theme control in the footer', () => {

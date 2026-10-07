@@ -181,6 +181,10 @@ export function makeDashboard(overrides: Partial<Dashboard> = {}): Dashboard {
     income_by_category: [],
     cash_flow_series: [],
     budget: {
+      overall_limit_minor: null,
+      overall_actual_minor: 0,
+      overall_remaining_minor: null,
+      overall_used_percent: null,
       total_budget_minor: 0,
       total_actual_minor: 0,
       total_remaining_minor: 0,

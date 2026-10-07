@@ -1,6 +1,6 @@
 from app.models.account import Account
 from app.models.asset import Asset, AssetCategory, AssetValuation
-from app.models.budget import Budget
+from app.models.budget import Budget, MonthlyBudget
 from app.models.category import Category
 from app.models.currency import Currency
 from app.models.fx_rate import FxRate
@@ -25,6 +25,7 @@ __all__ = [
     "AssetCategory",
     "AssetValuation",
     "Budget",
+    "MonthlyBudget",
     "CategorisationRule",
     "Category",
     "ExternalTransactionRef",

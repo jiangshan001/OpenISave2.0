@@ -14,7 +14,7 @@ import {
 import type { CategoryKind } from '@/types';
 import { LEDGER_DEPENDENT_KEYS, queryKeys } from './queryKeys';
 
-function useInvalidateFinancialViews() {
+export function useInvalidateFinancialViews() {
   const client = useQueryClient();
   return () =>
     LEDGER_DEPENDENT_KEYS.forEach((key) => {

@@ -104,6 +104,10 @@ class DashboardService:
         """
         total = period.total_budget_minor
         return {
+            "overall_limit_minor": period.overall_limit_minor,
+            "overall_actual_minor": period.overall_actual_minor,
+            "overall_remaining_minor": period.overall_remaining_minor,
+            "overall_used_percent": period.overall_used_percent,
             "total_budget_minor": total,
             "total_actual_minor": period.total_actual_minor,
             "total_remaining_minor": period.total_remaining_minor,

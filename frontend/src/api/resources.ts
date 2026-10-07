@@ -42,6 +42,8 @@ export const goalsApi = {
 };
 
 export const budgetsApi = {
+  saveOverall: (year: number, month: number, overall_limit_minor: number | null) =>
+    api.patch<BudgetPeriod>(`/budgets/${year}/${month}/overall`, { overall_limit_minor }),
   get: (year: number, month: number) => api.get<BudgetPeriod>(`/budgets/${year}/${month}`),
   save: (year: number, month: number, entries: { category_id: number; amount_minor: number }[]) =>
     api.put<BudgetPeriod>(`/budgets/${year}/${month}`, { entries }),

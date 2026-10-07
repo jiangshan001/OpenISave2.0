@@ -1,5 +1,11 @@
 # OpenISave 2.3.0: Visual System and Dark Mode
 
+Unreleased follow-up: [Budget simplification](BUDGET_SIMPLIFICATION_IMPLEMENTATION.md)
+adds an independent overall monthly limit and optional category budgets. It is
+separate from the presentation-only 2.3.0 work described below. The follow-up
+source version is 2.4.0 and is published through a feature-branch PR. No
+GitHub Release or merge is part of that publication.
+
 Presentation-only release. No financial feature, API, schema, migration or
 accounting rule changed; the backend differs from 2.2.0 only in `APP_VERSION`.
 The one new piece of state is the UI appearance preference, kept in the

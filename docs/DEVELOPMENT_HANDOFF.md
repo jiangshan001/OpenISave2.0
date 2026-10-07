@@ -10,6 +10,10 @@
 > backups, recovery) ·
 > [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md) (themes, visual system,
 > account identity, goal milestones) ·
+> [`BUDGET_SIMPLIFICATION_IMPLEMENTATION.md`](BUDGET_SIMPLIFICATION_IMPLEMENTATION.md)
+> (overall monthly budget and optional category budgets) ·
+> [`BUDGET_SIMPLIFICATION_WINDOWS_INSTALL.md`](BUDGET_SIMPLIFICATION_WINDOWS_INSTALL.md)
+> (2.4.0 build/install evidence and current unlock blocker) ·
 > [`V2_2_IMPLEMENTATION_STATUS.md`](V2_2_IMPLEMENTATION_STATUS.md) (recurring +
 > import details) ·
 > [`OPENISAVE2_PROJECT_ARCHITECTURE.md`](OPENISAVE2_PROJECT_ARCHITECTURE.md)
@@ -51,7 +55,7 @@ keeps its own native currency.
 
 | | |
 |---|---|
-| Current version | **2.3.0** (source) |
+| Current version | **2.4.0** (Budget simplification; source publication authorised through a feature-branch PR); separate from the presentation-only 2.3.0 release |
 | Platform | Windows 10/11 x64 desktop app (only Windows is built and tested) |
 | Frontend | React 18 + TypeScript + Vite, Ant Design 5, TanStack Query, Recharts |
 | Backend | Python 3.11, FastAPI, Pydantic, SQLAlchemy 2, Alembic |
@@ -305,7 +309,7 @@ explicit decision from the user, a migration, and tests.
 | **FX** | Frankfurter provider with local cache, freshness (fresh / stale / missing / identity), manual rates in Settings; conversions refuse to guess. |
 | **Overview (Dashboard)** | Net Worth Hero (assets / liabilities / possessions, composition bar with personal possessions as reference-only), flat stat strip (month income / expenses / net cash flow / savings rate), activity heatmap (expenses or income, last 12 months), budget usage, income/expense category charts, accounts summary, goals summary with mini milestone tracks, **Upcoming** recurring card, recent transactions. |
 | **Goals** | Savings targets aggregating selected accounts or "all eligible" accounts across currencies; never change net worth. Milestone progress track (25 / 50 / 75 / 100 %), visual-only goal icon, short progress copy, per-account contribution split (section G). |
-| **Budget** | Monthly limits per category; actuals derived from the ledger. |
+| **Budget** | Independent Overall Monthly Budget (default) and optional Category Budgets; actuals derived from the ledger. Category-only legacy data remains valid. |
 | **Categories** | Expense and income trees: create, rename, move (cycle/depth guards), archive branch, restore, usage counts. Hosts **Auto-categorisation rules**. |
 | **Assets** | Purchase price, valuations history, days held, cost per day, sale with effective cost/day; net-worth classification per section E.9. |
 | **Liabilities** | Loans / financing / mortgage, optionally linked to the asset they paid for; account-backed outstanding balance; repayments are transfers. |
@@ -314,6 +318,59 @@ explicit decision from the user, a migration, and tests.
 | **Recurring Transactions** | See section H. |
 | **WeChat Import** | See section I. |
 | **Categorisation Rules** | Deterministic, explainable rules (user + 18 seeded system rules); see I. |
+
+---
+
+### Budget semantics (2.4.0 follow-up, 2026-10-04)
+
+Budget has two independent layers:
+
+1. **Overall Monthly Budget**: one positive CNY minor-unit limit per period,
+   or `null` to leave it unset / clear it.
+2. **Optional Category Budgets**: existing independent spending guardrails,
+   including each selected category's descendants. Parent/child overlap is
+   still allowed and each line keeps its existing actual calculation.
+
+**Overall actual = eligible period expenses from the ledger, NOT the sum of
+category budget actuals.** `BudgetService.get_period()` reuses
+`TransactionRepository.period_totals()` and takes its expense result. Each
+non-void `expense` transaction counts exactly once, including uncategorised
+spending, using its frozen CNY `base_amount_minor`. Income, transfer principal,
+adjustment and asset purchase/sale transaction types are excluded. A transfer
+fee separately recorded as an expense by LedgerService remains eligible.
+
+**Category Budgets do not need to sum to Overall Budget.** They may cover only
+part of spending and may sum above or below the overall limit. Saving either
+layer never writes the other; clearing the overall limit never deletes category
+budgets. No overall limits are generated from legacy data.
+
+- Existing `Budget` model / `budgets` table: **one row per period + category**,
+  not a header/line model; unchanged.
+- New `MonthlyBudget` / `monthly_budgets`: unique `(year, month)`, nullable
+  `overall_limit_minor`, positive-or-null DB constraint, timestamps. No
+  independent currency model; the established Budget base currency is CNY.
+- Existing `GET/PUT /budgets/{year}/{month}` remain compatible; PUT still
+  replaces only category entries. New `PATCH /budgets/{year}/{month}/overall`
+  requires `{overall_limit_minor: positive integer | null}`; zero, negative,
+  boolean, string, fractional or unsafe-JavaScript-integer amounts are rejected.
+- Period responses and Overview `budget` include `overall_limit_minor`,
+  `overall_actual_minor`, `overall_remaining_minor`, `overall_used_percent`.
+  Remaining / percentage are `null` without a limit; actual is always available.
+  Percentage uses Decimal / half-up rounding to one decimal and may exceed 100.
+  The old `total_*` and Dashboard `total_used_percent` retain their **category
+  aggregate** meanings for compatibility; they can overlap and must never be
+  treated as the overall budget. The existing Reports category variance is unchanged.
+- Budget defaults to a simple monthly setup or monthly usage panel. Optional
+  categories are collapsed, with a count / Manage categories for existing data.
+  Category add, select, edit and remove remain in BudgetEditor. Both amount
+  inputs opt into MoneyInput string mode and exact decimal-to-minor conversion.
+- Overview prioritises the overall figures; category-only shows active count
+  and Set overall budget, with no invented total. Empty shows Set your monthly
+  budget. Progress status: `<85%` normal, `85–100%` warning, `>100%` over;
+  text keeps the real percentage, only the visual track is clamped. Overspending
+  is expressed as a positive amount **over budget**, not negative remaining.
+- All financial invariants in E remain unchanged. No changes to ledger, FX,
+  net worth, recurring, imports, assets, goals, encryption, backup or recovery.
 
 ---
 
@@ -656,7 +713,7 @@ preview/staging/confirm services rather than writing a second ledger path.
 
 ## J. Database and Alembic
 
-Migration chain (head: **`c4d8f2a6e913`**):
+Migration chain (2.4.0 head: **`d9e5a1b7c302`**; 2.3 schema: `c4d8f2a6e913`):
 
 | Revision | Purpose |
 |---|---|
@@ -665,6 +722,7 @@ Migration chain (head: **`c4d8f2a6e913`**):
 | `5d1c7e9a2b40` | Asset net-worth classification: `asset_categories.include_in_net_worth_default` (true only for Property), `assets.include_in_net_worth_manual`; reclassifies existing assets. ADD COLUMN + UPDATE only — deliberately no table rebuild |
 | `a7c3e91f4b2d` | 2.2 recurring + import: `recurring_rules`, `recurring_occurrences`, `categorisation_rules`, `import_account_mappings`, `import_batches`, `external_transaction_refs`; five nullable indexed columns on `transactions` (no FK clause, to avoid a SQLite table rebuild) |
 | `c4d8f2a6e913` | `import_ignored_items`; `external_transaction_refs.source_date` / `source_timezone` |
+| `d9e5a1b7c302` | 2.4.0 independent `monthly_budgets` table only. No existing-table rebuild, row rewrite or automatic overall budget creation. Downgrade drops only the new table. |
 
 Rules:
 
@@ -683,14 +741,37 @@ Rules:
 
 ## K. Testing
 
-Last known totals (release/v2.3.0, see section Q):
+Verified totals (2026-10-04 local Budget follow-up, see section Q):
 
-- **Backend: 313 passed, 1 skipped.** The skip is the opt-in real-statement
+- **Backend: 344 passed, 1 skipped.** The skip is the opt-in real-statement
   parser test (`OPENISAVE_WECHAT_SAMPLE=<path to a real .xlsx>`); real
   statements are never copied into the repo.
-- **Frontend: 143 tests in 25 files passed**; typecheck, lint, `check:size`
+- **Frontend: 165 tests in 26 files passed**; typecheck, lint, `check:size`
   (largest handwritten file: `src/styles/cards.css`, 318 lines) and
   production build pass (Vite's >500 kB chunk warning is expected, see O).
+
+Budget suites: `backend/tests/test_overall_budget.py` (29 cases),
+`test_overall_budget_migration.py` (2 encrypted scratch cases: fresh DB,
+existing 2.3 upgrade, all original rows preserved, downgrade/re-upgrade,
+model/DB diff empty, cipher/DB/FK integrity); frontend `BudgetPage.test.tsx`
+and `BudgetUsageCard.test.tsx` (setup, set/edit/clear, category add/edit/remove,
+legacy data, theme rendering, exact input, real progress and dashboard modes).
+The complete frontend suite was run with `--maxWorkers=2 --minWorkers=1`.
+Three synthetic UI scenarios were checked on Budget and Overview in Light and
+Dark; System resolved the current OS theme; browser console errors: zero.
+Evidence is git-ignored in `docs/ui-review/budget-simplification/`.
+
+**Publication validation after the 2026-10-07 cleanup:** the latest full test
+run remains the 2026-10-04 run above. Dependencies (`frontend/node_modules`,
+root `node_modules`, `backend/.venv`) and regenerable build output were removed
+during the authorised disk cleanup. No dependencies were reinstalled and no
+tests, typecheck, lint, size gate or production build were rerun for this push.
+Cleanup preserved the complete Git diff and every retained file's SHA256.
+Before publication, all 460 retained non-Git files still matched that cleanup
+baseline; source timestamps predate the final full validation records. This
+publication changes documentation and Git metadata only, with no new source
+logic changes. The 344 / 1 and 165 / 26 totals are historical verified results,
+not claims of a new test run.
 
 UI guard suites (`frontend/src/`): `theme/darkMode.test.ts` (no colour
 literals in components, light/dark token parity, separate chart palettes),
@@ -777,6 +858,21 @@ desktop  ──tauri build──►  desktop/target/release/bundle/nsis/OpenISav
 
 ## M. Git and release workflow
 
+**2026-10-04 user override for Budget:** build and overwrite-install the current
+uncommitted `codex/budget-simplification` working tree before Git review. Select
+2.4.0 for this additive feature/schema/API change, synchronising every version
+field. Git publication was withheld at that time. The user explicitly
+authorised read-only production counts/integrity checks and normal startup
+migration after the app's encrypted safety backup. No financial records may be
+created, changed or removed; restore the original Appearance preference.
+
+**The current publication request supersedes the earlier Git hold:** commit
+the existing validated source, push `codex/budget-simplification` and open a
+PR targeting `main`. The user will merge manually. Do not push `main`,
+force-push, merge the PR, create a GitHub Release, rebuild an installer,
+reinstall or launch the real app, or access the production vault. Source
+publication does not establish that 2.4.0 is installed.
+
 ```text
 feature/* or release/vX.Y.Z branch
    ↓  implement + tests (backend + frontend gates, section K)
@@ -846,7 +942,22 @@ feature/* or release/vX.Y.Z branch
 
 ## O. Known limitations and technical debt
 
-Verified against the 2.3.0 code:
+Verified against the 2.4.0 working tree:
+
+- **Budget build/install follow-up**: source metadata is synchronised to 2.4.0;
+  full gates, PyInstaller, Tauri and NSIS builds pass. The new installer was
+  launched via Explorer, but Windows is locked and installation awaits unlock.
+  Actual installed EXE/registry remain 2.3.0. The user authorised a read-only
+  production baseline (complete) and normal safety-backed startup migration
+  (not yet run). Real-App smoke tests and final data comparisons remain pending;
+  see BUDGET_SIMPLIFICATION_WINDOWS_INSTALL.md. This is the last verified
+  installation state from 2026-10-04; it was not rechecked during source
+  publication. Installation and production validation remain separate
+  follow-up work; no merge or GitHub Release is authorised here.
+- Legacy Budget `total_*` API fields and Reports still aggregate independent
+  category lines; parent/child overlap may repeat category actuals. New Overall
+  values are independent ledger totals and Budget/Overview never use legacy
+  aggregates as a global limit or actual.
 
 - **Importers**: only WeChat Pay XLSX. No Alipay, HSBC, Monzo, or generic
   CSV/OFX importer yet (the `StatementImporter` registry is ready for them).
@@ -910,24 +1021,34 @@ valuation chart, refund matching, recurring catch-up option, report export.
 
 | | |
 |---|---|
-| Version | **2.3.0** (presentation-only; no schema, API or calculation change) |
-| Branch | `release/v2.3.0` |
-| Already merged | 2.2.0 via [jiangshan001/OpenISave2.0#2](https://github.com/jiangshan001/OpenISave2.0/pull/2); first 2.3.0 commit `3f90436` (theme + visual system) via [jiangshan001/OpenISave2.0#3](https://github.com/jiangshan001/OpenISave2.0/pull/3); `main` at `eb690b8` |
-| This round | final UI polish (sidebar / button interactions, account identity, goal milestones) + this handoff; commit and PR: see below |
-| Alembic head | `c4d8f2a6e913` (unchanged) |
-| Tests | backend 313 passed / 1 skipped; frontend 143 / 25 files; typecheck, lint, check:size, build pass |
-| GitHub Release for 2.2.0 / 2.3.0 | not created |
+| Version | **2.4.0** source and existing local installer; Budget adds a table/API without changing ledger accounting rules |
+| Branch | `codex/budget-simplification`; implementation base `55188529353d28dd7c1e0dc2d58bf6f5e5275b53` |
+| Source commit | Pending the implementation commit; filled after PR creation |
+| PR | Pending creation; base `main`, compare `codex/budget-simplification`; user merges manually |
+| Remote main | Fresh fetch for publication: `eb690b820808de7df5f5aaea785603dfe95dea50`; no local or remote main write authorised |
+| Already merged | 2.2.0 via [#2](https://github.com/jiangshan001/OpenISave2.0/pull/2); first 2.3.0 theme/visual commit `3f90436` via [#3](https://github.com/jiangshan001/OpenISave2.0/pull/3) |
+| PR scope | Existing 2.3 final polish commit `5518852` (sidebar/buttons, account identities, goal milestones) plus the 2.4.0 Overall Monthly Budget and optional Category Budgets |
+| Alembic head | `d9e5a1b7c302`; production schema was last verified at `c4d8f2a6e913` on 2026-10-04 and was not accessed for publication |
+| Latest full validation | 2026-10-04: backend 344 passed / 1 skipped; frontend 165 passed / 26 files; typecheck, lint, check:size and production build passed |
+| This publication | Documentation/Git work only; dependencies not reinstalled, full tests/build not rerun; no source logic change during or after cleanup |
+| Merge / GitHub Release | Neither performed nor authorised for this publication |
 
-Final polish commit: _pending_ · PR: _pending_
+Final 2.3 polish base: `5518852` (also on `origin/release/v2.3.0`). Fresh
+`git fetch origin --prune` for this publication confirms `origin/main` at
+`eb690b8`; the first 2.3 theme commit was merged, final polish has not reached
+main and is included in this feature branch's ancestry. Budget simplification
+is documented in
+[`BUDGET_SIMPLIFICATION_IMPLEMENTATION.md`](BUDGET_SIMPLIFICATION_IMPLEMENTATION.md).
 
-### Real installed app (last verified 2026-09-30)
+### Real installed app (2026-10-04 pre-install verification)
 
 | | |
 |---|---|
 | Installed version | 2.3.0 at `%LOCALAPPDATA%\OpenISave\openisave.exe` (uninstall registry key `DisplayVersion` = 2.3.0) |
-| Installer | `release\OpenISave_2.3.0_x64-setup.exe` (git-ignored), SHA-256 `a2e64014364550d8cbeba2a1c7bfd3e6887ad2cbd7c9c746030f6e48637e8051` |
-| Production vault | `%LOCALAPPDATA%\OpenISave2Data` (never opened by tooling) |
-| Checks | installed through `explorer.exe` outside the agent sandbox; Light / Dark / System work; read-only smoke test of accounts, goals, sidebar and Overview passed with zero console errors; record counts and balance digests identical before and after install; zero orphan backend processes |
+| New installer | `release\OpenISave_2.4.0_x64-setup.exe` (git-ignored), SHA-256 `1abb1f9f55e96031df81a937c204a40292f930361e7c200612233166115a1de6`; built now, Explorer-launched, not yet installed |
+| Production vault | `%LOCALAPPDATA%\OpenISave2Data`; historical authorised read-only integrity checks passed. Private record counts/fingerprints remain only in ignored local evidence; no reset/delete and no vault access during publication |
+| Current blocker | Windows locked (LockApp / LogonUI). Asked user to unlock; no authentication input attempted. Real-App migration, Budget/Overview/theme smoke and after-install counts pending. OpenISave = 0, sidecar = 0. |
+| Historical 2.3 checks | Prior Explorer install and read-only Light/Dark/System/accounts/goals/Overview verification passed. These historical checks do not establish that the newly built 2.4.0 app is installed. |
 
 Update this section whenever the branch, head commit, PR or test totals
 change.

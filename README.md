@@ -118,7 +118,8 @@ place as a rollback until you remove them from **Data & Security**.
 - **Liabilities** — loans and instalment financing, optionally linked to the
   asset they paid for, with a single authoritative outstanding balance.
 - **Goals** — savings targets that aggregate several accounts across currencies.
-- **Budget** — monthly limits per category, with actuals derived from the ledger.
+- **Budget** — a simple overall monthly budget with optional category budgets;
+  actual spending comes from the ledger (available in the development checkout).
 - **Categories** — a full manager for the expense and income trees.
 - **Reports** — a monthly report with cash flow, category breakdowns, account
   movement, budget variance and goal progress.
