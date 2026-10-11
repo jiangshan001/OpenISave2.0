@@ -35,6 +35,8 @@ function useInvalidateCategories() {
   return () => {
     void client.invalidateQueries({ queryKey: ['categories'] });
     void client.invalidateQueries({ queryKey: ['budget'] });
+    void client.invalidateQueries({ queryKey: ['dashboard'] });
+    void client.invalidateQueries({ queryKey: ['report'] });
   };
 }
 
@@ -44,7 +46,9 @@ export function useSaveCategory(onDone?: () => void) {
   return useMutation({
     mutationFn: (input: {
       id?: number;
-      payload: { name: string; kind: CategoryKind; parent_id?: number | null };
+      payload: {
+        name: string; kind: CategoryKind; parent_id?: number | null; new_parent_name?: string;
+      };
     }) =>
       input.id
         ? categoriesApi.update(input.id, {

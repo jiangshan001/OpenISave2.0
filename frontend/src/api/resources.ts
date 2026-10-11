@@ -15,7 +15,9 @@ import type { DailyActivity, Dashboard, MonthlyReport } from '@/types/dashboard'
 export const categoriesApi = {
   list: (kind?: CategoryKind, includeInactive = false) =>
     api.get<Category[]>('/categories', { kind, include_inactive: includeInactive }),
-  create: (payload: { name: string; kind: CategoryKind; parent_id?: number | null }) =>
+  create: (payload: {
+    name: string; kind: CategoryKind; parent_id?: number | null; new_parent_name?: string;
+  }) =>
     api.post<Category>('/categories', payload),
   update: (id: number, payload: { name?: string; parent_id?: number | null }) =>
     api.patch<Category>(`/categories/${id}`, payload),

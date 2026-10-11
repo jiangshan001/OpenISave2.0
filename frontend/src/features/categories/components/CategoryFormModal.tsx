@@ -1,5 +1,5 @@
-import { Alert, Form, Input, Modal, Select } from 'antd';
-import { useEffect } from 'react';
+import { Alert, Form, Input, Modal, Radio, Select } from 'antd';
+import { useEffect, useState } from 'react';
 
 import { useSaveCategory } from '@/hooks/useResources';
 import type { Category, CategoryKind } from '@/types';
@@ -9,6 +9,7 @@ import { validParents } from '../categoryTree';
 interface FormValues {
   name: string;
   parent_id?: number | null;
+  new_parent_name?: string;
 }
 
 interface CategoryFormModalProps {
@@ -43,10 +44,13 @@ export function CategoryFormModal({
   onClose,
 }: CategoryFormModalProps) {
   const [form] = Form.useForm<FormValues>();
+  const [level, setLevel] = useState<'parent' | 'child'>('parent');
+  const [parentSource, setParentSource] = useState<'existing' | 'new'>('existing');
   const save = useSaveCategory(onClose);
   const isEdit = Boolean(category);
 
-  const parentOptions = validParents(categories, category?.id ?? null).map((item) => ({
+  const parentOptions = validParents(categories, category?.id ?? null)
+    .filter((item) => item.is_active || item.id === category?.parent_id).map((item) => ({
     value: item.id,
     label: labelFor(item, categories),
   }));
@@ -54,6 +58,8 @@ export function CategoryFormModal({
   useEffect(() => {
     if (!open) return;
     form.resetFields();
+    setLevel((category ? category.parent_id : defaultParentId) != null ? 'child' : 'parent');
+    setParentSource('existing');
     form.setFieldsValue({
       name: category?.name ?? '',
       parent_id: category ? category.parent_id : defaultParentId,
@@ -68,7 +74,9 @@ export function CategoryFormModal({
       payload: {
         name: values.name.trim(),
         kind,
-        parent_id: values.parent_id ?? null,
+        parent_id: level === 'child' && parentSource === 'existing' ? values.parent_id : null,
+        ...(level === 'child' && parentSource === 'new'
+          ? { new_parent_name: values.new_parent_name?.trim() } : {}),
       },
     });
   };
@@ -93,26 +101,47 @@ export function CategoryFormModal({
         />
       ) : null}
       <Form form={form} layout="vertical" requiredMark="optional">
+        <Form.Item label="Category level" required>
+          <Radio.Group name="category-level" value={level} onChange={(event) => setLevel(event.target.value)}>
+            <Radio.Button value="parent">Parent (top level)</Radio.Button>
+            <Radio.Button value="child">Child (subcategory)</Radio.Button>
+          </Radio.Group>
+        </Form.Item>
         <Form.Item
           name="name"
           label="Name"
-          rules={[{ required: true, message: 'Give the category a name' }]}
+          rules={[{ required: true, whitespace: true, max: 80, message: 'Enter a name (1–80 characters)' }]}
         >
-          <Input placeholder="e.g. Computer Accessories" autoFocus />
+          <Input placeholder={level === 'parent' ? 'e.g. Transport' : 'e.g. Taxi'} maxLength={80} autoFocus />
         </Form.Item>
-        <Form.Item
+        {level === 'child' && !isEdit ? (
+          <Form.Item label="Parent" required>
+            <Radio.Group name="category-parent-source" value={parentSource} onChange={(event) => setParentSource(event.target.value)}>
+              <Radio.Button value="existing">Choose existing</Radio.Button>
+              <Radio.Button value="new">Create new parent</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+        ) : null}
+        {level === 'child' && parentSource === 'existing' ? <Form.Item
           name="parent_id"
           label="Parent category"
-          tooltip="Leave empty for a top-level category. Budgets set on a parent include its children."
+          tooltip="Budgets set on a parent include its children."
+          rules={[{ required: true, message: 'Choose a parent category' }]}
         >
           <Select
-            allowClear
             showSearch
             optionFilterProp="label"
-            placeholder="Top level"
+            placeholder="Choose a parent category"
             options={parentOptions}
           />
-        </Form.Item>
+        </Form.Item> : null}
+        {level === 'child' && parentSource === 'new' ? (
+          <Form.Item name="new_parent_name" label="New parent name"
+            extra="The parent and this subcategory will be created together."
+            rules={[{ required: true, whitespace: true, max: 80, message: 'Enter a parent name (1–80 characters)' }]}>
+            <Input placeholder="e.g. Transport" maxLength={80} />
+          </Form.Item>
+        ) : null}
       </Form>
     </Modal>
   );

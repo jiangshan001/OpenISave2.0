@@ -28,6 +28,7 @@ from app.services.networth_service import NetWorthService
 from app.services.recurring_service import RecurringService
 from app.services.report_service import ReportService
 from app.services.statement_import_service import StatementImportService
+from app.services.transaction_entry_service import TransactionEntryService
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -52,6 +53,13 @@ def get_ledger_service(session: DbSession, accounts: AccountDep, fx: FxDep) -> L
 
 
 LedgerDep = Annotated[LedgerService, Depends(get_ledger_service)]
+
+
+def get_transaction_entry_service(session: DbSession) -> TransactionEntryService:
+    return TransactionEntryService(session)
+
+
+TransactionEntryDep = Annotated[TransactionEntryService, Depends(get_transaction_entry_service)]
 
 
 def get_recurring_service(session: DbSession, ledger: LedgerDep) -> RecurringService:

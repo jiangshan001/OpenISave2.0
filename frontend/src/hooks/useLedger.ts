@@ -88,6 +88,14 @@ export function useTransactions(filters: TransactionFilters) {
   });
 }
 
+export function useTransactionEntryOptions(type: 'expense' | 'income', enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.transactionEntryOptions(type),
+    queryFn: () => transactionsApi.entryOptions(type),
+    enabled,
+  });
+}
+
 export function useSaveTransaction(onDone?: () => void) {
   const invalidate = useLedgerInvalidation();
   const { message } = App.useApp();

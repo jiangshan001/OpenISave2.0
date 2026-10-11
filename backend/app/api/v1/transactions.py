@@ -4,8 +4,8 @@ from datetime import date
 
 from fastapi import APIRouter, Query
 
-from app.api.deps import LedgerDep
-from app.core.enums import TransactionType
+from app.api.deps import LedgerDep, TransactionEntryDep
+from app.core.enums import CategoryKind, TransactionType
 from app.schemas.common import Page
 from app.schemas.transaction import (
     TransactionCreate,
@@ -15,6 +15,11 @@ from app.schemas.transaction import (
 )
 
 router = APIRouter(tags=["transactions"])
+
+
+@router.get("/transactions/entry-options")
+def transaction_entry_options(service: TransactionEntryDep, type: CategoryKind) -> dict:
+    return service.options(type)
 
 
 @router.get("/transactions", response_model=Page[TransactionRead])

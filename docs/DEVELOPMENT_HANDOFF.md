@@ -6,6 +6,8 @@
 > to develop and test safely, and what to do next.
 >
 > Deeper references, in order of usefulness:
+> [`V2_4_1_IMPLEMENTATION_STATUS.md`](V2_4_1_IMPLEMENTATION_STATUS.md)
+> (transaction usage ranking, parent-category drill-down, atomic parent/child creation) ·
 > [`SECURITY_AND_DATA_STORAGE.md`](SECURITY_AND_DATA_STORAGE.md) (vault, keys,
 > backups, recovery) ·
 > [`V2_3_IMPLEMENTATION_STATUS.md`](V2_3_IMPLEMENTATION_STATUS.md) (themes, visual system,
@@ -55,7 +57,7 @@ keeps its own native currency.
 
 | | |
 |---|---|
-| Current version | **2.4.0** (Budget simplification; source publication authorised through a feature-branch PR); separate from the presentation-only 2.3.0 release |
+| Current version | **2.4.1** source/build on `codex/v2.4.1-transaction-category-ux`; includes 2.4.0 budgets and daily update notifications. See the 2.4.1 report for validation and packaging; installed and published versions are verified separately. |
 | Platform | Windows 10/11 x64 desktop app (only Windows is built and tested) |
 | Frontend | React 18 + TypeScript + Vite, Ant Design 5, TanStack Query, Recharts |
 | Backend | Python 3.11, FastAPI, Pydantic, SQLAlchemy 2, Alembic |
@@ -66,9 +68,9 @@ keeps its own native currency.
 | FX | Frankfurter (ECB reference rates), cached locally; manual rates allowed |
 | Reporting currency | CNY |
 
-Product principles: all data stays on the user's machine; the only outbound
-network request is for exchange rates and it sends nothing but currency
-codes; no accounts, no cloud, no telemetry, no AI.
+Product principles: all financial data stays on the user's machine. Outbound
+requests fetch exchange rates (currency codes only) and public GitHub release
+metadata (app version only); no financial uploads, cloud accounts or telemetry.
 
 Product state at 2.3.0:
 
@@ -741,6 +743,15 @@ Rules:
 
 ## K. Testing
 
+**Current 2.4.1 validation (2026-10-11):** backend **354 passed, 1 skipped**;
+frontend **177 passed in 29 files**; typecheck, lint, file-size gate and production
+build passed. New coverage checks separate income/expense usage, currency groups,
+void/archive/transfer-fee exclusions, parent rollups including direct entries and
+grandchildren, archived history, atomic parent/child creation and failure rollback,
+form defaults, editing, draft preservation and chart drill-down/pattern rendering.
+See `V2_4_1_IMPLEMENTATION_STATUS.md` for the local Windows build and UI evidence.
+The following 2.4.0 results remain historical context.
+
 Verified totals (2026-10-04 local Budget follow-up, see section Q):
 
 - **Backend: 344 passed, 1 skipped.** The skip is the opt-in real-statement
@@ -857,6 +868,25 @@ desktop  ──tauri build──►  desktop/target/release/bundle/nsis/OpenISav
 ---
 
 ## M. Git and release workflow
+
+**2026-10-11 release/install authorisation:** the user explicitly requested
+publishing the latest version to GitHub, adding update detection/notifications
+with manual updating, and installing the final 2.4.1 on this computer. This
+supersedes prior publication and installation holds for this task. Publish the
+release from the validated feature-branch commit and open a PR for review; main
+can remain untouched. The updater never downloads or runs an installer: it
+fetches the public GitHub latest-release API, validates a stable version with a
+Windows asset, and opens only this repository's HTTPS release page on a click.
+Cache/cooldown/skip settings live in Tauri's app config directory, outside the
+vault. Success cooldown is 24 hours, failure retry is one hour; explicit checks
+bypass both. React schedules startup and hourly ticks, including while locked.
+
+**2026-10-11 initial iteration:** the user requested local 2.4.1 implementation of three
+transaction/category UX changes. Work is on `codex/v2.4.1-transaction-category-ux`,
+branched from the current 2.4.0 checkout. Dependencies were restored for testing
+and packaging. No commit, push, merge, GitHub Release, production vault access or
+overwrite-install has been performed in this iteration. The publication-specific
+restrictions below describe the previous Budget request.
 
 **2026-10-04 user override for Budget:** build and overwrite-install the current
 uncommitted `codex/budget-simplification` working tree before Git review. Select

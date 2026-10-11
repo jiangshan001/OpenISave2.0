@@ -17,6 +17,7 @@ class CategoryCreate(ApiModel):
     name: str = Field(min_length=1, max_length=80)
     kind: CategoryKind
     parent_id: int | None = None
+    new_parent_name: str | None = Field(default=None, min_length=1, max_length=80)
     sort_order: int = 0
 
 

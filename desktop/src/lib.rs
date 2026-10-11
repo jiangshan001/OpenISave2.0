@@ -5,6 +5,7 @@
 //! proxies /api to a manually started backend.
 
 mod backend;
+mod updates;
 
 use std::sync::Mutex;
 use std::time::Duration;
@@ -65,7 +66,13 @@ pub fn run() {
     tauri::Builder::default()
         .manage(BackendState::default())
         .manage(JobGuard::default())
-        .invoke_handler(tauri::generate_handler![api_info])
+        .invoke_handler(tauri::generate_handler![
+            api_info,
+            updates::app_update_state,
+            updates::check_app_update,
+            updates::dismiss_app_update,
+            updates::open_app_release
+        ])
         // The window is created hidden (tauri.conf.json) and shown once the
         // page has loaded, by which point index.html has applied the saved
         // light/dark theme. This avoids a white webview flashing before a
@@ -76,6 +83,9 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            app.manage(updates::UpdateManager::load(
+                app.path().app_config_dir()?.join("update-state.json"),
+            ));
             let fallback = app.handle().clone();
             std::thread::spawn(move || {
                 std::thread::sleep(WINDOW_SHOW_FALLBACK);
