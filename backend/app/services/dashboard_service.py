@@ -95,6 +95,48 @@ class DashboardService:
             for key, value in sorted(buckets.items())
         ]
 
+    def parent_category_breakdown(self, start: date, end: date, kind: CategoryKind) -> list[dict]:
+        """Roll each direct ledger total into its ancestors exactly once.
+
+        Archived categories remain in the tree to preserve historical reporting.
+        A parent with direct entries exposes those separately in its child view.
+        """
+        totals = self.transactions.totals_by_category(start, end, kind.value)
+        categories = self.categories.list(kind=kind.value, include_inactive=True)
+        by_id = {category.id: category for category in categories}
+        children: dict[int | None, list] = {}
+        for category in categories:
+            children.setdefault(category.parent_id, []).append(category)
+
+        def build(category) -> dict:
+            nested = [build(child) for child in children.get(category.id, [])]
+            nested = [row for row in nested if row["amount_minor"] > 0]
+            direct = totals.get(category.id, 0)
+            amount = direct + sum(row["amount_minor"] for row in nested)
+            if nested and direct > 0:
+                nested.append({
+                    "category_id": category.id,
+                    "category_name": f"{category.name} (direct)",
+                    "parent_name": category.name,
+                    "amount_minor": direct, "children": [],
+                })
+            nested.sort(key=lambda row: row["amount_minor"], reverse=True)
+            parent = by_id.get(category.parent_id)
+            return {
+                "category_id": category.id, "category_name": category.name,
+                "parent_name": parent.name if parent else None,
+                "amount_minor": amount, "children": nested,
+            }
+
+        roots = [build(category) for category in children.get(None, [])]
+        if totals.get(None, 0) > 0:
+            roots.append({
+                "category_id": None, "category_name": "Uncategorised",
+                "parent_name": None, "amount_minor": totals[None], "children": [],
+            })
+        return sorted((row for row in roots if row["amount_minor"] > 0),
+                      key=lambda row: row["amount_minor"], reverse=True)
+
     @staticmethod
     def budget_usage(period: BudgetPeriod) -> dict:
         """Every active budget line for the month with its live ledger actual.
@@ -165,6 +207,10 @@ class DashboardService:
             "accounts": accounts,
             "expense_by_category": self.category_breakdown(start, end, CategoryKind.EXPENSE),
             "income_by_category": self.category_breakdown(start, end, CategoryKind.INCOME),
+            "expense_by_parent_category": self.parent_category_breakdown(
+                start, end, CategoryKind.EXPENSE),
+            "income_by_parent_category": self.parent_category_breakdown(
+                start, end, CategoryKind.INCOME),
             "cash_flow_series": self.cash_flow_series(today.year, today.month),
             "budget": self.budget_usage(budget_period),
             "goals": [

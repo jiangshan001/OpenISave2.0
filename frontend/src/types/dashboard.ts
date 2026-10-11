@@ -6,6 +6,7 @@ export interface CategoryBreakdown {
   category_name: string;
   parent_name: string | null;
   amount_minor: number;
+  children?: CategoryBreakdown[];
 }
 
 export interface CashFlowPoint {
@@ -82,6 +83,8 @@ export interface Dashboard {
   accounts: DashboardAccount[];
   expense_by_category: CategoryBreakdown[];
   income_by_category: CategoryBreakdown[];
+  expense_by_parent_category: CategoryBreakdown[];
+  income_by_parent_category: CategoryBreakdown[];
   cash_flow_series: CashFlowPoint[];
   /** Every active monthly budget line with its live ledger actual. */
   budget: OverallBudgetUsage & {

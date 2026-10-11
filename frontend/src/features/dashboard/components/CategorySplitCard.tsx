@@ -13,13 +13,13 @@ interface CategorySplitCardProps {
   emptyText: string;
 }
 
-/** Donut of this month's totals per category, as aggregated by the backend. */
+/** Parent totals with a drill-down into the backend's child breakdown. */
 export function CategorySplitCard({ title, rows, currency, emptyText }: CategorySplitCardProps) {
   const hasData = rows.some((row) => row.amount_minor > 0);
   return (
     <Card title={title} variant="borderless" className="oi-card-fill">
       {hasData ? (
-        <CategoryPieChart data={rows} currency={currency} />
+        <CategoryPieChart data={rows} currency={currency} maxSlices={Infinity} />
       ) : (
         <EmptyState
           icon={<PieChartOutlined />}

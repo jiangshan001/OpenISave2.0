@@ -4,6 +4,7 @@ import type { MenuProps } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BrandMark } from '@/components/common/BrandMark';
 import { AppearanceSwitch } from '@/theme/AppearanceSwitch';
+import { AppUpdateBadge } from '@/features/updates/AppUpdateBadge';
 import { FxStatusBadge } from './FxStatusBadge';
 import { NAV, SYSTEM_ITEMS, selectedKey } from './navItems';
 
@@ -20,6 +21,7 @@ export function Sidebar() {
         <div>
           <div className="oi-brand-name">OpenISave</div>
           <div className="oi-brand-version">Version {__APP_VERSION__}</div>
+          <AppUpdateBadge />
         </div>
       </div>
       <Menu mode="inline" selectedKeys={selected} items={NAV} onClick={go} className="oi-menu" />

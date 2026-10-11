@@ -5,8 +5,30 @@ reporting, purpose-based bank account management, physical asset tracking, savin
 goals, budgeting and auditable financial history.
 
 Everything lives on your own machine, in a **SQLCipher-encrypted database** whose
-key is kept in Windows Credential Manager. The only outbound network request is
-for exchange rates, and it sends nothing but currency codes.
+key is kept in Windows Credential Manager. Outbound requests fetch exchange rates
+(currency codes only) and public GitHub release information (app version only).
+Ledger data, account details and encryption keys stay on this computer.
+
+## What's new in 2.4.1
+
+- **Update notifications:** the Windows app checks GitHub releases daily in the
+  background. Settings includes **Check for updates**, release notes and a link
+  to the Windows download page. You decide when to download and install; skipping
+  one version does not hide the next. Network failures never block the ledger.
+
+- **Frequently used accounts first**: transaction entry groups accounts by
+  currency and ranks both currencies and accounts by recorded usage. Income
+  and expense each have their own order and default account.
+- **Parent category overview**: the Overview donuts show parent totals. Click
+  a sector or a legend row to see its child categories, with the same parent
+  colour and different textures. Use **All categories** to return.
+- **Create your own parents**: Categories → New category lets you choose a
+  top-level parent or a child. A child can use an existing parent or create a
+  new parent in the same save.
+
+This build also includes 2.4.0's overall monthly budget with optional category
+budgets. 2.4.1 adds no database migration. Validation and local installer details
+are in [the 2.4.1 implementation report](docs/V2_4_1_IMPLEMENTATION_STATUS.md).
 
 ## What's new in 2.3.0
 

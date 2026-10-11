@@ -11,6 +11,7 @@ import { CURRENCY_META } from '@/utils/money';
 import { AppearanceCard } from './components/AppearanceCard';
 import { DataSecurityCard } from './components/DataSecurityCard';
 import { ManualRateModal } from './components/ManualRateModal';
+import { AppUpdateCard } from '@/features/updates/AppUpdateCard';
 
 const FRESHNESS_TONE: Record<string, string> = {
   fresh: 'green',
@@ -39,6 +40,7 @@ export function SettingsPage() {
 
       <div className="oi-stack-gap">
         <DataSecurityCard />
+        <AppUpdateCard />
       </div>
 
       <StateBoundary

@@ -128,7 +128,7 @@ export function DashboardPage() {
               <Col xs={24} lg={12}>
                 <CategorySplitCard
                   title="Expenses by category"
-                  rows={data.expense_by_category}
+                  rows={data.expense_by_parent_category}
                   currency={data.base_currency}
                   emptyText="No expenses recorded this month"
                 />
@@ -136,7 +136,7 @@ export function DashboardPage() {
               <Col xs={24} lg={12}>
                 <CategorySplitCard
                   title="Income by category"
-                  rows={data.income_by_category}
+                  rows={data.income_by_parent_category}
                   currency={data.base_currency}
                   emptyText="No income recorded this month"
                 />

@@ -76,6 +76,8 @@ class CategoryService:
             raise NotFoundError(f"Parent category {parent_id} was not found.")
         if parent.kind != kind:
             raise ValidationError("A category must have the same kind as its parent.")
+        if not parent.is_active:
+            raise ValidationError("Restore the parent category before adding subcategories.")
         if moving is not None:
             if parent_id == moving:
                 raise ValidationError("A category cannot be its own parent.")
@@ -98,6 +100,23 @@ class CategoryService:
             raise ConflictError(f"A category named '{name}' already exists here.")
 
     def create(self, data: dict) -> Category:
+        """Optionally create a new root and its child in one atomic write."""
+        try:
+            payload = dict(data)
+            if data.get("new_parent_name") is not None:
+                if data.get("parent_id") is not None:
+                    raise ValidationError("Choose an existing parent or a new parent, not both.")
+                parent = self._create({"name": data["new_parent_name"], "kind": data["kind"]})
+                payload["parent_id"] = parent.id
+            category = self._create(payload)
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
+        logger.info("category_created id=%s kind=%s", category.id, category.kind)
+        return category
+
+    def _create(self, data: dict) -> Category:
         name = (data.get("name") or "").strip()
         if not name:
             raise ValidationError("Category name is required.")
@@ -113,8 +132,6 @@ class CategoryService:
                 sort_order=int(data.get("sort_order") or 0),
             )
         )
-        self.session.commit()
-        logger.info("category_created id=%s kind=%s", category.id, kind)
         return category
 
     def update(self, category_id: int, data: dict) -> Category:

@@ -3,13 +3,14 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 
 import { MoneyInput } from '@/components/forms/MoneyInput';
-import { useAccounts, useSaveTransaction } from '@/hooks/useLedger';
+import { useAccounts, useSaveTransaction, useTransactionEntryOptions } from '@/hooks/useLedger';
 import { useCategories } from '@/hooks/useResources';
 import type { CurrencyCode, Transaction } from '@/types';
 import { toApiDate } from '@/utils/dates';
 import { toMajor, toMinor } from '@/utils/money';
 import { validateOrNull } from '@/utils/forms';
 import { buildCategoryOptions } from '../categoryOptions';
+import { buildAccountOptions } from '../accountOptions';
 
 interface FormValues {
   type: 'expense' | 'income';
@@ -33,6 +34,11 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
   const [accountId, setAccountId] = useState<number | undefined>();
 
   const { data: accounts } = useAccounts();
+  const entryOptions = useTransactionEntryOptions(type, open);
+  const accountOptions = useMemo(
+    () => buildAccountOptions(accounts ?? [], entryOptions.data),
+    [accounts, entryOptions.data],
+  );
   const { data: allCategories } = useCategories(type, true);
   const save = useSaveTransaction(onClose);
 
@@ -68,21 +74,32 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
         note: transaction.note ?? undefined,
       });
     } else {
-      const fallback = activeAccounts[0]?.id;
       setType('expense');
-      setAccountId(fallback);
+      setAccountId(undefined);
       form.resetFields();
       form.setFieldsValue({
         type: 'expense',
         transaction_date: dayjs(),
-        account_id: fallback,
       });
     }
-  }, [open, transaction, form, activeAccounts]);
+  }, [open, transaction, form]);
+
+  useEffect(() => {
+    if (!open || transaction || accountId != null || entryOptions.isPending) return;
+    const preferred = accountOptions[0]?.options[0]?.value;
+    if (preferred == null) return;
+    setAccountId(preferred);
+    form.setFieldValue('account_id', preferred);
+  }, [open, transaction, accountId, entryOptions.isPending, accountOptions, form]);
 
   const handleTypeChange = (next: 'expense' | 'income') => {
     setType(next);
     form.setFieldValue('category_id', undefined);
+    // Preserve an explicit selection or an amount already entered in its currency.
+    if (!transaction && !form.isFieldTouched('account_id') && !form.getFieldValue('amount')) {
+      setAccountId(undefined);
+      form.setFieldValue('account_id', undefined);
+    }
   };
 
   const handleSubmit = async () => {
@@ -136,10 +153,8 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
               <Select
                 onChange={(value: number) => setAccountId(value)}
                 placeholder="Select an account"
-                options={activeAccounts.map((account) => ({
-                  value: account.id,
-                  label: `${account.name} · ${account.currency}`,
-                }))}
+                loading={entryOptions.isFetching}
+                options={accountOptions}
               />
             </Form.Item>
           </Col>

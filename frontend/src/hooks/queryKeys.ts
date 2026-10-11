@@ -6,6 +6,8 @@ export const queryKeys = {
   accountTransactions: (id: number) => ['accounts', id, 'transactions'] as const,
   accountPurposes: ['accounts', 'purposes'] as const,
   transactions: (filters: TransactionFilters) => ['transactions', filters] as const,
+  transactionEntryOptions: (type: 'expense' | 'income') =>
+    ['transactions', 'entry-options', type] as const,
   categories: (kind?: string, includeInactive = false) =>
     ["categories", kind ?? "all", includeInactive] as const,
   assets: (status?: string) => ["assets", status ?? "all"] as const,

@@ -36,7 +36,18 @@ export interface TransferPayload {
   fee_minor?: number;
 }
 
+export interface TransactionEntryOptions {
+  type: 'expense' | 'income';
+  currencies: {
+    currency: CurrencyCode;
+    usage_count: number;
+    accounts: { account_id: number; usage_count: number }[];
+  }[];
+}
+
 export const transactionsApi = {
+  entryOptions: (type: 'expense' | 'income') =>
+    api.get<TransactionEntryOptions>('/transactions/entry-options', { type }),
   list: (filters: TransactionFilters = {}) =>
     api.get<Page<Transaction>>('/transactions', filters as Record<string, unknown>),
   get: (id: number) => api.get<Transaction>(`/transactions/${id}`),

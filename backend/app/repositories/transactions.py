@@ -85,6 +85,21 @@ class TransactionRepository:
     def recent(self, limit: int = 8) -> list[Transaction]:
         return self.list(limit=limit)
 
+    def entry_account_usage(self, kind: str) -> dict[int, tuple[int, date]]:
+        stmt = (
+            select(Transaction.account_id, func.count(Transaction.id),
+                   func.max(Transaction.transaction_date))
+            .where(
+                Transaction.type == kind,
+                Transaction.is_voided.is_(False),
+                Transaction.account_id.is_not(None),
+                Transaction.parent_transaction_id.is_(None),
+            )
+            .group_by(Transaction.account_id)
+        )
+        return {account_id: (int(count), last_used)
+                for account_id, count, last_used in self.session.execute(stmt)}
+
     def period_totals(self, start: date, end: date) -> dict[str, int]:
         """Income and expense totals in base minor units for a date range.
 
