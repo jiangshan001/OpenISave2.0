@@ -9,6 +9,17 @@ key is kept in Windows Credential Manager. Outbound requests fetch exchange rate
 (currency codes only) and public GitHub release information (app version only).
 Ledger data, account details and encryption keys stay on this computer.
 
+## What's new in 2.4.2
+
+- **New app icon:** abstract layered clouds with a soft sunset gradient,
+  an organic curved base and gentle transitions between the cloud volumes.
+  The same icon appears in the app, Windows shortcuts and the installer.
+- **Warm light theme:** ivory surfaces, rose actions and selection, and an
+  apricot-to-mauve overview panel inspired by the new icon. Charts, forms and
+  navigation use the same palette; the dark theme retains its existing colours.
+
+2.4.2 updates the icon and light-theme colours; it adds no database migration.
+
 ## What's new in 2.4.1
 
 - **Update notifications:** the Windows app checks GitHub releases daily in the

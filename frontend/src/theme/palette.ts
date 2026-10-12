@@ -5,7 +5,7 @@ import type { ResolvedTheme } from './appearance';
  * (Ant Design tokens). `styles/tokens.css` defines the same values as CSS
  * variables; change both together.
  *
- * Light: one cool-neutral family on near-white. Dark: blue-black canvas with
+ * Light: warm ivory surfaces and a sunset-cloud rose accent. Dark: blue-black canvas with
  * raised slate surfaces, never pure black, and the accent lifted slightly so
  * it keeps its presence without glowing.
  */
@@ -36,29 +36,29 @@ export interface UiPalette {
 }
 
 export const LIGHT_PALETTE: UiPalette = {
-  bg: '#f4f5f7',
-  surface: '#ffffff',
-  raised: '#f8f9fb',
-  sunken: '#eef0f3',
-  sidebar: '#f9fafb',
-  border: '#e3e6eb',
-  borderSoft: '#eceef2',
-  borderStrong: '#d2d7df',
-  text: '#141922',
-  text2: '#3a414d',
-  muted: '#606978',
-  subtle: '#838b99',
-  primary: '#2f5bd3',
-  primaryHover: '#3d68dc',
-  primaryActive: '#2449b3',
-  accentText: '#2a52c2',
-  primarySoft: '#edf1fc',
+  bg: '#faf6f2',
+  surface: '#fffcf9',
+  raised: '#fff7ef',
+  sunken: '#f3eae5',
+  sidebar: '#fff9f3',
+  border: '#e9dcd4',
+  borderSoft: '#f0e5de',
+  borderStrong: '#d8c2b9',
+  text: '#332a2d',
+  text2: '#51464b',
+  muted: '#6f5f64',
+  subtle: '#77666a',
+  primary: '#a54469',
+  primaryHover: '#923955',
+  primaryActive: '#7d2d56',
+  accentText: '#913b5e',
+  primarySoft: '#f8e8ed',
   positive: '#177a50',
   negative: '#c2412d',
   warning: '#9a6410',
-  ring: 'rgba(47, 91, 211, 0.16)',
-  mask: 'rgba(16, 20, 30, 0.36)',
-  shadowPop: '0 16px 36px -12px rgba(20, 26, 41, 0.22), 0 2px 6px rgba(20, 26, 41, 0.06)',
+  ring: 'rgba(165, 68, 105, 0.16)',
+  mask: 'rgba(51, 34, 42, 0.36)',
+  shadowPop: '0 16px 36px -12px rgba(75, 45, 53, 0.18), 0 2px 6px rgba(75, 45, 53, 0.05)',
 };
 
 export const DARK_PALETTE: UiPalette = {

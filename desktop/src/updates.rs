@@ -96,7 +96,9 @@ fn now() -> u64 {
 
 fn newer(latest: &str, current: &str) -> bool {
     match (Version::parse(latest), Version::parse(current)) {
-        (Ok(latest), Ok(current)) => latest.pre.is_empty() && latest.cmp_precedence(&current).is_gt(),
+        (Ok(latest), Ok(current)) => {
+            latest.pre.is_empty() && latest.cmp_precedence(&current).is_gt()
+        }
         _ => false,
     }
 }

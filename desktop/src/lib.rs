@@ -131,9 +131,7 @@ pub fn run() {
                     state.set_ready(port);
                 } else {
                     state.shutdown();
-                    state.set_failed(
-                        "The data service did not answer in time.".to_string(),
-                    );
+                    state.set_failed("The data service did not answer in time.".to_string());
                 }
             });
             Ok(())
