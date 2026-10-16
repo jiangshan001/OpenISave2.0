@@ -23,6 +23,9 @@ function Step($message) {
 }
 
 if (-not $SkipTests) {
+    Step 'Native updater tests'
+    & (Join-Path $PSScriptRoot 'test_desktop.ps1')
+
     Step 'Backend tests'
     Set-Location $backend
     & $python -m pytest -q

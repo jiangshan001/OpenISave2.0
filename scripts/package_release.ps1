@@ -7,7 +7,9 @@
 
         release\
         +-- OpenISave_<version>_x64-setup.exe      copied from desktop\target
+        +-- OpenISave_<version>_x64-setup.exe.sig  signed installer metadata
         +-- OpenISave2-v<version>-source.zip       exactly the files Git would commit
+        +-- latest.json                          in-app updater manifest
         +-- SHA256SUMS.txt
 
     The source ZIP is built from `git ls-files` (tracked plus untracked files
@@ -28,6 +30,7 @@ if (-not (Test-Path (Join-Path $root '.git'))) { throw 'Not a Git repository: th
 $version = (Get-Content (Join-Path $root 'desktop\tauri.conf.json') -Raw | ConvertFrom-Json).version
 $release = Join-Path $root 'release'
 $installerName = "OpenISave_${version}_x64-setup.exe"
+$signatureName = $installerName + '.sig'
 $installer = Join-Path $root "desktop\target\release\bundle\nsis\$installerName"
 $zipName = "OpenISave2-v$version-source.zip"
 $zipPath = Join-Path $release $zipName
@@ -46,7 +49,7 @@ $files = @(git -c core.quotepath=false ls-files --cached --others --exclude-stan
     Sort-Object -Unique
 if ($files.Count -eq 0) { throw 'git ls-files returned no files.' }
 
-$forbidden = '(^|/)(node_modules|\.venv|venv|target|dist|build|backups|logs|data|release|__pycache__)/|\.(db|db-wal|db-shm|sqlite|sqlite3|log|csv|pyc|zip|msi)$|(^|/)\.env($|\.)|-setup\.exe$'
+$forbidden = '(^|/)(node_modules|\.venv|venv|target|dist|build|backups|logs|data|release|__pycache__)/|\.(db|db-wal|db-shm|sqlite|sqlite3|log|csv|pyc|zip|msi|dpapi|key)$|(^|/)\.env($|\.)|-setup\.exe$'
 $bad = @($files | Where-Object { $_ -match $forbidden -and $_ -notmatch '(^|/)\.env\.example$' })
 if ($bad.Count -gt 0) { throw "Refusing to package forbidden files:`n  $($bad -join "`n  ")" }
 
@@ -78,8 +81,22 @@ try {
 # --- Installer and checksums --------------------------------------------------
 $installerTarget = Join-Path $release $installerName
 if ($installer -ne $installerTarget) { Copy-Item -LiteralPath $installer -Destination $installerTarget -Force }
+$signature = $installer + '.sig'
+if (-not (Test-Path -LiteralPath $signature)) { throw 'Signed updater artifact is missing. Build with scripts\build_desktop.ps1.' }
+$signatureTarget = Join-Path $release $signatureName
+if ($signature -ne $signatureTarget) { Copy-Item -LiteralPath $signature -Destination $signatureTarget -Force }
+$manifest = @{
+    version = $version
+    notes = 'Install the latest OpenISave improvements. Your ledger stays on this computer.'
+    pub_date = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+    platforms = @{'windows-x86_64' = @{
+        signature = [System.IO.File]::ReadAllText($signatureTarget).Trim()
+        url = "https://github.com/jiangshan001/OpenISave2.0/releases/download/v$version/$installerName"
+    }}
+}
+[System.IO.File]::WriteAllText((Join-Path $release 'latest.json'), (($manifest | ConvertTo-Json -Depth 6) + "`n"), (New-Object System.Text.UTF8Encoding $false))
 
-$lines = foreach ($name in @($installerName, $zipName)) {
+$lines = foreach ($name in @($installerName, $signatureName, $zipName, 'latest.json')) {
     $hash = (Get-FileHash -LiteralPath (Join-Path $release $name) -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $name"
 }

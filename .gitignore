@@ -90,6 +90,7 @@ coverage.xml
 backend/build/
 backend/dist/
 *.manifest
+!scripts/windows-test.manifest
 warn-*.txt
 xref-*.html
 

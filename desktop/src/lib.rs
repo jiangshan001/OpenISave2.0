@@ -7,6 +7,9 @@
 mod backend;
 mod updates;
 
+#[cfg(test)]
+mod updates_download_tests;
+
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -64,6 +67,7 @@ fn api_info(state: State<'_, BackendState>) -> ApiInfo {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(BackendState::default())
         .manage(JobGuard::default())
         .invoke_handler(tauri::generate_handler![
@@ -71,7 +75,8 @@ pub fn run() {
             updates::app_update_state,
             updates::check_app_update,
             updates::dismiss_app_update,
-            updates::open_app_release
+            updates::open_app_release,
+            updates::install::install_app_update
         ])
         // The window is created hidden (tauri.conf.json) and shown once the
         // page has loaded, by which point index.html has applied the saved

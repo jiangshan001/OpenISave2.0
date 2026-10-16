@@ -33,8 +33,22 @@ if (-not (Test-Path (Join-Path $root 'node_modules'))) {
 }
 
 Write-Host 'Building the desktop application...' -ForegroundColor Cyan
-npm run desktop:build
-if ($LASTEXITCODE -ne 0) { throw 'Desktop build failed.' }
+. (Join-Path $PSScriptRoot 'updater_signing.ps1')
+$configuredPublicKey = (Get-Content (Join-Path $root 'desktop\tauri.conf.json') -Raw | ConvertFrom-Json).plugins.updater.pubkey
+if ($configuredPublicKey -ne [System.IO.File]::ReadAllText($script:UpdaterPublicFile).Trim()) {
+    throw 'Updater public key differs from the saved signing identity.'
+}
+$previousSigningKey = $env:TAURI_SIGNING_PRIVATE_KEY
+$previousSigningPassword = $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+try {
+    $env:TAURI_SIGNING_PRIVATE_KEY = Read-UpdaterSigningKey
+    $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ''
+    npm run desktop:build
+    if ($LASTEXITCODE -ne 0) { throw 'Desktop build failed.' }
+} finally {
+    $env:TAURI_SIGNING_PRIVATE_KEY = $previousSigningKey
+    $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = $previousSigningPassword
+}
 
 $release = Join-Path $root 'desktop\target\release'
 Write-Host ''

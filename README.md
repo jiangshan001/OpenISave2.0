@@ -6,8 +6,24 @@ goals, budgeting and auditable financial history.
 
 Everything lives on your own machine, in a **SQLCipher-encrypted database** whose
 key is kept in Windows Credential Manager. Outbound requests fetch exchange rates
-(currency codes only) and public GitHub release information (app version only).
+(currency codes only), public update information and signed app update packages.
 Ledger data, account details and encryption keys stay on this computer.
+
+## What's new in 2.4.3
+
+- **One-click updates:** Settings → App updates → Update now downloads a signed
+  update, verifies it, then installs and reopens OpenISave automatically.
+- **Visible progress and retry:** downloading, verification and installation
+  have explicit states; a failed download or invalid signature leaves the
+  installed version unchanged and offers a retry.
+- **No browser detour:** version checks use the release's static update manifest
+  instead of GitHub's rate-limited release API. Financial data stays local.
+
+2.4.1 and 2.4.2 need one final normal installation to gain this feature. After
+installing 2.4.3, future signed releases can be installed inside the app.
+There are no schema or ledger calculation changes in 2.4.3.
+Validation and future release signing are documented in
+[the 2.4.3 implementation report](docs/V2_4_3_IMPLEMENTATION_STATUS.md).
 
 ## What's new in 2.4.2
 
@@ -243,7 +259,7 @@ dependencies, and the Tauri CLI used to build the desktop app.
 | -------------- | -------------------------------------------------- |
 | Python         | 3.11 or newer (built and tested on 3.11)            |
 | Node           | 20 or newer (tested on 24)                          |
-| Rust           | 1.77 or newer — only needed to build the desktop app |
+| Rust           | 1.90 or newer — only needed to build the desktop app |
 | MSVC build tools | Only needed to build the desktop app              |
 
 Tauri prerequisites on Windows are Rust, the MSVC C++ build tools and the
