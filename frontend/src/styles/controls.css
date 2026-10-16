@@ -23,7 +23,7 @@
 }
 
 .ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):hover {
-  box-shadow: var(--oi-btn-highlight), 0 3px 8px -3px rgba(47, 91, 211, 0.45);
+  box-shadow: var(--oi-btn-highlight), var(--oi-btn-hover);
 }
 
 .ant-btn:not(:disabled):active {
@@ -31,7 +31,7 @@
 }
 
 .ant-btn-variant-solid.ant-btn-color-primary:not(:disabled):active {
-  box-shadow: inset 0 1px 2px rgba(10, 20, 60, 0.28);
+  box-shadow: var(--oi-btn-press);
 }
 
 /* Danger stays legible without shouting: outline and text, not a red slab. */
@@ -191,6 +191,13 @@
 .ant-tag {
   border-radius: var(--oi-radius-chip);
   font-variant-numeric: tabular-nums;
+}
+
+[data-theme='light'] .ant-tag-blue,
+[data-theme='light'] .ant-tag-geekblue {
+  color: var(--oi-accent-text);
+  background: var(--oi-primary-soft);
+  border-color: var(--oi-border-strong);
 }
 
 .ant-descriptions .ant-descriptions-item-label {

@@ -1,0 +1,1 @@
+OpenISave updater verification fixture. This is test text, not an executable.

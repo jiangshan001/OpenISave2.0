@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { isDesktop } from '@/api/runtime';
 
@@ -11,7 +11,18 @@ export interface AppUpdateState {
   has_update: boolean;
   dismissed: boolean;
   last_error: string | null;
+  can_install: boolean;
+  install?: InstallProgress;
 }
+
+export interface InstallProgress {
+  phase: 'idle' | 'preparing' | 'downloading' | 'verifying' | 'installing' | 'failed';
+  downloaded: number;
+  total: number | null;
+  error: string | null;
+}
+
+const IDLE: InstallProgress = { phase: 'idle', downloaded: 0, total: null, error: null };
 
 interface AppUpdates {
   supported: boolean;
@@ -20,12 +31,15 @@ interface AppUpdates {
   error: string | null;
   check: () => Promise<void>;
   dismiss: () => Promise<void>;
-  openRelease: () => Promise<void>;
+  install: InstallProgress;
+  updating: boolean;
+  update: () => Promise<void>;
 }
 
 const AppUpdateContext = createContext<AppUpdates>({
   supported: false, state: null, checking: false, error: null,
-  check: async () => {}, dismiss: async () => {}, openRelease: async () => {},
+  install: IDLE, updating: false,
+  check: async () => {}, dismiss: async () => {}, update: async () => {},
 });
 
 async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
@@ -38,9 +52,11 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppUpdateState | null>(null);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [install, setInstall] = useState<InstallProgress>(IDLE);
+  const installRunning = useRef(false);
 
   const runCheck = useCallback(async (force: boolean) => {
-    if (!supported) return;
+    if (!supported || installRunning.current) return;
     setChecking(true);
     try {
       const next = await invoke<AppUpdateState>('check_app_update', { force });
@@ -60,6 +76,7 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
       if (active) {
         setState(cached);
         setError(cached.last_error);
+        if (!installRunning.current) setInstall(cached.install ?? IDLE);
       }
     }).catch(() => {});
     // Delay until the first screen is rendered. Rust persists a daily cooldown,
@@ -74,6 +91,7 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
   }, [runCheck, supported]);
 
   const dismiss = async () => {
+    if (installRunning.current) return;
     try {
       setState(await invoke<AppUpdateState>('dismiss_app_update'));
     } catch {
@@ -81,17 +99,30 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const openRelease = async () => {
+  const update = async () => {
+    if (!supported || !state?.can_install || checking || installRunning.current) return;
+    installRunning.current = true;
+    setInstall({ ...IDLE, phase: 'preparing' });
     try {
-      await invoke<void>('open_app_release');
-    } catch {
-      setError('Could not open the release page. Please try again.');
+      const { Channel, invoke: desktopInvoke } = await import('@tauri-apps/api/core');
+      const channel = new Channel<InstallProgress>();
+      channel.onmessage = setInstall;
+      await desktopInvoke<void>('install_app_update', { onEvent: channel });
+      setInstall({ ...IDLE, phase: 'installing' });
+    } catch (failure) {
+      setInstall({ ...IDLE, phase: 'failed', error: typeof failure === 'string'
+        ? failure : 'The update could not finish. Check your connection and retry.' });
+    } finally {
+      installRunning.current = false;
     }
   };
 
+  const updating = !['idle', 'failed'].includes(install.phase);
+
   return (
     <AppUpdateContext.Provider value={{
-      supported, state, checking, error, check: () => runCheck(true), dismiss, openRelease,
+      supported, state, checking, error, check: () => runCheck(true), dismiss,
+      install, updating, update,
     }}>
       {children}
     </AppUpdateContext.Provider>

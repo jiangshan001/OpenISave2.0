@@ -1,7 +1,7 @@
 import { Tooltip } from 'antd';
 import type { ReactNode } from 'react';
 
-import { DARK_CHARTS } from '@/theme/chartPalette';
+import { useChartPalette } from '@/theme/themeContext';
 import type { AccountGroup } from '@/types';
 import type { Dashboard } from '@/types/dashboard';
 import { ACCOUNT_GROUP_LABELS } from '@/utils/labels';
@@ -14,9 +14,6 @@ const ASSET_GROUPS: AccountGroup[] = [
   'physical_assets',
   'other_assets',
 ];
-
-/** The hero is a dark surface in both themes, so it always uses the dark data colours. */
-const GROUP_COLORS = DARK_CHARTS.groups;
 
 function Figure({
   label,
@@ -46,6 +43,7 @@ function Figure({
  * amount comes from the backend; the bar only visualises the group totals.
  */
 export function NetWorthHero({ data }: { data: Dashboard }) {
+  const groupColors = useChartPalette().groups;
   const base = data.base_currency;
   const segments = ASSET_GROUPS.map((group) => ({
     group,
@@ -94,7 +92,7 @@ export function NetWorthHero({ data }: { data: Dashboard }) {
                   >
                     <span
                       className="oi-hero-segment"
-                      style={{ flexGrow: segment.amount, background: GROUP_COLORS[segment.group] }}
+                      style={{ flexGrow: segment.amount, background: groupColors[segment.group] }}
                     />
                   </Tooltip>
                 ))
@@ -103,7 +101,7 @@ export function NetWorthHero({ data }: { data: Dashboard }) {
         <div className="oi-hero-legend">
           {segments.map(({ group, amount }) => (
             <div key={group} className="oi-hero-legend-item">
-              <span className="oi-swatch" style={{ background: GROUP_COLORS[group] }} />
+              <span className="oi-swatch" style={{ background: groupColors[group] }} />
               <span className="oi-hero-legend-label">{ACCOUNT_GROUP_LABELS[group]}</span>
               <span className="oi-hero-legend-value">{formatMoney(amount, base)}</span>
               <span className="oi-hero-legend-share">
@@ -112,7 +110,7 @@ export function NetWorthHero({ data }: { data: Dashboard }) {
             </div>
           ))}
           <div className="oi-hero-legend-item">
-            <span className="oi-swatch" style={{ background: GROUP_COLORS.liabilities }} />
+            <span className="oi-swatch" style={{ background: groupColors.liabilities }} />
             <span className="oi-hero-legend-label">{ACCOUNT_GROUP_LABELS.liabilities}</span>
             <span className={`oi-hero-legend-value${liabilities ? ' oi-hero-negative' : ''}`}>
               {formatMoney(-liabilities, base)}

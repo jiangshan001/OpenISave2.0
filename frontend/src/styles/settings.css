@@ -84,7 +84,7 @@
   height: 34px;
   border-radius: 10px;
   background: var(--oi-hero-bg);
-  color: #dfe7fb;
+  color: var(--oi-vault-mark);
   font-size: 15px;
   box-shadow: inset 0 0 0 1px var(--oi-hero-edge);
 }

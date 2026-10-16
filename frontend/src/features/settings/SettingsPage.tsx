@@ -120,8 +120,8 @@ export function SettingsPage() {
 
               <Card title="Privacy" variant="borderless" className="oi-section-gap">
                 <p className="oi-note oi-flush">
-                  Nothing financial leaves this computer. The only outbound request is for
-                  exchange rates, and it sends currency codes only.
+                  Financial records stay on this computer. Online requests fetch exchange rates,
+                  public update information and signed app updates.
                 </p>
               </Card>
             </Col>

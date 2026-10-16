@@ -6,6 +6,10 @@
 > to develop and test safely, and what to do next.
 >
 > Deeper references, in order of usefulness:
+> [`V2_4_3_IMPLEMENTATION_STATUS.md`](V2_4_3_IMPLEMENTATION_STATUS.md)
+> (signed one-click updates, progress/retry, build and release signing) ·
+> [`V2_4_2_IMPLEMENTATION_STATUS.md`](V2_4_2_IMPLEMENTATION_STATUS.md)
+> (cloud icon and warm light theme) ·
 > [`V2_4_1_IMPLEMENTATION_STATUS.md`](V2_4_1_IMPLEMENTATION_STATUS.md)
 > (transaction usage ranking, parent-category drill-down, atomic parent/child creation) ·
 > [`SECURITY_AND_DATA_STORAGE.md`](SECURITY_AND_DATA_STORAGE.md) (vault, keys,
@@ -57,7 +61,7 @@ keeps its own native currency.
 
 | | |
 |---|---|
-| Current version | **2.4.1** source/build on `codex/v2.4.1-transaction-category-ux`; includes 2.4.0 budgets and daily update notifications. See the 2.4.1 report for validation and packaging; installed and published versions are verified separately. |
+| Current version | **2.4.3** source/build on `codex/v2.4.3-one-click-updates`; includes the 2.4.2 icon/light theme and signed in-app download/install/restart. See the 2.4.3 report for validation and release signing; installed and published versions are verified separately. |
 | Platform | Windows 10/11 x64 desktop app (only Windows is built and tested) |
 | Frontend | React 18 + TypeScript + Vite, Ant Design 5, TanStack Query, Recharts |
 | Backend | Python 3.11, FastAPI, Pydantic, SQLAlchemy 2, Alembic |
@@ -69,8 +73,8 @@ keeps its own native currency.
 | Reporting currency | CNY |
 
 Product principles: all financial data stays on the user's machine. Outbound
-requests fetch exchange rates (currency codes only) and public GitHub release
-metadata (app version only); no financial uploads, cloud accounts or telemetry.
+requests fetch exchange rates (currency codes only), public update metadata and
+signed app update packages; no financial uploads, cloud accounts or telemetry.
 
 Product state at 2.3.0:
 

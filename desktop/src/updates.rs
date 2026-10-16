@@ -1,5 +1,4 @@
-//! Public release checks, independent of the encrypted vault. Never downloads
-//! or executes an installer; the user opens a validated GitHub release page.
+//! Release checks and signed, user-initiated updates, independent of the vault.
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -7,11 +6,16 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, State};
 
-const API_URL: &str = "https://api.github.com/repos/jiangshan001/OpenISave2.0/releases/latest";
+const MANIFEST_URL: &str =
+    "https://github.com/jiangshan001/OpenISave2.0/releases/latest/download/latest.json";
 const RELEASE_PREFIX: &str = "https://github.com/jiangshan001/OpenISave2.0/releases/tag/";
 const DAY: u64 = 24 * 60 * 60;
 const RETRY: u64 = 60 * 60;
 const MAX_METADATA: usize = 512 * 1024;
+
+#[path = "updates_install.rs"]
+pub mod install;
+pub use install::InstallProgress;
 
 #[derive(Clone, Default, Deserialize, Serialize)]
 struct Cache {
@@ -27,21 +31,21 @@ struct Release {
     version: String,
     url: String,
     notes: String,
+    #[serde(default)]
+    installer: Option<SignedInstaller>,
 }
 
 #[derive(Deserialize)]
-struct GitHubRelease {
-    tag_name: String,
-    html_url: String,
-    body: Option<String>,
-    draft: bool,
-    prerelease: bool,
-    assets: Vec<Asset>,
+struct SignedManifest {
+    version: String,
+    notes: Option<String>,
+    platforms: std::collections::HashMap<String, SignedInstaller>,
 }
 
-#[derive(Deserialize)]
-struct Asset {
-    name: String,
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
+struct SignedInstaller {
+    url: String,
+    signature: String,
 }
 
 #[derive(Serialize)]
@@ -54,11 +58,15 @@ pub struct UpdateState {
     has_update: bool,
     dismissed: bool,
     last_error: Option<String>,
+    can_install: bool,
+    install: InstallProgress,
 }
 
 pub struct UpdateManager {
     path: PathBuf,
     cache: tauri::async_runtime::Mutex<Cache>,
+    operation: tauri::async_runtime::Mutex<()>,
+    progress: std::sync::Mutex<InstallProgress>,
 }
 
 impl UpdateManager {
@@ -71,6 +79,8 @@ impl UpdateManager {
         Self {
             path,
             cache: tauri::async_runtime::Mutex::new(cache),
+            operation: tauri::async_runtime::Mutex::new(()),
+            progress: std::sync::Mutex::new(InstallProgress::default()),
         }
     }
 
@@ -85,6 +95,12 @@ impl UpdateManager {
         std::fs::write(&temporary, bytes).map_err(|_| "Could not save update settings")?;
         std::fs::rename(temporary, &self.path).map_err(|_| "Could not save update settings".into())
     }
+
+    async fn state(&self, current: &str) -> UpdateState {
+        let mut state = snapshot(&*self.cache.lock().await, current);
+        state.install = self.progress.lock().map(|p| p.clone()).unwrap_or_default();
+        state
+    }
 }
 
 fn now() -> u64 {
@@ -96,7 +112,9 @@ fn now() -> u64 {
 
 fn newer(latest: &str, current: &str) -> bool {
     match (Version::parse(latest), Version::parse(current)) {
-        (Ok(latest), Ok(current)) => latest.pre.is_empty() && latest.cmp_precedence(&current).is_gt(),
+        (Ok(latest), Ok(current)) => {
+            latest.pre.is_empty() && latest.cmp_precedence(&current).is_gt()
+        }
         _ => false,
     }
 }
@@ -111,31 +129,42 @@ fn valid_release_url(url: &str) -> bool {
     })
 }
 
-fn release_from_payload(payload: GitHubRelease) -> Result<Release, String> {
-    let tag = &payload.tag_name;
-    let version = Version::parse(tag.strip_prefix('v').unwrap_or(tag))
-        .map_err(|_| "The published version is invalid")?;
-    if payload.draft
-        || payload.prerelease
-        || !version.pre.is_empty()
-        || !valid_release_url(&payload.html_url)
-        || payload.html_url != format!("{RELEASE_PREFIX}{tag}")
-    {
+fn valid_installer(version: &str, installer: &SignedInstaller) -> bool {
+    installer.url == format!(
+        "https://github.com/jiangshan001/OpenISave2.0/releases/download/v{version}/OpenISave_{version}_x64-setup.exe"
+    ) && (128..=4096).contains(&installer.signature.len())
+        && installer.signature.len() % 4 == 0
+        && installer.signature.bytes().all(|c| c.is_ascii_alphanumeric() || b"+/=".contains(&c))
+}
+
+fn release_from_payload(mut payload: SignedManifest) -> Result<Release, String> {
+    let version = Version::parse(
+        payload
+            .version
+            .strip_prefix('v')
+            .unwrap_or(&payload.version),
+    )
+    .map_err(|_| "The published version is invalid")?;
+    if !version.pre.is_empty() {
         return Err("No valid stable release is available".into());
     }
-    let installer = format!("OpenISave_{version}_x64-setup.exe");
-    if !payload.assets.iter().any(|asset| asset.name == installer) {
-        return Err("The latest release has no Windows installer yet".into());
+    let installer = payload
+        .platforms
+        .remove("windows-x86_64")
+        .ok_or("The latest release has no signed Windows update yet")?;
+    if !valid_installer(&version.to_string(), &installer) {
+        return Err("The Windows update information is invalid".into());
     }
     Ok(Release {
         version: version.to_string(),
-        url: payload.html_url,
+        url: format!("{RELEASE_PREFIX}v{version}"),
         notes: payload
-            .body
+            .notes
             .unwrap_or_default()
             .chars()
             .take(2000)
             .collect(),
+        installer: Some(installer),
     })
 }
 
@@ -154,6 +183,14 @@ fn snapshot(cache: &Cache, current: &str) -> UpdateState {
         has_update,
         dismissed: has_update && latest.map(|r| &r.version) == cache.dismissed_version.as_ref(),
         last_error: cache.last_error.clone(),
+        can_install: has_update
+            && latest.is_some_and(|release| {
+                release
+                    .installer
+                    .as_ref()
+                    .is_some_and(|i| valid_installer(&release.version, i))
+            }),
+        install: InstallProgress::default(),
     }
 }
 
@@ -172,22 +209,38 @@ fn skip_check(cache: &Cache, force: bool, timestamp: u64) -> bool {
 async fn fetch_release(current: &str) -> Result<Release, String> {
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(10))
-        .redirect(reqwest::redirect::Policy::none())
+        .redirect(reqwest::redirect::Policy::custom(|attempt| {
+            if attempt.previous().len() >= 5 {
+                attempt.error("Too many update redirects")
+            } else if attempt.url().scheme() == "https"
+                && matches!(
+                    attempt.url().host_str(),
+                    Some(
+                        "github.com"
+                            | "release-assets.githubusercontent.com"
+                            | "objects.githubusercontent.com"
+                    )
+                )
+            {
+                attempt.follow()
+            } else {
+                attempt.error("Untrusted update redirect")
+            }
+        }))
         .user_agent(format!("OpenISave/{current}"))
         .build()
         .map_err(|_| "Could not start the update check")?;
     let mut response = client
-        .get(API_URL)
-        .header("Accept", "application/vnd.github+json")
-        .header("X-GitHub-Api-Version", "2022-11-28")
+        .get(MANIFEST_URL)
+        .header("Accept", "application/json")
         .send()
         .await
-        .map_err(|_| "Could not reach GitHub. Check your connection and try again.")?;
+        .map_err(|_| "Could not reach the update service. Check your connection and try again.")?;
     match response.status().as_u16() {
         200 => {}
-        403 | 429 => return Err("GitHub's request limit was reached. Try again later.".into()),
-        404 => return Err("No published release is available yet.".into()),
-        _ => return Err("GitHub could not provide update information. Try again later.".into()),
+        403 | 429 => return Err("The update service is busy. Try again later.".into()),
+        404 => return Err("No signed update is published yet. Try again later.".into()),
+        _ => return Err("The update service is unavailable. Try again later.".into()),
     }
     let mut bytes = Vec::new();
     while let Some(chunk) = response
@@ -209,10 +262,7 @@ pub async fn app_update_state(
     app: AppHandle,
     manager: State<'_, UpdateManager>,
 ) -> Result<UpdateState, String> {
-    Ok(snapshot(
-        &*manager.cache.lock().await,
-        &app.package_info().version.to_string(),
-    ))
+    Ok(manager.state(&app.package_info().version.to_string()).await)
 }
 
 #[tauri::command]
@@ -222,6 +272,9 @@ pub async fn check_app_update(
     force: bool,
 ) -> Result<UpdateState, String> {
     let current = app.package_info().version.to_string();
+    let Ok(_operation) = manager.operation.try_lock() else {
+        return Ok(manager.state(&current).await);
+    };
     // Serialize checks and coalesce background requests. Never lock the vault.
     let mut cache = manager.cache.lock().await;
     if skip_check(&cache, force, now()) {
@@ -249,6 +302,10 @@ pub async fn dismiss_app_update(
     app: AppHandle,
     manager: State<'_, UpdateManager>,
 ) -> Result<UpdateState, String> {
+    let _operation = manager
+        .operation
+        .try_lock()
+        .map_err(|_| "An update operation is already running")?;
     let mut cache = manager.cache.lock().await;
     cache.dismissed_version = cache.latest.as_ref().map(|release| release.version.clone());
     manager.save(&cache)?;

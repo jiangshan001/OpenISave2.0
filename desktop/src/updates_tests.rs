@@ -1,15 +1,13 @@
 use super::*;
 
-fn payload(tag: &str) -> GitHubRelease {
-    GitHubRelease {
-        tag_name: tag.into(),
-        html_url: format!("{RELEASE_PREFIX}{tag}"),
-        body: Some("A release note".into()),
-        draft: false,
-        prerelease: false,
-        assets: vec![Asset {
-            name: format!("OpenISave_{}_x64-setup.exe", tag.trim_start_matches('v')),
-        }],
+fn payload(tag: &str) -> SignedManifest {
+    let version = tag.trim_start_matches('v');
+    SignedManifest {
+        version: tag.into(), notes: Some("A release note".into()),
+        platforms: std::collections::HashMap::from([("windows-x86_64".into(), SignedInstaller {
+            url: format!("https://github.com/jiangshan001/OpenISave2.0/releases/download/v{version}/OpenISave_{version}_x64-setup.exe"),
+            signature: "A".repeat(256),
+        })]),
     }
 }
 
@@ -43,18 +41,41 @@ fn only_accepts_complete_stable_windows_releases() {
         release_from_payload(payload("v2.5.0")).unwrap().version,
         "2.5.0"
     );
-    let mut draft = payload("v2.5.0");
-    draft.draft = true;
-    assert!(release_from_payload(draft).is_err());
-    let mut preview = payload("v2.5.0-beta.1");
-    preview.prerelease = true;
-    assert!(release_from_payload(preview).is_err());
+    assert!(release_from_payload(payload("v2.5.0-beta.1")).is_err());
     let mut incomplete = payload("v2.5.0");
-    incomplete.assets.clear();
+    incomplete.platforms.clear();
     assert!(release_from_payload(incomplete).is_err());
     let mut mismatch = payload("v2.5.0");
-    mismatch.html_url = format!("{RELEASE_PREFIX}v2.4.0");
+    mismatch.platforms.get_mut("windows-x86_64").unwrap().url =
+        "https://github.com/jiangshan001/OpenISave2.0/releases/download/v2.4.0/OpenISave_2.4.0_x64-setup.exe".into();
     assert!(release_from_payload(mismatch).is_err());
+}
+
+#[test]
+fn rejects_unsigned_or_foreign_installers_and_legacy_cache_cannot_install() {
+    for bad in ["", "not a signature", "https://example.com/signature"] {
+        let mut unsigned = payload("v2.5.0");
+        unsigned
+            .platforms
+            .get_mut("windows-x86_64")
+            .unwrap()
+            .signature = bad.into();
+        assert!(release_from_payload(unsigned).is_err());
+    }
+    for url in ["http://github.com/jiangshan001/OpenISave2.0/releases/download/v2.5.0/OpenISave_2.5.0_x64-setup.exe",
+                "https://example.com/OpenISave_2.5.0_x64-setup.exe", "file:///C:/installer.exe"] {
+        let mut foreign = payload("v2.5.0");
+        foreign.platforms.get_mut("windows-x86_64").unwrap().url = url.into();
+        assert!(release_from_payload(foreign).is_err());
+    }
+    let mut cache = Cache {
+        latest: Some(release_from_payload(payload("v2.5.0")).unwrap()),
+        ..Cache::default()
+    };
+    assert!(snapshot(&cache, "2.4.3").can_install);
+    assert!(!snapshot(&cache, "2.5.0").can_install);
+    cache.latest.as_mut().unwrap().installer = None;
+    assert!(!snapshot(&cache, "2.4.3").can_install);
 }
 
 #[test]

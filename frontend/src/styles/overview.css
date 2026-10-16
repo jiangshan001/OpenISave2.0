@@ -1,6 +1,5 @@
-/* Overview hero: the one deep surface on the page. Graphite-navy in both
-   themes (lifted a step in dark so it still separates from the canvas), a
-   hairline edge, and only the faintest tonal gradient. */
+/* Overview hero: sunset tones in light, graphite-navy in dark. Foreground
+   roles follow the surface so labels, debt and focus stay readable. */
 
 .oi-hero {
   display: grid;
@@ -57,7 +56,7 @@
 }
 
 .oi-hero-negative {
-  color: #f0a391;
+  color: var(--oi-hero-negative);
 }
 
 .oi-hero-alloc {
@@ -74,7 +73,7 @@
   margin: 12px 0 16px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--oi-hero-track);
 }
 
 .oi-hero-segment {
@@ -129,7 +128,7 @@
 }
 
 .oi-hero :focus-visible {
-  outline-color: rgba(190, 208, 250, 0.8);
+  outline-color: var(--oi-hero-focus);
 }
 
 .oi-overview-strip {

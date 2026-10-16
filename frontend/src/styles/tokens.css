@@ -1,6 +1,6 @@
 /*
- * Design tokens. One cool-neutral family per theme, one accent (the brand
- * blue), calibrated semantic tones. Colour values mirror src/theme/palette.ts
+ * Design tokens. Warm sunset-cloud colours in light, slate and blue in dark,
+ * calibrated semantic tones. Colour values mirror src/theme/palette.ts
  * (Ant Design) and src/theme/chartPalette.ts (SVG); change them together.
  *
  * Surface ladder: canvas → panel → raised → hero. Depth comes from the
@@ -45,27 +45,27 @@
 
 :root,
 [data-theme='light'] {
-  --oi-bg: #f4f5f7;
-  --oi-surface: #ffffff;
-  --oi-surface-2: #f8f9fb;
-  --oi-sunken: #eef0f3;
-  --oi-sidebar: #f9fafb;
-  --oi-border: #e3e6eb;
-  --oi-border-soft: #eceef2;
-  --oi-border-strong: #d2d7df;
+  --oi-bg: #faf6f2;
+  --oi-surface: #fffcf9;
+  --oi-surface-2: #fff7ef;
+  --oi-sunken: #f3eae5;
+  --oi-sidebar: #fff9f3;
+  --oi-border: #e9dcd4;
+  --oi-border-soft: #f0e5de;
+  --oi-border-strong: #d8c2b9;
 
-  --oi-text: #141922;
-  --oi-text-2: #3a414d;
-  --oi-muted: #606978;
-  --oi-subtle: #838b99;
+  --oi-text: #332a2d;
+  --oi-text-2: #51464b;
+  --oi-muted: #6f5f64;
+  --oi-subtle: #77666a;
 
-  --oi-primary: #2f5bd3;
-  --oi-primary-hover: #3d68dc;
-  --oi-primary-strong: #2449b3;
-  --oi-accent-text: #2a52c2;
-  --oi-primary-soft: #edf1fc;
-  --oi-ring: rgba(47, 91, 211, 0.16);
-  --oi-focus: rgba(47, 91, 211, 0.6);
+  --oi-primary: #a54469;
+  --oi-primary-hover: #923955;
+  --oi-primary-strong: #7d2d56;
+  --oi-accent-text: #913b5e;
+  --oi-primary-soft: #f8e8ed;
+  --oi-ring: rgba(165, 68, 105, 0.16);
+  --oi-focus: #913b5e;
 
   --oi-positive: #177a50;
   --oi-positive-soft: #e6f3ec;
@@ -75,32 +75,38 @@
   --oi-warning-soft: #fcf3e2;
   --oi-warning-fill: #d59a33;
 
-  /* hero: deep graphite-navy with the faintest tonal lift */
-  --oi-hero-bg: linear-gradient(158deg, #1b2335 0%, #141a28 58%, #121724 100%);
-  --oi-hero-edge: rgba(255, 255, 255, 0.06);
-  --oi-hero-text: #f4f6fb;
-  --oi-hero-muted: rgba(226, 232, 244, 0.64);
-  --oi-hero-rule: rgba(255, 255, 255, 0.08);
-  --oi-hero-shadow: 0 18px 40px -24px rgba(20, 26, 41, 0.6);
+  /* hero: the icon's apricot, peach and mauve with dark plum text */
+  --oi-hero-bg: linear-gradient(118deg, #ffe2aa 0%, #ffc3aa 48%, #e6b8c9 100%);
+  --oi-hero-edge: rgba(117, 61, 74, 0.12);
+  --oi-hero-text: #493046;
+  --oi-hero-muted: #624350;
+  --oi-hero-negative: #8a2c20;
+  --oi-hero-rule: rgba(73, 48, 70, 0.14);
+  --oi-hero-track: rgba(73, 48, 70, 0.09);
+  --oi-hero-focus: #7d2d56;
+  --oi-vault-mark: #493046;
+  --oi-hero-shadow: 0 18px 40px -24px rgba(132, 69, 82, 0.28);
 
   --oi-shadow-card: none;
-  --oi-shadow-hover: 0 12px 28px -16px rgba(20, 26, 41, 0.24), 0 1px 2px rgba(20, 26, 41, 0.05);
-  --oi-shadow-pop: 0 16px 36px -12px rgba(20, 26, 41, 0.22), 0 2px 6px rgba(20, 26, 41, 0.06);
+  --oi-shadow-hover: 0 12px 28px -16px rgba(75, 45, 53, 0.18), 0 1px 2px rgba(75, 45, 53, 0.04);
+  --oi-shadow-pop: 0 16px 36px -12px rgba(75, 45, 53, 0.18), 0 2px 6px rgba(75, 45, 53, 0.05);
   --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  --oi-btn-depth: 0 1px 2px rgba(20, 42, 110, 0.18);
+  --oi-btn-depth: 0 1px 2px rgba(112, 40, 71, 0.18);
+  --oi-btn-hover: 0 3px 8px -3px rgba(165, 68, 105, 0.45);
+  --oi-btn-press: inset 0 1px 2px rgba(75, 30, 49, 0.28);
   --oi-btn-sheen: rgba(255, 255, 255, 0.2);
 
   /* navigation: tinted hover, icon wells, selected edge */
-  --oi-nav-well-hover: rgba(36, 60, 130, 0.07);
-  --oi-nav-press: rgba(36, 60, 130, 0.09);
-  --oi-nav-well: rgba(47, 91, 211, 0.12);
-  --oi-nav-edge: rgba(47, 91, 211, 0.08);
+  --oi-nav-well-hover: rgba(165, 68, 105, 0.07);
+  --oi-nav-press: rgba(165, 68, 105, 0.09);
+  --oi-nav-well: rgba(165, 68, 105, 0.12);
+  --oi-nav-edge: rgba(165, 68, 105, 0.08);
   --oi-nav-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
-  --oi-scrollbar: rgba(20, 26, 41, 0.14);
-  --oi-scrollbar-hover: rgba(20, 26, 41, 0.26);
-  --oi-selection: rgba(47, 91, 211, 0.16);
-  --oi-code-bg: #eef0f4;
+  --oi-scrollbar: rgba(75, 45, 53, 0.14);
+  --oi-scrollbar-hover: rgba(75, 45, 53, 0.26);
+  --oi-selection: rgba(165, 68, 105, 0.16);
+  --oi-code-bg: #f3eae5;
 }
 
 [data-theme='dark'] {
@@ -138,7 +144,11 @@
   --oi-hero-edge: rgba(150, 175, 235, 0.14);
   --oi-hero-text: #f4f6fb;
   --oi-hero-muted: rgba(214, 223, 242, 0.62);
+  --oi-hero-negative: #f0a391;
   --oi-hero-rule: rgba(255, 255, 255, 0.08);
+  --oi-hero-track: rgba(255, 255, 255, 0.08);
+  --oi-hero-focus: rgba(190, 208, 250, 0.8);
+  --oi-vault-mark: #dfe7fb;
   --oi-hero-shadow: 0 20px 44px -26px rgba(0, 0, 0, 0.8);
 
   --oi-shadow-card: none;
@@ -146,6 +156,8 @@
   --oi-shadow-pop: 0 18px 40px -12px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.35);
   --oi-btn-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   --oi-btn-depth: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --oi-btn-hover: 0 3px 8px -3px rgba(47, 91, 211, 0.45);
+  --oi-btn-press: inset 0 1px 2px rgba(10, 20, 60, 0.28);
   --oi-btn-sheen: rgba(255, 255, 255, 0.12);
 
   --oi-nav-well-hover: rgba(150, 175, 235, 0.08);

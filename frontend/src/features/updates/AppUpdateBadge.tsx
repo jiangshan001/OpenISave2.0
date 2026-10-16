@@ -4,13 +4,13 @@ import { useAppUpdates } from './AppUpdateProvider';
 
 export function AppUpdateBadge() {
   const navigate = useNavigate();
-  const { state } = useAppUpdates();
-  if (!state?.has_update || state.dismissed) return null;
+  const { state, updating } = useAppUpdates();
+  if (!updating && (!state?.has_update || state.dismissed)) return null;
   return (
     <Button className="oi-update-badge" size="small" type="link"
-      title={`Version ${state.latest_version} is available`}
+      title={updating ? 'Open update progress' : `Version ${state?.latest_version} is available`}
       onClick={() => navigate('/settings')}>
-      Update available
+      {updating ? 'Updating…' : 'Update available'}
     </Button>
   );
 }

@@ -10,7 +10,7 @@
 [data-goal='education'] { --goal: #4b44ad; }
 [data-goal='car'] { --goal: #3c5a7d; }
 [data-goal='gift'] { --goal: #8f3f6e; }
-[data-goal='savings'] { --goal: #2f5bd3; }
+[data-goal='savings'] { --goal: #a54469; }
 
 [data-theme='dark'] [data-goal='emergency'] { --goal: #5fbcb0; }
 [data-theme='dark'] [data-goal='travel'] { --goal: #7aaee4; }
