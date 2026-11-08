@@ -37,6 +37,30 @@ def _account(client, name, currency="CNY", opening="0.00", account_type="savings
 # ------------------------------------------------------------------- goals
 
 
+def test_new_loan_deposit_over_http(client):
+    cash = _account(client, "Loan destination", opening="100.00", account_type="bank")
+    response = client.post("/api/v1/liabilities", json={
+        "name": "Loan", "liability_type": "loan", "currency": "CNY",
+        "original_amount_minor": 3000000, "receipt_account_id": cash["id"],
+        "start_date": TODAY_ISO,
+    })
+    assert response.status_code == 201, response.text
+    assert response.json()["outstanding_minor"] == 3000000
+    assert client.get(f"/api/v1/accounts/{cash['id']}").json()["balance_minor"] == 3010000
+    rows = client.get("/api/v1/transactions").json()["items"]
+    assert len(rows) == 1 and rows[0]["type"] == "transfer"
+
+
+def test_income_categories_are_seeded_idempotently(client, session):
+    from app.db.seed import seed_all
+
+    seed_all(session)
+    categories = client.get("/api/v1/categories", params={"kind": "income"}).json()
+    names = [item["name"] for item in categories]
+    assert names.count("Refund") == 1
+    assert names.count("Second-hand sales") == 1
+
+
 def test_goal_spans_multiple_accounts_over_http(client):
     cmb = _account(client, "招商银行", opening="100000.00")
     boc = _account(client, "中国银行", opening="80000.00")

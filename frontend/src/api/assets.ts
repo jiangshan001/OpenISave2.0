@@ -64,6 +64,7 @@ export interface LiabilityPayload {
   liability_type: LiabilityType;
   currency: CurrencyCode;
   account_id?: number | null;
+  receipt_account_id?: number | null;
   original_amount_minor: number;
   outstanding_amount_minor?: number | null;
   start_date?: string | null;

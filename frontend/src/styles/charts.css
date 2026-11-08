@@ -253,3 +253,9 @@
   color: var(--oi-muted);
   font-size: 12px;
 }
+
+.oi-report-mix { container-type: inline-size; }
+@container (max-width: 600px) {
+  .oi-report-mix .oi-donut { grid-template-columns: minmax(0, 1fr); }
+  .oi-report-mix .oi-donut-chart { width: min(220px, 100%); margin-inline: auto; }
+}

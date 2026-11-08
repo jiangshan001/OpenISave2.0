@@ -56,6 +56,8 @@ INCOME_CATEGORIES: list[str] = [
     "Investment Income",
     "Interest",
     "Gift",
+    "Refund",
+    "Second-hand sales",
     "Other",
 ]
 

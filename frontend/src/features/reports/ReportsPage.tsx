@@ -42,7 +42,7 @@ export function ReportsPage() {
             <ReportSummary report={data} />
 
             <Row gutter={[16, 16]} className="oi-section-gap">
-              <Col xs={24} xl={14}>
+              <Col xs={24} xxl={12}>
                 <Card title="Cash flow, last 12 months" variant="borderless">
                   <CashFlowChart
                     data={data.cash_flow_series}
@@ -51,8 +51,8 @@ export function ReportsPage() {
                   />
                 </Card>
               </Col>
-              <Col xs={24} xl={10}>
-                <Card title="Expense mix" variant="borderless">
+              <Col xs={24} xxl={12}>
+                <Card title="Expense mix" variant="borderless" className="oi-report-mix">
                   {data.expense_by_category.length > 0 ? (
                     <CategoryPieChart
                       data={data.expense_by_category}

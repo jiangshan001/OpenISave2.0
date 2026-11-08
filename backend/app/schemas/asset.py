@@ -173,6 +173,7 @@ class LiabilityCreate(ApiModel, CurrencyMixin):
     liability_type: LiabilityType = LiabilityType.OTHER
     currency: str = Field(default="CNY", min_length=3, max_length=3)
     account_id: int | None = None
+    receipt_account_id: int | None = None
     original_amount_minor: int = Field(default=0, ge=0)
     outstanding_amount_minor: int | None = Field(default=None, ge=0)
     start_date: date | None = None

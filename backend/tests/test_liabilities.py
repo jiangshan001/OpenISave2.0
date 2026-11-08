@@ -8,6 +8,7 @@ import pytest
 
 from app.core.exceptions import ConflictError, ValidationError
 from app.core.money import to_minor
+from app.services.liability_service import LiabilityService
 from tests.conftest import make_account
 
 TODAY = date.today()
@@ -205,3 +206,42 @@ def test_deleting_a_liability_keeps_the_account_and_unlinks_assets(
     liabilities.delete(financing.id)
     assert accounts.get(account_id) is not None
     assert assets.get(asset.id).linked_liability_id is None
+def test_new_loan_receipt_is_balanced(session, accounts, ledger, networth):
+    service = LiabilityService(session, accounts, ledger)
+    cash = make_account(accounts, "Receipt account", "CNY", "100.00")
+    before = networth.calculate().net_worth_minor
+    loan = service.create({
+        "name": "Loan receipt", "liability_type": "loan", "currency": "CNY",
+        "original_amount_minor": 3000000, "outstanding_amount_minor": 3000000,
+        "receipt_account_id": cash.id, "start_date": TODAY,
+    })
+    assert accounts.balance_for(cash.id).balance_minor == 3010000
+    assert service.view(loan).outstanding_minor == 3000000
+    assert networth.calculate().net_worth_minor == before
+    transfer = ledger.list(limit=1)[0]
+    assert transfer.type == "transfer"
+    assert transfer.from_account_id == loan.account_id and transfer.to_account_id == cash.id
+
+
+def test_new_loan_receipt_rejects_a_partially_paid_opening(session, accounts, ledger):
+    service = LiabilityService(session, accounts, ledger)
+    cash = make_account(accounts, "Receipt account", "CNY", "0.00")
+    with pytest.raises(ValidationError, match="Record repayments separately"):
+        service.create({
+            "name": "Partially paid", "liability_type": "loan", "currency": "CNY",
+            "original_amount_minor": 3000000, "outstanding_amount_minor": 2000000,
+            "receipt_account_id": cash.id,
+        })
+    assert accounts.repo.get_by_name("Partially paid") is None
+    assert accounts.balance_for(cash.id).balance_minor == 0
+
+
+def test_new_loan_receipt_rejects_wrong_currency(session, accounts, ledger):
+    service = LiabilityService(session, accounts, ledger)
+    cash = make_account(accounts, "Sterling", "GBP", "0.00")
+    with pytest.raises(ValidationError, match="same currency"):
+        service.create({
+            "name": "Wrong currency", "currency": "CNY", "original_amount_minor": 10000,
+            "receipt_account_id": cash.id,
+        })
+    assert accounts.repo.get_by_name("Wrong currency") is None

@@ -59,11 +59,12 @@ class LiabilityView:
 
 
 class LiabilityService:
-    def __init__(self, session: Session, accounts: AccountService) -> None:
+    def __init__(self, session: Session, accounts: AccountService, ledger=None) -> None:
         self.session = session
         self.repo = LiabilityRepository(session)
         self.assets = AssetRepository(session)
         self.accounts = accounts
+        self.ledger = ledger
 
     # ------------------------------------------------------------- reading
 
@@ -111,6 +112,15 @@ class LiabilityService:
         if original < 0:
             raise ValidationError("The original amount cannot be negative.")
 
+        receipt_id = data.get("receipt_account_id")
+        if receipt_id is not None:
+            if self.ledger is None or original <= 0 or data.get("account_id") is not None:
+                raise ValidationError(
+                    "A receipt requires a new liability and a positive original amount."
+                )
+            destination = self.accounts.get_active(int(receipt_id))
+            if is_liability(destination.account_type) or destination.currency != currency:
+                raise ValidationError("Choose an active non-liability account in the same currency.")
         account_id = data.get("account_id")
         if account_id is not None:
             account = self.accounts.get(int(account_id))
@@ -129,6 +139,11 @@ class LiabilityService:
             )
             if outstanding < 0:
                 raise ValidationError("The outstanding amount cannot be negative.")
+            if receipt_id is not None and outstanding != original:
+                raise ValidationError(
+                    "When recording a new loan deposit, the amount owed must equal the "
+                    "original amount. Record repayments separately."
+                )
             account = self.accounts.create(
                 {
                     "name": name,
@@ -136,10 +151,11 @@ class LiabilityService:
                     "account_type": DEFAULT_ACCOUNT_TYPE[liability_type].value,
                     "currency": currency,
                     # A liability account carries its debt as a negative balance.
-                    "opening_balance_minor": -outstanding,
+                    "opening_balance_minor": 0 if receipt_id is not None else -outstanding,
                     "include_in_net_worth": True,
                     "note": data.get("note"),
-                }
+                },
+                commit=False,
             )
 
         liability = self.repo.add(
@@ -160,6 +176,17 @@ class LiabilityService:
                 note=data.get("note"),
             )
         )
+        if receipt_id is not None:
+            self.ledger.create_transfer(
+                {
+                    "from_account_id": account.id,
+                    "to_account_id": int(receipt_id),
+                    "amount_minor": original,
+                    "transaction_date": data.get("start_date") or date.today(),
+                    "description": f"Loan received — {name}",
+                },
+                commit=False,
+            )
         self.session.commit()
         logger.info("liability_created id=%s account=%s", liability.id, account.id)
         return liability

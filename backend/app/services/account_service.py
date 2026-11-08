@@ -95,7 +95,7 @@ class AccountService:
     def list(self, *, include_archived: bool = False) -> list[Account]:
         return self.repo.list(include_archived=include_archived)
 
-    def create(self, data: dict) -> Account:
+    def create(self, data: dict, *, commit: bool = True) -> Account:
         name = data["name"].strip()
         if not name:
             raise ValidationError("Account name is required.")
@@ -118,7 +118,10 @@ class AccountService:
             sort_order=int(data.get("sort_order") or 0),
         )
         self.repo.add(account)
-        self.session.commit()
+        if commit:
+            self.session.commit()
+        else:
+            self.session.flush()
         logger.info("account_created id=%s type=%s", account.id, account.account_type)
         return account
 

@@ -108,8 +108,8 @@ def get_goal_service(session: DbSession, accounts: AccountDep, fx: FxDep) -> Goa
 GoalDep = Annotated[GoalService, Depends(get_goal_service)]
 
 
-def get_liability_service(session: DbSession, accounts: AccountDep) -> LiabilityService:
-    return LiabilityService(session, accounts)
+def get_liability_service(session: DbSession, accounts: AccountDep, ledger: LedgerDep) -> LiabilityService:
+    return LiabilityService(session, accounts, ledger)
 
 
 LiabilityDep = Annotated[LiabilityService, Depends(get_liability_service)]

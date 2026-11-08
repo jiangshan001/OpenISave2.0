@@ -9,6 +9,18 @@ key is kept in Windows Credential Manager. Outbound requests fetch exchange rate
 (currency codes only), public update information and signed app update packages.
 Ledger data, account details and encryption keys stay on this computer.
 
+## What's new in 2.4.4
+
+- Record a new loan deposit into an account of the same currency as a transfer.
+  For an already partly repaid debt, continue to record it as an existing debt;
+  record repayments separately after a new deposit.
+- Added Refund and Second-hand sales income categories.
+- Improved the Reports expense chart layout for narrower cards.
+
+This release does not yet add a way to post the deposit for a previously
+recorded loan, a separate repayment progress page, or monthly allocation of
+quarterly rent. Existing loan balances are not automatically changed.
+
 ## What's new in 2.4.3
 
 - **One-click updates:** Settings → App updates → Update now downloads a signed

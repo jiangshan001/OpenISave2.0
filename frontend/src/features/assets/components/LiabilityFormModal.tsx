@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 
 import { MoneyInput } from '@/components/forms/MoneyInput';
 import { useSaveLiability } from '@/hooks/useAssets';
+import { useAccounts } from '@/hooks/useLedger';
 import type { CurrencyCode } from '@/types';
 import type { Liability, LiabilityType } from '@/types/asset';
 import { toApiDate } from '@/utils/dates';
+import { isLiabilityType } from '@/utils/labels';
 import { CURRENCY_CODES, toMajor, toMinor } from '@/utils/money';
 import { validateOrNull } from '@/utils/forms';
 
@@ -24,6 +26,7 @@ interface FormValues {
   currency: CurrencyCode;
   original_amount?: number;
   outstanding_amount?: number;
+  receipt_account_id?: number;
   start_date?: Dayjs | null;
   end_date?: Dayjs | null;
   interest_rate_percent?: number;
@@ -41,6 +44,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
   const [form] = Form.useForm<FormValues>();
   const [currency, setCurrency] = useState<CurrencyCode>('CNY');
   const save = useSaveLiability(onClose);
+  const { data: accounts } = useAccounts();
   const isEdit = Boolean(liability);
 
   useEffect(() => {
@@ -76,6 +80,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
         name: values.name.trim(),
         liability_type: values.liability_type,
         currency: values.currency,
+        receipt_account_id: isEdit ? undefined : values.receipt_account_id,
         original_amount_minor: toMinor(values.original_amount ?? 0, values.currency),
         outstanding_amount_minor: isEdit
           ? undefined
@@ -136,7 +141,10 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
             <Form.Item name="currency" label="Currency" rules={[{ required: true }]}>
               <Select
                 disabled={isEdit}
-                onChange={(value: CurrencyCode) => setCurrency(value)}
+                onChange={(value: CurrencyCode) => {
+                  setCurrency(value);
+                  form.setFieldValue('receipt_account_id', undefined);
+                }}
                 options={CURRENCY_CODES.map((code) => ({ value: code, label: code }))}
               />
             </Form.Item>
@@ -155,7 +163,16 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
               <Form.Item
                 name="outstanding_amount"
                 label="Owed right now"
-                tooltip="Leave empty to use the original amount."
+                tooltip="Leave empty to use the original amount. If recording a new deposit, record repayments separately."
+                dependencies={['receipt_account_id', 'original_amount', 'currency']}
+                rules={[({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const original = getFieldValue('original_amount');
+                    if (getFieldValue('receipt_account_id') == null || value == null || original == null ||
+                        toMinor(value, currency) === toMinor(original, currency)) return Promise.resolve();
+                    return Promise.reject(new Error('For a new deposit, enter the original amount; record repayments separately.'));
+                  },
+                })]}
               >
                 <MoneyInput currency={currency} />
               </Form.Item>
@@ -163,6 +180,15 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
           </Col>
         </Row>
 
+        {!isEdit ? (
+          <Form.Item name="receipt_account_id" label="Deposit borrowed money into"
+            extra="Choose only if the full loan deposit has not already been recorded. Record repayments separately.">
+            <Select allowClear placeholder="Existing debt / no deposit to record" options={(accounts ?? [])
+              .filter((item) => item.is_active && !item.is_archived &&
+                !isLiabilityType(item.account_type) && item.currency === currency)
+              .map((item) => ({ value: item.id, label: item.name }))} />
+          </Form.Item>
+        ) : null}
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="start_date" label="Start date">
