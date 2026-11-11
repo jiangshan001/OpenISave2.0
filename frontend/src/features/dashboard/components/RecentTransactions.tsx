@@ -59,7 +59,7 @@ export function RecentTransactions({ data }: { data: Dashboard }) {
                   </div>
                 </div>
                 <MoneyText
-                  amountMinor={row.type === 'income' ? row.amount_minor : -row.amount_minor}
+                  amountMinor={row.type === 'income' || row.type === 'adjustment' ? row.amount_minor : -row.amount_minor}
                   currency={row.currency}
                   baseAmountMinor={row.base_amount_minor}
                   baseCurrency={data.base_currency}

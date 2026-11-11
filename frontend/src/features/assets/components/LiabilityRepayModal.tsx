@@ -105,7 +105,9 @@ export function LiabilityRepayModal({ open, liability, onClose }: LiabilityRepay
             { required: true, message: 'Enter an amount' },
             {
               validator: (_, value) =>
-                value > 0 ? Promise.resolve() : Promise.reject(new Error('Must be above zero')),
+                value > 0 && liability && toMinor(value, currency) <= liability.outstanding_minor
+                  ? Promise.resolve()
+                  : Promise.reject(new Error('Enter a positive amount no greater than the outstanding debt.')),
             },
           ]}
         >

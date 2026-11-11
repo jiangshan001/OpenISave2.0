@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { CurrencyCode } from '@/types';
+import type { CurrencyCode, Page } from '@/types';
 import type {
   Asset,
   AssetCategory,
@@ -85,4 +85,8 @@ export const liabilitiesApi = {
     id: number,
     payload: { from_account_id: number; amount_minor: number; transaction_date?: string },
   ) => api.post<Transaction>(`/liabilities/${id}/repayments`, payload),
+  recordReceipt: (id: number, payload: { account_id: number; amount_minor: number; transaction_date: string; confirm_missing: true }) =>
+    api.post<Transaction>(`/liabilities/${id}/receipt`, payload),
+  repaymentHistory: (id: number, offset: number) =>
+    api.get<Page<Transaction>>(`/liabilities/${id}/repayments`, { limit: 25, offset }),
 };

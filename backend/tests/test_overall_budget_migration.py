@@ -44,8 +44,11 @@ def test_additive_monthly_budget_migration(tmp_path, existing):
                 session.add(Account(id=999, name="Synthetic", account_type="bank", currency="CNY",
                                     opening_balance_minor=100000))
                 session.flush()
-                session.add(Transaction(id=999, type="expense", transaction_date=date(2026, 10, 4),
-                                        amount_minor=100, currency="CNY", base_amount_minor=100))
+                # The current Transaction model has later columns that do not exist at OLD.
+                session.execute(text("""INSERT INTO transactions
+                    (id,type,transaction_date,description,amount_minor,currency,base_currency,
+                     base_amount_minor,fx_rate_to_base,fx_source,is_voided)
+                    VALUES (999,'expense','2026-10-04','',100,'CNY','CNY',100,1,'identity',0)"""))
                 session.flush()
                 session.add(Posting(transaction_id=999, account_id=999, amount_minor=-100,
                                     currency="CNY", base_amount_minor=-100))
@@ -57,15 +60,13 @@ def test_additive_monthly_budget_migration(tmp_path, existing):
             before = snapshot(engine)
         else:
             before = {}
-        migrate(engine, "head")
+        migrate(engine, NEW)
         assert bootstrap.current_revision(engine) == NEW
         after = snapshot(engine)
         for table, rows in before.items():
             assert after[table] == rows, table
         assert after["monthly_budgets"] == []  # no automatic overall budgets
         with engine.begin() as connection:
-            context = MigrationContext.configure(connection, opts={"compare_type": True})
-            assert compare_metadata(context, Base.metadata) == []
             connection.execute(text("INSERT INTO monthly_budgets (year,month,overall_limit_minor) VALUES (2026,10,1500000)"))
             connection.execute(text("UPDATE monthly_budgets SET overall_limit_minor=NULL"))
         migrate(engine, OLD, downgrade=True)
@@ -73,9 +74,13 @@ def test_additive_monthly_budget_migration(tmp_path, existing):
         for table, rows in before.items():
             assert snapshot(engine)[table] == rows, table
         migrate(engine, "head")
-        assert bootstrap.current_revision(engine) == NEW
+        assert bootstrap.current_revision(engine) == bootstrap.head_revision()
         with engine.connect() as connection:
             assert compare_metadata(MigrationContext.configure(connection), Base.metadata) == []
+            if existing:
+                row = connection.execute(text("SELECT budget_months,budget_start_month FROM transactions WHERE id=999")).one()
+                assert tuple(row) == (1, None)
+                assert connection.execute(text("SELECT count(*) FROM postings WHERE transaction_id=999")).scalar_one() == 2
     finally:
         engine.dispose()
     assert not cipher.is_plaintext_sqlite(path)

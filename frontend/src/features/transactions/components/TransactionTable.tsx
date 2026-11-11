@@ -13,6 +13,7 @@ interface TransactionTableProps {
   categories: Category[];
   loading?: boolean;
   onEdit?: (transaction: Transaction) => void;
+  onAllocate?: (transaction: Transaction) => void;
   pagination?: { total: number; pageSize: number; current: number; onChange: (p: number) => void };
   compact?: boolean;
 }
@@ -23,6 +24,7 @@ export function TransactionTable({
   categories,
   loading,
   onEdit,
+  onAllocate,
   pagination,
   compact = false,
 }: TransactionTableProps) {
@@ -47,12 +49,20 @@ export function TransactionTable({
           <span className={row.is_voided ? 'oi-muted' : ''}>
             {value || TRANSACTION_TYPE_LABELS[row.type]}
           </span>
+          <Tag className="oi-transaction-compact-meta" color={TRANSACTION_TYPE_COLORS[row.type]} bordered={false}>
+            {TRANSACTION_TYPE_LABELS[row.type]}
+          </Tag>
           {row.type === 'transfer' ? (
             <span className="oi-row-meta">
               {accountName(row.from_account_id)} → {accountName(row.to_account_id)}
             </span>
           ) : null}
+          {row.type !== 'transfer' ? <span className="oi-row-meta oi-transaction-compact-meta">
+            {accountName(row.account_id)} · {categoryName(row.category_id) ?? 'Uncategorised'}
+          </span> : null}
           {row.is_voided ? <Tag color="default">Voided</Tag> : null}
+          {row.type === 'expense' && ((row.budget_months ?? 1) > 1 || row.budget_start_month) ?
+            <span className="oi-row-meta">Budget: {row.budget_months ?? 1} month(s)</span> : null}
           {row.external_source || row.recurring_rule_id ? (
             <span className="oi-row-meta">
               {row.external_source === 'wechat' ? 'Imported · WeChat Pay' : null}
@@ -65,6 +75,7 @@ export function TransactionTable({
     {
       title: 'Type',
       dataIndex: 'type',
+      responsive: ['xl'],
       width: 104,
       render: (value: Transaction['type']) => (
         <Tag color={TRANSACTION_TYPE_COLORS[value]} bordered={false}>
@@ -74,6 +85,7 @@ export function TransactionTable({
     },
     {
       title: 'Category',
+      responsive: ['xl'],
       dataIndex: 'category_id',
       width: 140,
       render: (value: number | null, row) =>
@@ -85,6 +97,7 @@ export function TransactionTable({
     },
     {
       title: 'Account',
+      responsive: ['xl'],
       width: 150,
       render: (_, row) =>
         row.type === 'transfer'
@@ -97,7 +110,7 @@ export function TransactionTable({
       width: 170,
       render: (_, row) => (
         <MoneyText
-          amountMinor={row.type === 'income' ? row.amount_minor : -row.amount_minor}
+          amountMinor={row.type === 'income' || row.type === 'adjustment' ? row.amount_minor : -row.amount_minor}
           currency={row.currency}
           baseAmountMinor={row.base_amount_minor}
           baseCurrency={row.base_currency}
@@ -111,12 +124,17 @@ export function TransactionTable({
   if (!compact) {
     columns.push({
       title: '',
-      width: 130,
+      width: 220,
       align: 'right',
       render: (_, row) =>
         row.is_voided ? null : (
           <Space size={2} className="oi-row-actions">
-            {onEdit && row.type !== 'transfer' ? (
+            {onAllocate && row.type === 'expense' ? (
+              <Button size="small" type="text" onClick={() => onAllocate(row)}>
+                Budget allocation
+              </Button>
+            ) : null}
+            {onEdit && (row.type === 'expense' || row.type === 'income') ? (
               <Button size="small" type="text" onClick={() => onEdit(row)}>
                 Edit
               </Button>

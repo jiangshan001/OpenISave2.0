@@ -23,6 +23,8 @@ export interface TransactionPayload {
   category_id?: number | null;
   note?: string | null;
   fx_rate?: string | null;
+  budget_months?: number;
+  budget_start_month?: string | null;
 }
 
 export interface TransferPayload {
@@ -54,6 +56,8 @@ export const transactionsApi = {
   create: (payload: TransactionPayload) => api.post<Transaction>('/transactions', payload),
   update: (id: number, payload: Partial<TransactionPayload>) =>
     api.patch<Transaction>(`/transactions/${id}`, payload),
+  setBudgetAllocation: (id: number, payload: { months: number; start_month: string | null }) =>
+    api.put<Transaction>(`/transactions/${id}/budget-allocation`, payload),
   void: (id: number) => api.post<Transaction>(`/transactions/${id}/void`),
   transfer: (payload: TransferPayload) => api.post<Transaction>('/transfers', payload),
 };

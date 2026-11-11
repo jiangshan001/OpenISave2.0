@@ -8,6 +8,7 @@ from app.api.deps import LedgerDep, TransactionEntryDep
 from app.core.enums import CategoryKind, TransactionType
 from app.schemas.common import Page
 from app.schemas.transaction import (
+    BudgetAllocationUpdate,
     TransactionCreate,
     TransactionRead,
     TransactionUpdate,
@@ -72,6 +73,15 @@ def update_transaction(
 ) -> TransactionRead:
     updated = ledger.update_transaction(transaction_id, payload.model_dump(exclude_unset=True))
     return TransactionRead.model_validate(updated)
+
+
+@router.put("/transactions/{transaction_id}/budget-allocation", response_model=TransactionRead)
+def set_budget_allocation(
+    transaction_id: int, payload: BudgetAllocationUpdate, ledger: LedgerDep
+) -> TransactionRead:
+    return TransactionRead.model_validate(
+        ledger.set_budget_allocation(transaction_id, payload.months, payload.start_month)
+    )
 
 
 @router.post("/transactions/{transaction_id}/void", response_model=TransactionRead)

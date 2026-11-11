@@ -9,6 +9,22 @@ key is kept in Windows Credential Manager. Outbound requests fetch exchange rate
 (currency codes only), public update information and signed app update packages.
 Ledger data, account details and encryption keys stay on this computer.
 
+## What's new in 2.4.5
+
+- **Loans & repayments:** a dedicated page tracks each debt, records repayments
+  from a chosen account and lists repayment transfers. Existing debt accounts
+  can be attached to a liability without changing their balances.
+- **Earlier loan deposits:** for an eligible debt recorded as an opening balance,
+  correct a missing deposit into a selected same-currency account without
+  increasing the debt again. The confirmation and stored correction prevent
+  accidental duplicate backfills; voiding the correction reverses the credit.
+- **Flexible budgets:** allocate an expense over 1 to 36 months, starting in the
+  payment month or another selected month. Quarterly rent can span three months.
+  Cash-flow reporting and account balances retain the original payment date and
+  amount; allocated base-currency minor units sum exactly to the frozen amount.
+- An additive database migration runs after the application's normal encrypted
+  pre-migration backup. Existing transactions are not automatically allocated.
+
 ## What's new in 2.4.4
 
 - Record a new loan deposit into an account of the same currency as a transfer.

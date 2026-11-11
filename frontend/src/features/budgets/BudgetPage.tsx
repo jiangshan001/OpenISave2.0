@@ -17,6 +17,9 @@ export function BudgetPage() {
     <>
       <PageHeader title="Budget" subtitle={monthLabel(period.year, period.month)}
         actions={<PeriodPicker year={period.year} month={period.month} onChange={setPeriod} />} />
+      <p className="oi-muted">Budget spending includes any expenses spread across months.
+        Cash-flow reports continue to show the actual payment date. To spread an existing expense,
+        choose Budget allocation on its Transactions row.</p>
       <StateBoundary isLoading={isLoading} error={error} onRetry={() => void refetch()}>
         {data ? <>
           <OverallBudgetPanel key={`overall-${key}`} period={data} />

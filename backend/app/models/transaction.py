@@ -69,6 +69,10 @@ class Transaction(Base, TimestampMixin):
     external_transaction_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     classification_rule_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # Budget-only allocation. Cash flow remains on transaction_date.
+    budget_months: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    budget_start_month: Mapped[date | None] = mapped_column(Date, nullable=True)
+
     is_voided: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

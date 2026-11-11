@@ -1,10 +1,9 @@
 """Independent overall monthly limits and optional category budgets.
 
-Actual spending is always derived from the ledger -- it is never entered by the
-user -- and a budget on a parent category absorbs spending booked against its
-descendants. Overall actuals use the standard period expense aggregate exactly
-once, never the sum of overlapping category actuals. Legacy `total_*` fields
-remain category-only aggregates for compatibility.
+Actual spending is derived from the ledger. Expenses may optionally be spread
+across budget months without changing cash flow or account balances. A parent
+category absorbs spending booked against its descendants. Overall actuals count
+each eligible expense once; legacy `total_*` fields remain category-only.
 """
 
 from __future__ import annotations
@@ -14,6 +13,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError, ValidationError
@@ -21,6 +21,7 @@ from app.core.enums import TransactionType
 from app.core.logging import get_logger
 from app.core.money import BASE_CURRENCY
 from app.models.budget import Budget
+from app.models.transaction import Transaction
 from app.repositories.budgets import BudgetRepository
 from app.repositories.categories import CategoryRepository
 from app.repositories.transactions import TransactionRepository
@@ -81,17 +82,45 @@ class BudgetService:
         self.transactions = TransactionRepository(session)
 
     def actual_for_category(self, category_id: int, year: int, month: int) -> int:
-        start, end = month_bounds(year, month)
+        totals = self.allocated_expenses(year, month)
         ids = self.categories.subtree_ids(category_id)
-        return self.transactions.expense_total_for_categories(start, end, ids)
+        return sum(totals.get(item, 0) for item in ids)
+
+    def allocated_expenses(self, year: int, month: int) -> dict[int | None, int]:
+        """Budget amounts in base minor units, exactly conserving each expense."""
+        start, end = month_bounds(year, month)
+        target_index = year * 12 + month - 1
+        earliest_index = target_index - 35
+        earliest_year, earliest_month = divmod(earliest_index, 12)
+        earliest = date(earliest_year, earliest_month + 1, 1)
+        effective_start = func.coalesce(Transaction.budget_start_month, Transaction.transaction_date)
+        stmt = select(
+            Transaction.category_id, Transaction.base_amount_minor, Transaction.budget_months,
+            Transaction.budget_start_month, Transaction.transaction_date,
+        ).where(
+            Transaction.is_voided.is_(False),
+            Transaction.type == TransactionType.EXPENSE.value,
+            effective_start >= earliest,
+            effective_start <= end,
+        )
+        totals: dict[int | None, int] = {}
+        for category_id, amount, months, start_month, transaction_date in self.session.execute(stmt):
+            allocation_start = start_month or transaction_date
+            offset = target_index - (allocation_start.year * 12 + allocation_start.month - 1)
+            if not 0 <= offset < months:
+                continue
+            quotient, remainder = divmod(int(amount), months)
+            portion = quotient + int(offset < remainder)
+            totals[category_id] = totals.get(category_id, 0) + portion
+        return totals
 
     def get_period(self, year: int, month: int) -> BudgetPeriod:
-        start, end = month_bounds(year, month)
+        month_bounds(year, month)
         monthly = self.repo.monthly_for_period(year, month)
         limit = monthly.overall_limit_minor if monthly else None
-        # Reuse the standard ledger aggregate: each eligible expense exactly once,
-        # including uncategorised spending. Category overlap cannot affect it.
-        overall_actual = self.transactions.period_totals(start, end)[TransactionType.EXPENSE.value]
+        # Category overlap cannot affect the independently summed overall actual.
+        allocated = self.allocated_expenses(year, month)
+        overall_actual = sum(allocated.values())
         rows = self.repo.list_for_period(year, month)
         lines: list[BudgetLine] = []
         total_budget = 0
@@ -101,7 +130,7 @@ class BudgetService:
             if category is None:
                 continue
             parent = self.categories.get(category.parent_id) if category.parent_id else None
-            actual = self.actual_for_category(category.id, year, month)
+            actual = sum(allocated.get(item, 0) for item in self.categories.subtree_ids(category.id))
             percent = round(actual / row.amount_minor * 100, 1) if row.amount_minor else None
             lines.append(
                 BudgetLine(

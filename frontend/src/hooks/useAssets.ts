@@ -139,6 +139,20 @@ export function useRepayLiability(onDone?: () => void) {
   });
 }
 
+export function useRecordLiabilityReceipt(onDone?: () => void) {
+  const invalidate = useInvalidate();
+  const { message } = App.useApp();
+  return useMutation({
+    mutationFn: (input: { id: number; account_id: number; amount_minor: number; transaction_date: string }) =>
+      liabilitiesApi.recordReceipt(input.id, {
+        account_id: input.account_id, amount_minor: input.amount_minor,
+        transaction_date: input.transaction_date, confirm_missing: true,
+      }),
+    onSuccess: () => { invalidate(); message.success('Historical loan deposit recorded.'); onDone?.(); },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
 export function useDeleteLiability() {
   const invalidate = useInvalidate();
   const { message } = App.useApp();

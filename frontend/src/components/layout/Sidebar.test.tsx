@@ -18,14 +18,14 @@ function renderAt(path: string) {
   );
 }
 
-const PAGES = ['Overview', 'Transactions', 'Recurring', 'Accounts', 'Assets', 'Goals', 'Budget',
+const PAGES = ['Overview', 'Transactions', 'Recurring', 'Accounts', 'Assets', 'Loans & repayments', 'Goals', 'Budget',
   'Categories', 'Reports', 'Settings'];
 
 describe('Sidebar', () => {
   it('shows the released app version from package.json', () => {
     renderWithProviders(<Sidebar />);
     expect(screen.getByText(`Version ${packageJson.version}`)).toBeInTheDocument();
-    expect(packageJson.version).toBe('2.4.4');
+    expect(packageJson.version).toBe('2.4.5');
   });
 
   it('keeps the privacy status and a compact theme control in the footer', () => {
@@ -45,6 +45,7 @@ describe('Sidebar', () => {
 
     expect(selectedKey('/')).toBe('/');
     expect(selectedKey('/accounts/12')).toBe('/accounts');
+    expect(selectedKey('/loans')).toBe('/loans');
     expect(selectedKey('/transactions/import/wechat')).toBe('/transactions');
     expect(selectedKey('/nowhere')).toBe('/');
   });

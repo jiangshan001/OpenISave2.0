@@ -6,6 +6,7 @@ from app.models.currency import Currency
 from app.models.fx_rate import FxRate
 from app.models.goal import Goal, GoalAccount
 from app.models.liability import Liability
+from app.models.liability_receipt import LiabilityReceipt
 from app.models.posting import Posting
 from app.models.recurring import RecurringOccurrence, RecurringRule
 from app.models.setting import AppSetting
@@ -39,6 +40,7 @@ __all__ = [
     "Goal",
     "GoalAccount",
     "Liability",
+    "LiabilityReceipt",
     "Posting",
     "Transaction",
 ]

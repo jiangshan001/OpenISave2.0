@@ -5,6 +5,7 @@ import { AccountDetailPage } from '@/features/accounts/AccountDetailPage';
 import { AccountsPage } from '@/features/accounts/AccountsPage';
 import { AssetDetailPage } from '@/features/assets/AssetDetailPage';
 import { AssetsPage } from '@/features/assets/AssetsPage';
+import { LiabilitiesPage } from '@/features/assets/LiabilitiesPage';
 import { BudgetPage } from '@/features/budgets/BudgetPage';
 import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: 'accounts/:accountId', element: <AccountDetailPage /> },
       { path: 'assets', element: <AssetsPage /> },
       { path: 'assets/:assetId', element: <AssetDetailPage /> },
+      { path: 'loans', element: <LiabilitiesPage /> },
       { path: 'goals', element: <GoalsPage /> },
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'categories/rules', element: <RulesPage /> },

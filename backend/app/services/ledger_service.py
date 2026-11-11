@@ -148,6 +148,9 @@ class LedgerService:
                 f"Amount currency {currency} does not match account currency {account.currency}."
             )
         tx_date: date = data["transaction_date"]
+        budget_months = data.get("budget_months", 1)
+        budget_start = data.get("budget_start_month")
+        self._validate_budget_allocation(tx_type.value, budget_months, budget_start)
         kind = CategoryKind.INCOME if tx_type is TransactionType.INCOME else CategoryKind.EXPENSE
         category_id = self._validate_category(data.get("category_id"), kind)
 
@@ -171,6 +174,8 @@ class LedgerService:
             fx_rate_to_base=rate,
             fx_rate_date=rate_date,
             fx_source=source,
+            budget_months=budget_months,
+            budget_start_month=budget_start,
         )
         self._add_posting(
             transaction,
@@ -198,9 +203,11 @@ class LedgerService:
     def update_transaction(self, transaction_id: int, data: dict) -> Transaction:
         """Edit by rebuilding: the old record is voided and replaced atomically."""
         existing = self.get(transaction_id)
-        if existing.type == TransactionType.TRANSFER.value:
+        if existing.is_voided or existing.type not in (
+            TransactionType.EXPENSE.value, TransactionType.INCOME.value
+        ):
             raise ValidationError(
-                "Transfers cannot be edited in place. Void the transfer and create a new one."
+                "Only active income and expense transactions can be edited."
             )
         payload = {
             "type": data.get("type", existing.type),
@@ -212,6 +219,10 @@ class LedgerService:
             "note": data.get("note", existing.note),
             "category_id": data.get("category_id", existing.category_id),
             "fx_rate": data.get("fx_rate"),
+            "budget_months": data.get("budget_months", existing.budget_months)
+                if data.get("type", existing.type) == TransactionType.EXPENSE.value else 1,
+            "budget_start_month": data.get("budget_start_month", existing.budget_start_month)
+                if data.get("type", existing.type) == TransactionType.EXPENSE.value else None,
         }
         for field in PROVENANCE_FIELDS:
             payload[field] = getattr(existing, field)
@@ -223,6 +234,51 @@ class LedgerService:
         self._repoint_external_refs(existing.id, replacement.id)
         logger.info("transaction_replaced old=%s new=%s", existing.id, replacement.id)
         return replacement
+
+    @staticmethod
+    def _validate_budget_allocation(kind: str, months: int, start: date | None) -> None:
+        if type(months) is not int or not 1 <= months <= 36:
+            raise ValidationError("Budget allocation must cover 1 to 36 months.")
+        if start is not None and (not isinstance(start, date) or start.day != 1
+                                  or not 1900 <= start.year <= 2999):
+            raise ValidationError("Budget allocation must start on the first day of a valid month.")
+        if kind != TransactionType.EXPENSE.value and (months != 1 or start is not None):
+            raise ValidationError("Only expenses can be allocated across budget months.")
+
+    def set_budget_allocation(self, transaction_id: int, months: int, start: date | None) -> Transaction:
+        transaction = self.get(transaction_id)
+        if transaction.is_voided or transaction.type != TransactionType.EXPENSE.value:
+            raise ValidationError("Only an active expense can be allocated to a budget.")
+        self._validate_budget_allocation(transaction.type, months, start)
+        transaction.budget_months = months
+        transaction.budget_start_month = start
+        self.session.commit()
+        return transaction
+
+    def create_legacy_loan_receipt(
+        self, *, account_id: int, amount: int, tx_date: date, description: str
+    ) -> Transaction:
+        """Credit previously omitted cash against an opening-balance correction.
+
+        The debt was already recorded as an opening balance. A transfer from
+        that debt account would increase it twice. The balancing non-account
+        posting represents the correction to opening equity instead.
+        """
+        account = self.accounts.get_active(account_id)
+        base, rate, rate_date, source = self._freeze_base(amount, account.currency, tx_date, None)
+        transaction = Transaction(
+            type=TransactionType.ADJUSTMENT.value, transaction_date=tx_date,
+            description=description, account_id=account.id, amount_minor=amount,
+            currency=account.currency, base_currency=BASE_CURRENCY, base_amount_minor=base,
+            fx_rate_to_base=rate, fx_rate_date=rate_date, fx_source=source,
+            external_source="legacy_loan_receipt",
+        )
+        self._add_posting(transaction, account_id=account.id, category_id=None,
+                          amount_minor=amount, currency=account.currency, rate=rate)
+        self._add_posting(transaction, account_id=None, category_id=None,
+                          amount_minor=-amount, currency=account.currency, rate=rate)
+        self.repo.add(transaction)
+        return transaction
 
     # ------------------------------------------------------------ transfers
 

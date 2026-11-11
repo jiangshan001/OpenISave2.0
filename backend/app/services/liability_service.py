@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.enums import AccountType, LiabilityType, is_liability
@@ -20,6 +21,8 @@ from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.core.logging import get_logger
 from app.core.money import BASE_CURRENCY, is_supported
 from app.models.liability import Liability
+from app.models.liability_receipt import LiabilityReceipt
+from app.models.transaction import Transaction
 from app.repositories.assets import AssetRepository
 from app.repositories.liabilities import LiabilityRepository
 from app.services.account_service import AccountService
@@ -46,6 +49,7 @@ class LiabilityView:
     base_outstanding_minor: int | None
     fx_freshness: str
     linked_asset_names: list[str]
+    receipt_status: str
 
     @property
     def repaid_minor(self) -> int:
@@ -91,7 +95,25 @@ class LiabilityService:
             linked_asset_names=[
                 asset.name for asset in self.assets.linked_to_liability(liability.id)
             ],
+            receipt_status=self.receipt_status(liability),
         )
+
+    def receipt_status(self, liability: Liability) -> str:
+        marker = self.session.scalar(select(LiabilityReceipt).where(
+            LiabilityReceipt.account_id == liability.account_id
+        ))
+        if marker:
+            transaction = self.session.get(Transaction, marker.transaction_id)
+            if transaction and not transaction.is_voided:
+                return "recorded"
+        account = self.accounts.get(liability.account_id)
+        outgoing = self.session.scalar(select(Transaction.id).where(
+            Transaction.from_account_id == account.id, Transaction.type == "transfer",
+            Transaction.is_voided.is_(False),
+        ).limit(1))
+        if account.opening_balance_minor >= 0 or outgoing is not None:
+            return "unavailable"
+        return "available"
 
     def list_views(self) -> list[LiabilityView]:
         return [self.view(item) for item in self.repo.list()]
@@ -232,6 +254,12 @@ class LiabilityService:
         amount = int(data.get("amount_minor") or 0)
         if amount <= 0:
             raise ValidationError("A repayment must be greater than zero.")
+        source = self.accounts.get_active(from_account_id)
+        debt = self.accounts.get_active(liability.account_id)
+        if is_liability(source.account_type) or source.currency != debt.currency:
+            raise ValidationError("Choose a non-liability payment account in the same currency.")
+        if amount > self.view(liability).outstanding_minor:
+            raise ValidationError("A repayment cannot exceed the outstanding debt.")
         payment_date: date = data.get("transaction_date") or date.today()
         return {
             "from_account_id": from_account_id,
@@ -240,3 +268,30 @@ class LiabilityService:
             "transaction_date": payment_date,
             "description": data.get("description") or f"Repayment — {liability.name}",
         }
+
+    def record_legacy_receipt(self, liability_id: int, data: dict) -> Transaction:
+        liability = self.get(liability_id)
+        if self.ledger is None or self.receipt_status(liability) != "available":
+            raise ConflictError("This debt is not eligible for a historical deposit correction.")
+        destination = self.accounts.get_active(int(data["account_id"]))
+        debt = self.accounts.get_active(liability.account_id)
+        amount = int(data["amount_minor"])
+        if is_liability(destination.account_type) or destination.currency != debt.currency:
+            raise ValidationError("Choose a non-liability receiving account in the same currency.")
+        if amount <= 0 or amount > liability.original_amount_minor:
+            raise ValidationError("The deposit must be positive and no greater than the original loan.")
+        previous = self.session.scalar(select(LiabilityReceipt).where(
+            LiabilityReceipt.account_id == liability.account_id
+        ))
+        if previous:
+            self.session.delete(previous)
+            self.session.flush()
+        transaction = self.ledger.create_legacy_loan_receipt(
+            account_id=destination.id, amount=amount,
+            tx_date=data.get("transaction_date") or date.today(),
+            description=f"Historical loan deposit — {liability.name}",
+        )
+        self.session.add(LiabilityReceipt(account_id=liability.account_id,
+                                          liability_id=liability.id, transaction_id=transaction.id))
+        self.session.commit()
+        return transaction

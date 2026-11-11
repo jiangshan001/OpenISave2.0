@@ -12,6 +12,7 @@ import { TransactionFilters, type FilterState } from './components/TransactionFi
 import { TransactionFormModal } from './components/TransactionFormModal';
 import { TransactionTable } from './components/TransactionTable';
 import { TransferFormModal } from './components/TransferFormModal';
+import { BudgetAllocationModal } from './components/BudgetAllocationModal';
 
 const PAGE_SIZE = 25;
 
@@ -22,6 +23,7 @@ export function TransactionsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [allocating, setAllocating] = useState<Transaction | null>(null);
 
   const { data: accounts } = useAccounts(true);
   // Include archived categories so historical rows keep their names.
@@ -105,6 +107,7 @@ export function TransactionsPage() {
               setEditing(transaction);
               setFormOpen(true);
             }}
+            onAllocate={setAllocating}
             pagination={{
               total: query.data?.total ?? 0,
               pageSize: PAGE_SIZE,
@@ -124,6 +127,7 @@ export function TransactionsPage() {
         }}
       />
       <TransferFormModal open={transferOpen} onClose={() => setTransferOpen(false)} />
+      <BudgetAllocationModal transaction={allocating} onClose={() => setAllocating(null)} />
     </>
   );
 }

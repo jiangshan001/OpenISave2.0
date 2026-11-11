@@ -3,7 +3,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useState } from 'react';
 
 import { MoneyInput } from '@/components/forms/MoneyInput';
-import { useSaveLiability } from '@/hooks/useAssets';
+import { useLiabilities, useSaveLiability } from '@/hooks/useAssets';
 import { useAccounts } from '@/hooks/useLedger';
 import type { CurrencyCode } from '@/types';
 import type { Liability, LiabilityType } from '@/types/asset';
@@ -27,6 +27,7 @@ interface FormValues {
   original_amount?: number;
   outstanding_amount?: number;
   receipt_account_id?: number;
+  account_id?: number;
   start_date?: Dayjs | null;
   end_date?: Dayjs | null;
   interest_rate_percent?: number;
@@ -45,6 +46,8 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
   const [currency, setCurrency] = useState<CurrencyCode>('CNY');
   const save = useSaveLiability(onClose);
   const { data: accounts } = useAccounts();
+  const { data: existingLiabilities } = useLiabilities();
+  const existingAccountId = Form.useWatch('account_id', form);
   const isEdit = Boolean(liability);
 
   useEffect(() => {
@@ -81,8 +84,9 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
         liability_type: values.liability_type,
         currency: values.currency,
         receipt_account_id: isEdit ? undefined : values.receipt_account_id,
+        account_id: isEdit ? undefined : values.account_id,
         original_amount_minor: toMinor(values.original_amount ?? 0, values.currency),
-        outstanding_amount_minor: isEdit
+        outstanding_amount_minor: isEdit || values.account_id != null
           ? undefined
           : toMinor(values.outstanding_amount ?? values.original_amount ?? 0, values.currency),
         start_date: values.start_date ? toApiDate(values.start_date) : null,
@@ -119,6 +123,22 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
         }
       />
       <Form form={form} layout="vertical" requiredMark="optional">
+        {!isEdit ? <Form.Item name="account_id" label="Existing debt account"
+          extra="Optional: attach a debt account you already recorded. Its balance will be kept.">
+          <Select allowClear placeholder="Create a new debt account" options={(accounts ?? [])
+            .filter((item) => item.is_active && !item.is_archived && isLiabilityType(item.account_type) &&
+              !(existingLiabilities ?? []).some((debt) => debt.account_id === item.id))
+            .map((item) => ({ value: item.id, label: `${item.name} · ${item.currency}` }))}
+            onChange={(id: number | undefined) => {
+              const account = accounts?.find((item) => item.id === id);
+              if (account) {
+                setCurrency(account.currency);
+                form.setFieldsValue({ currency: account.currency, name: account.name,
+                  original_amount: Math.max(0, -toMajor(account.balance_minor, account.currency)),
+                  receipt_account_id: undefined });
+              }
+            }} />
+        </Form.Item> : null}
         <Row gutter={16}>
           <Col span={14}>
             <Form.Item
@@ -140,7 +160,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
           <Col span={8}>
             <Form.Item name="currency" label="Currency" rules={[{ required: true }]}>
               <Select
-                disabled={isEdit}
+                disabled={isEdit || existingAccountId != null}
                 onChange={(value: CurrencyCode) => {
                   setCurrency(value);
                   form.setFieldValue('receipt_account_id', undefined);
@@ -159,7 +179,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
             </Form.Item>
           </Col>
           <Col span={8}>
-            {!isEdit ? (
+            {!isEdit && existingAccountId == null ? (
               <Form.Item
                 name="outstanding_amount"
                 label="Owed right now"
@@ -180,7 +200,7 @@ export function LiabilityFormModal({ open, liability, onClose }: LiabilityFormMo
           </Col>
         </Row>
 
-        {!isEdit ? (
+        {!isEdit && existingAccountId == null ? (
           <Form.Item name="receipt_account_id" label="Deposit borrowed money into"
             extra="Choose only if the full loan deposit has not already been recorded. Record repayments separately.">
             <Select allowClear placeholder="Existing debt / no deposit to record" options={(accounts ?? [])

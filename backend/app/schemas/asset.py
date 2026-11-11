@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Literal
 from decimal import Decimal
 
 from pydantic import Field, field_validator, model_validator
@@ -218,6 +219,7 @@ class LiabilityRead(ApiModel):
     lender: str | None
     note: str | None
     linked_asset_names: list[str]
+    receipt_status: str = "unavailable"
     created_at: datetime
 
 
@@ -226,3 +228,10 @@ class LiabilityRepayment(ApiModel):
     amount_minor: int = Field(gt=0)
     transaction_date: date | None = None
     description: str | None = None
+
+
+class LiabilityReceiptCreate(ApiModel):
+    account_id: int
+    amount_minor: int = Field(gt=0)
+    transaction_date: date | None = None
+    confirm_missing: Literal[True]

@@ -1,6 +1,7 @@
 import {
   AppstoreOutlined,
   BankOutlined,
+  CreditCardOutlined,
   BarChartOutlined,
   FlagOutlined,
   GoldOutlined,
@@ -50,6 +51,7 @@ export const MAIN_ITEMS: NavItem[] = [
   { key: '/recurring', icon: <NavIcon motion="turn"><RetweetOutlined /></NavIcon>, label: 'Recurring' },
   { key: '/accounts', icon: <NavIcon motion="lift"><BankOutlined /></NavIcon>, label: 'Accounts' },
   { key: '/assets', icon: <NavIcon><GoldOutlined /></NavIcon>, label: 'Assets' },
+  { key: '/loans', icon: <NavIcon><CreditCardOutlined /></NavIcon>, label: 'Loans & repayments' },
 ];
 
 export const PLAN_ITEMS: NavItem[] = [

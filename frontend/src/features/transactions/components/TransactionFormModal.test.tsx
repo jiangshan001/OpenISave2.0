@@ -43,11 +43,25 @@ describe('TransactionFormModal usage ranking', () => {
     const user = setupUser();
     renderWithProviders(<TransactionFormModal open onClose={() => {}} />);
     await screen.findByText('Daily wallet · CNY');
-    await user.type(screen.getByRole('spinbutton'), '25');
+    await user.type(screen.getByRole('spinbutton', { name: 'Amount (CNY)' }), '25');
     await user.click(screen.getByRole('radio', { name: 'Income' }));
     expect(screen.getByText('Daily wallet · CNY')).toBeInTheDocument();
     expect(screen.getByRole('spinbutton')).toHaveValue('25.00');
     expect(screen.getByText('Amount (CNY)')).toBeInTheDocument();
+  });
+
+  it('submits a new expense with a three-month budget allocation', async () => {
+    const create = vi.spyOn(transactionsApi, 'create').mockResolvedValue({} as Transaction);
+    const user = setupUser();
+    renderWithProviders(<TransactionFormModal open onClose={() => {}} />);
+    await screen.findByText('Daily wallet · CNY');
+    await user.type(screen.getByRole('spinbutton', { name: 'Amount (CNY)' }), '9000');
+    const months = screen.getByRole('spinbutton', { name: 'Months' });
+    await user.clear(months);
+    await user.type(months, '3');
+    await user.click(screen.getByRole('button', { name: 'Record transaction' }));
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    expect(create.mock.calls[0][0]).toMatchObject({ amount_minor: 900000, budget_months: 3, budget_start_month: null });
   });
 
   it('waits for a delayed ranking without resetting what the user has entered', async () => {

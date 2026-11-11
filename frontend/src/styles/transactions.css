@@ -1,0 +1,7 @@
+.oi-transaction-compact-meta,
+.ant-tag.oi-transaction-compact-meta { display: none; }
+
+@media (max-width: 1199px) {
+  .oi-transaction-compact-meta,
+  .ant-tag.oi-transaction-compact-meta { display: inline-block; }
+}

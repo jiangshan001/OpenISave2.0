@@ -91,6 +91,8 @@ export interface Transaction {
   external_source?: string | null;
   external_transaction_id?: string | null;
   classification_rule_id?: number | null;
+  budget_months?: number;
+  budget_start_month?: string | null;
   is_voided: boolean;
   voided_at: string | null;
   created_at: string;

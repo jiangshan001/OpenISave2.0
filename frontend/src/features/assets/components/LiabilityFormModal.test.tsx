@@ -8,6 +8,7 @@ import { LiabilityFormModal } from './LiabilityFormModal';
 
 describe('new liability deposit', () => {
   beforeEach(() => {
+    vi.spyOn(liabilitiesApi, 'list').mockResolvedValue([]);
     vi.spyOn(accountsApi, 'list').mockResolvedValue([
       makeAccount({ id: 1, name: 'Bank CNY', currency: 'CNY' }),
       makeAccount({ id: 2, name: 'Bank GBP', currency: 'GBP' }),
@@ -48,5 +49,22 @@ describe('new liability deposit', () => {
     await user.click(screen.getByRole('button', { name: 'Add liability' }));
     expect(await screen.findByText(/For a new deposit, enter the original amount/)).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it('attaches an existing loan account without creating a new balance', async () => {
+    vi.spyOn(accountsApi, 'list').mockResolvedValue([
+      makeAccount({ id: 9, name: 'Old loan', account_type: 'loan', is_liability: true,
+        balance_minor: -2500000, opening_balance_minor: -3000000 }),
+    ]);
+    const create = vi.spyOn(liabilitiesApi, 'create').mockResolvedValue(makeLiability());
+    const user = setupUser();
+    renderWithProviders(<LiabilityFormModal open onClose={() => {}} />);
+    await user.click(screen.getAllByRole('combobox')[0]);
+    await waitFor(() => expect(screen.getByTitle('Old loan · CNY')).toBeInTheDocument());
+    await user.click(screen.getByTitle('Old loan · CNY'));
+    await user.click(screen.getByRole('button', { name: 'Add liability' }));
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    expect(create.mock.calls[0][0]).toMatchObject({ account_id: 9, original_amount_minor: 2500000 });
+    expect(create.mock.calls[0][0].receipt_account_id).toBeUndefined();
   });
 });

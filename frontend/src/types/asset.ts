@@ -87,5 +87,6 @@ export interface Liability {
   lender: string | null;
   note: string | null;
   linked_asset_names: string[];
+  receipt_status?: 'available' | 'recorded' | 'unavailable';
   created_at: string;
 }

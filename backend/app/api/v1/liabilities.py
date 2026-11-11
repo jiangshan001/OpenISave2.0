@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response
+from sqlalchemy import func, select
 
 from app.api.deps import LedgerDep, LiabilityDep
 from app.schemas.asset import (
     LiabilityCreate,
     LiabilityRead,
+    LiabilityReceiptCreate,
     LiabilityRepayment,
     LiabilityUpdate,
 )
 from app.schemas.transaction import TransactionRead
+from app.schemas.common import Page
+from app.models.transaction import Transaction
 from app.services.liability_service import LiabilityView
 
 router = APIRouter(prefix="/liabilities", tags=["liabilities"])
@@ -36,6 +40,7 @@ def _to_read(view: LiabilityView) -> LiabilityRead:
         lender=liability.lender,
         note=liability.note,
         linked_asset_names=view.linked_asset_names,
+        receipt_status=view.receipt_status,
         created_at=liability.created_at,
     )
 
@@ -74,6 +79,28 @@ def record_repayment(
     """A repayment is an ordinary transfer from cash into the debt account."""
     transfer = service.record_repayment(liability_id, payload.model_dump())
     return TransactionRead.model_validate(ledger.create_transfer(transfer))
+
+
+@router.get("/{liability_id}/repayments", response_model=Page[TransactionRead])
+def list_repayments(
+    liability_id: int, service: LiabilityDep,
+    limit: int = Query(default=25, ge=1, le=100), offset: int = Query(default=0, ge=0),
+) -> Page[TransactionRead]:
+    liability = service.get(liability_id)
+    conditions = (Transaction.type == "transfer", Transaction.to_account_id == liability.account_id,
+                  Transaction.is_voided.is_(False))
+    count = int(service.session.scalar(select(func.count(Transaction.id)).where(*conditions)) or 0)
+    rows = service.session.scalars(select(Transaction).where(*conditions)
+        .order_by(Transaction.transaction_date.desc(), Transaction.id.desc()).limit(limit).offset(offset))
+    return Page[TransactionRead](items=[TransactionRead.model_validate(row) for row in rows],
+                                 total=count, limit=limit, offset=offset)
+
+
+@router.post("/{liability_id}/receipt", response_model=TransactionRead, status_code=201)
+def record_legacy_receipt(
+    liability_id: int, payload: LiabilityReceiptCreate, service: LiabilityDep
+) -> TransactionRead:
+    return TransactionRead.model_validate(service.record_legacy_receipt(liability_id, payload.model_dump()))
 
 
 @router.delete("/{liability_id}", status_code=204, response_class=Response)

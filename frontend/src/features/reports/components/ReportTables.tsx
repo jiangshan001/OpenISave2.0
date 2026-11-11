@@ -120,7 +120,7 @@ export function BudgetVarianceTable({
   currency: CurrencyCode;
 }) {
   return (
-    <Card title="Budget vs actual" variant="borderless" styles={{ body: { padding: 0 } }}>
+    <Card title="Budget vs allocated spending" variant="borderless" styles={{ body: { padding: 0 } }}>
       <Table<DashboardBudgetLine>
         rowKey="category_id"
         size="small"

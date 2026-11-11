@@ -113,6 +113,19 @@ export function useSaveTransaction(onDone?: () => void) {
   });
 }
 
+export function useSaveBudgetAllocation(onDone?: () => void) {
+  const invalidate = useLedgerInvalidation();
+  const { message } = App.useApp();
+  return useMutation({
+    mutationFn: (input: { id: number; months: number; start_month: string | null }) =>
+      transactionsApi.setBudgetAllocation(input.id, {
+        months: input.months, start_month: input.start_month,
+      }),
+    onSuccess: () => { invalidate(); message.success('Budget allocation saved.'); onDone?.(); },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
 export function useCreateTransfer(onDone?: () => void) {
   const invalidate = useLedgerInvalidation();
   const { message } = App.useApp();

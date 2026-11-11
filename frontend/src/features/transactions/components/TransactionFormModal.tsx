@@ -1,4 +1,4 @@
-import { Col, DatePicker, Form, Input, Modal, Radio, Row, Select } from 'antd';
+import { Col, DatePicker, Form, Input, InputNumber, Modal, Radio, Row, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -20,6 +20,8 @@ interface FormValues {
   description: string;
   category_id?: number;
   note?: string;
+  budget_months?: number;
+  budget_start_month?: Dayjs | null;
 }
 
 interface TransactionFormModalProps {
@@ -72,6 +74,8 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
         description: transaction.description,
         category_id: transaction.category_id ?? undefined,
         note: transaction.note ?? undefined,
+        budget_months: transaction.budget_months ?? 1,
+        budget_start_month: transaction.budget_start_month ? dayjs(transaction.budget_start_month) : null,
       });
     } else {
       setType('expense');
@@ -80,6 +84,7 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
       form.setFieldsValue({
         type: 'expense',
         transaction_date: dayjs(),
+        budget_months: 1,
       });
     }
   }, [open, transaction, form]);
@@ -115,6 +120,9 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
         description: values.description?.trim() ?? '',
         category_id: values.category_id ?? null,
         note: values.note?.trim() || null,
+        budget_months: values.type === 'expense' ? values.budget_months ?? 1 : 1,
+        budget_start_month: values.type === 'expense' && values.budget_start_month
+          ? values.budget_start_month.startOf('month').format('YYYY-MM-DD') : null,
       },
     });
   };
@@ -198,6 +206,19 @@ export function TransactionFormModal({ open, transaction, onClose }: Transaction
           </Col>
         </Row>
 
+        {type === 'expense' ? <>
+          <div className="oi-form-section">Budget allocation</div>
+          <p className="oi-muted">Spread this expense over budget months. Cash flow stays on the payment date.</p>
+          <Row gutter={16}>
+            <Col span={12}><Form.Item name="budget_months" label="Months" rules={[{ required: true }]}>
+              <InputNumber className="oi-full" min={1} max={36} precision={0} />
+            </Form.Item></Col>
+            <Col span={12}><Form.Item name="budget_start_month" label="First budget month"
+              tooltip="Leave empty to start in the payment month.">
+              <DatePicker picker="month" className="oi-full" format="MMM YYYY" />
+            </Form.Item></Col>
+          </Row>
+        </> : null}
         <div className="oi-form-section">Details</div>
         <Form.Item name="description" label="Description">
           <Input placeholder={type === 'income' ? 'e.g. Salary' : 'e.g. Tesco'} />
