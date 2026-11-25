@@ -9,6 +9,22 @@ key is kept in Windows Credential Manager. Outbound requests fetch exchange rate
 (currency codes only), public update information and signed app update packages.
 Ledger data, account details and encryption keys stay on this computer.
 
+## What's new in 2.4.6
+
+- **Provident Fund income:** new ledgers and existing ledgers without an equivalent
+  income category get a Provident Fund category. Existing matching categories,
+  including Chinese names and archived categories, keep their history and state.
+- If Salary is recorded as the net amount paid into a bank account, record the
+  employee and employer contributions as Provident Fund income into a provident
+  fund account. This income is included in income and savings-rate reports even
+  though the fund may not be freely spendable.
+- For a fixed-term investment, use an investment account and transfer the principal
+  from the bank. When proceeds arrive, record the actual gain as Investment Income
+  (or Interest for a fixed deposit), then transfer the proceeds back. Transfers
+  do not count as income or spending. A loss entered as an expense is included in
+  the existing spending and overall budget totals. The app does not automatically
+  track valuations or maturity dates.
+
 ## What's new in 2.4.5
 
 - **Loans & repayments:** a dedicated page tracks each debt, records repayments

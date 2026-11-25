@@ -23,6 +23,9 @@ fn server(version: &str, body: Vec<u8>, requests: usize) -> (String, std::thread
                 std::thread::sleep(Duration::from_millis(5));
                 continue;
             };
+            // Accepted sockets can inherit the listener's nonblocking mode on
+            // Windows. Wait for the complete request before sending a response.
+            stream.set_nonblocking(false).unwrap();
             stream
                 .set_read_timeout(Some(Duration::from_secs(2)))
                 .unwrap();
@@ -94,7 +97,10 @@ fn download(version: &str, bytes: Vec<u8>) -> Result<Vec<u8>, tauri_plugin_updat
             .await
     });
     thread.join().unwrap();
-    assert!(total.load(Ordering::Relaxed) > 0);
+    assert!(
+        total.load(Ordering::Relaxed) > 0,
+        "Installer download did not start: {result:?}"
+    );
     result
 }
 

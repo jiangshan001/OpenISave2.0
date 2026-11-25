@@ -59,7 +59,14 @@ INCOME_CATEGORIES: list[str] = [
     "Refund",
     "Second-hand sales",
     "Other",
+    "Provident Fund",
 ]
+
+# Existing ledgers may already have a user-created category for the same
+# income. Respect its name, position and archived state instead of duplicating it.
+PROVIDENT_FUND_INCOME_NAMES = frozenset(
+    {"provident fund", "housing provident fund", "公积金", "住房公积金"}
+)
 
 
 def seed_currencies(session: Session) -> int:
@@ -116,8 +123,11 @@ def seed_categories(session: Session) -> int:
             created += 1
 
     income = _existing(session, CategoryKind.INCOME.value)
+    has_provident_fund = any(
+        row.name.strip().casefold() in PROVIDENT_FUND_INCOME_NAMES for row in income.values()
+    )
     for order, name in enumerate(INCOME_CATEGORIES):
-        if (name, None) in income:
+        if (name, None) in income or (name == "Provident Fund" and has_provident_fund):
             continue
         session.add(
             Category(name=name, kind=CategoryKind.INCOME.value, parent_id=None, sort_order=order)
